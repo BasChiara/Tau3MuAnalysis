@@ -10,6 +10,6 @@ make MonteCarlo plots
 make gen
 ./bin/analysisGenLevel data/MonteCarlo_2022preEE.txt 2022_preEE
 root -l -b
-[1] .L plots/plot_library.C
-[2] .x plots/makeMCstudies_plots.c
+root [0] .L plots/plot_library.C
+root [1] .x plots/makeMCstudies_plots.c
 ```
