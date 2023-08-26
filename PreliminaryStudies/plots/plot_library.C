@@ -1,0 +1,460 @@
+#include <iostream>
+
+#include <TFile.h>
+#include <TString.h>
+
+#include <TH1.h>
+#include <TH1F.h>
+#include <TTree.h>
+#include <TGraph.h>
+#include <TMultiGraph.h>
+
+#include <TStyle.h>
+#include <TCanvas.h>
+#include <TLegend.h>
+#include <TLatex.h>
+
+using namespace std;
+//https://root.cern.ch/root/htmldoc/guides/users-guide/Histograms.html
+//This macro contains following functions:
+// void draw_single_histogram(const TString histo_name)
+// void draw_two_histograms()
+// TGraph* makeROCcurve(TH1F* sigHist, TH1F* bkgHist){
+
+TString inRootFile_  = "../outRoot/MCstudiesT3m_2022_preEE.root"; 
+TString outPath_     = "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/";
+
+
+void SetInputFile(const TString& inFile = ""){
+
+  inRootFile_ = inFile;
+
+}//SetInputFile()
+
+void SetOutputFile(const TString& outPath = ""){
+
+  outPath_ = outPath;
+
+}//SetOutputFile()
+
+TFile* open_file(){
+    TFile* input_file = new TFile(inRootFile_);
+
+    if ( !input_file->IsOpen() ) {
+       std::cout << "ERROR IN OPENING FILE "<< inRootFile_ << std::endl;
+       exit(-1);
+    }
+
+    return input_file;
+}
+
+
+Color_t PtlColorMap(const TString& particle){
+
+  std::map <TString , Color_t> PtlColor{};
+  PtlColor["mu"] = kPink + 5;
+  PtlColor["muL"] = kAzure + 5;
+  PtlColor["muSL"] = kGreen + 5;
+  PtlColor["muT"] = kPink + 5;
+
+  PtlColor["Tau_vc"] = kRed;
+  PtlColor["Tau_wovc"] = kBlue;
+
+  PtlColor["PuppiMET"] = kViolet;
+  PtlColor["DeepMET"] = kGreen;
+
+  return PtlColor[particle];
+}
+
+
+TString CategoryLegend(const TString& category){
+
+  std::map <TString , TString> Leg_entry{};
+  Leg_entry["mu"] = "#mu";
+  Leg_entry["muL"] = "Leading #mu";
+  Leg_entry["muSL"] = "Sub-leading #mu";
+  Leg_entry["muT"] = "Trailing #mu";
+
+  Leg_entry["Tau_vc"] = "#tau";
+  Leg_entry["Tau_wovc"] = "#tau cand pre vtx costraint";
+
+  Leg_entry["PuppiMET"] = "Puppi MET";
+  Leg_entry["DeepMET"] = "Deep MET";
+
+  return Leg_entry[category];
+}
+
+void histoSetUp(TH1* histo, const TString& category, const TString& x_name, bool fill = true , bool norm = true){
+
+  //AXIS LABEL 
+  histo->GetXaxis()->SetTitle(x_name);
+  histo->GetXaxis()->SetTitleSize(0.04);
+  histo->GetXaxis()->SetLabelSize(0.035);
+  histo->GetYaxis()->SetTitle(Form("Events/ %.3f", histo->GetXaxis()->GetBinWidth(1)));
+  histo->GetYaxis()->SetTitleOffset(1.6);
+  histo->GetYaxis()->SetTitleSize(0.04);
+  histo->GetYaxis()->SetLabelSize(0.035);
+
+  //WIDTH & COLOR
+  histo->SetLineWidth(3);
+  histo->SetLineColor(PtlColorMap(category));
+  if (fill) histo->SetFillColorAlpha(PtlColorMap(category), 0.3);
+
+  //NORMALIZATION
+  if(norm )histo->Scale(1./histo->Integral());
+}
+
+TString pngName(TString histo_name){
+
+	TString pngName = outPath_ + histo_name + ".png";
+	return pngName;
+}
+TString pdfName(TString histo_name){
+
+	TString pdfName = outPath_ + histo_name + ".pdf";
+	return pdfName;
+}
+
+void CMSxxx(TCanvas* c){
+	c->cd();
+	TLatex RunDetails; RunDetails.SetNDC(); 
+	RunDetails.SetTextFont(61);
+	RunDetails.SetTextAlign(10);
+	RunDetails.SetTextSize(0.03);
+	RunDetails.DrawLatex(.10, .91, "CMS");
+	RunDetails.SetTextFont(52);
+	RunDetails.DrawLatex(.17, .91, "Simulation");
+	RunDetails.SetTextFont(42);
+	RunDetails.SetTextSize(0.025);
+	//RunDetails.DrawLatex(.70, .91, "41 fb^{-1} (13 TeV)");
+
+}
+
+int draw_one_histo(const TString& histo_name, const TString& category, const TString& x_name, TString out_name = "", bool LogY = false, bool fill = false){
+    
+    TFile* input_file = open_file();
+
+    TH1F* h = (TH1F*)input_file->Get(histo_name);
+    if ( !h ){
+    std::cout<< "null pointer for histogram named " << histo_name << std::endl;
+    exit(-1);
+    }
+    if (out_name == "") out_name = histo_name;
+
+    histoSetUp(h, category, x_name, fill);
+
+    auto legend = new TLegend(0.60,0.75,.80,.80);
+    legend->SetBorderSize(0);
+    legend->SetTextSize(0.035);
+    legend->AddEntry(h,CategoryLegend(category),"f");
+
+    //STATISTICS
+    gStyle->SetOptStat(0);
+
+    //TEXT
+
+    TCanvas* c1 = new TCanvas("c1","canvas", 1024,1024);
+    c1->DrawFrame(0,0,1,1);
+    h->Draw("HIST");
+    legend->Draw();
+    gPad->SetLeftMargin(0.13);
+    gPad->SetBottomMargin(0.13);
+    c1->Update(); 
+    if (out_name == "") out_name = histo_name;
+    if (LogY) c1->SetLogy();
+    else c1->SetLogy(0);
+    c1->SaveAs(pngName(out_name));
+    c1->SaveAs(pdfName(out_name));
+
+    input_file->Close();
+    return 0;
+
+}//draw_pT()
+
+
+int draw_two_histos(const TString histo1,const TString& category1, const TString histo2, const TString& category2, const TString& x_name, TString out_name = "", bool fill = false, bool LogY = false){
+
+    TFile* input_file = open_file();
+    TH1F* h1 = (TH1F*)input_file->Get(histo1);
+    TH1F* h2 = (TH1F*)input_file->Get(histo2);
+    if ( !h1 ){
+    std::cout<< "null pointer for histogram named " << histo1 << std::endl;
+    exit(-1);
+    }    
+    if ( !h2 ){
+    std::cout<< "null pointer for histogram named " << histo2 << std::endl;
+    exit(-1);
+    } 
+    if (out_name == "") out_name = histo1;
+
+    histoSetUp(h1, category1, x_name, fill);
+    histoSetUp(h2, category2, x_name, fill);
+    h1->GetYaxis()->SetTitle(Form("1/N dN/%.2f GeV", h1->GetXaxis()->GetBinWidth(1)));
+
+    //STATISTICS
+    gStyle->SetOptStat(0);
+
+    //SETMAXIMUM                                                                                                                                                                  
+    double M1 = h1->GetBinContent(h1->GetMaximumBin());
+    double M2 = h2->GetBinContent(h2->GetMaximumBin());
+    if (M1 > M2){ h1->SetMaximum(1.2*M1);
+    }else {h1->SetMaximum(1.2*M2);}
+
+    //LEGEND
+    auto legend = new TLegend(0.60,0.70,.90,.80);
+    legend->SetBorderSize(0);
+    legend->SetTextSize(0.035);
+    legend->AddEntry(h1, CategoryLegend(category1) ,"f");
+    legend->AddEntry(h2, CategoryLegend(category2) ,"f");
+
+    TString png_name = pngName(out_name);
+    TString pdf_name = pdfName(out_name);
+    TCanvas* c1 = new TCanvas("c1","canvas", 1024,1024);
+
+    h1->Draw("HIST");
+    h2->Draw("HIST SAME");
+    gPad->SetLeftMargin(0.13);
+    gPad->SetBottomMargin(0.13);
+    gPad->RedrawAxis();
+    legend->Draw();
+    if (LogY) c1->SetLogy();
+    else c1->SetLogy(0);
+    c1->SaveAs(png_name);
+    c1->SaveAs(pdf_name);
+
+    input_file->Close();
+
+    return 0;
+}
+
+int draw_many_histos(const std::vector<TString> histo_names,const std::vector<TString> categories, const TString& x_name, TString out_name = "", bool fill = false, bool LogY = false){
+
+    TFile* input_file = open_file();
+    TH1F* h1 = (TH1F*)input_file->Get(histo_names[0]);
+    if ( !h1 ){
+    std::cout<< "null pointer for histogram named " << histo_names[0] << std::endl;
+    exit(-1);
+    }    
+
+    // set canva
+    if (out_name == "") out_name = histo_names[0];
+    TString png_name = pngName(out_name);
+    TString pdf_name = pdfName(out_name);
+    TCanvas* c1 = new TCanvas("c1","canvas", 1024,1024);
+    //STATISTICS
+    gStyle->SetOptStat(0);
+    //LEGEND
+    auto legend = new TLegend(0.60,0.70,.90,.80);
+    legend->SetBorderSize(0);
+    legend->SetTextSize(0.035);
+
+    // draw the first histogram
+    histoSetUp(h1, categories[0], x_name, fill);
+    float thisMax = h1->GetBinContent(h1->GetMaximumBin());
+    legend->AddEntry(h1, CategoryLegend(categories[0]) ,"f");
+    float globalMax = thisMax;
+    h1->Draw("HIST");
+    TH1F* h;
+    
+    for (unsigned int i = 1; i < histo_names.size(); i++){
+        h = (TH1F*)input_file->Get(histo_names[i]);
+        if ( !h ){
+        std::cout<< "null pointer for histogram named " << histo_names[i] << std::endl;
+        exit(-1);
+        } 
+        histoSetUp(h, categories[i], x_name, fill);
+        //h1->GetYaxis()->SetTitle(Form("1/N dN/%.2f GeV", h1->GetXaxis()->GetBinWidth(1)));
+        thisMax = h->GetBinContent(h->GetMaximumBin()); 
+        if(thisMax>globalMax) globalMax = thisMax;                                                                                                                                                           
+        
+        legend->AddEntry(h, CategoryLegend(categories[i]) ,"f");
+        h->Draw("HIST SAME");
+    }
+    h1->SetMaximum(1.2*globalMax);
+    gPad->SetLeftMargin(0.13);
+    gPad->SetBottomMargin(0.13);
+    gPad->RedrawAxis();
+    legend->Draw();
+    if (LogY) c1->SetLogy();
+    else c1->SetLogy(0);
+    c1->Update();
+    c1->SaveAs(png_name);
+    c1->SaveAs(pdf_name);
+
+    input_file->Close();
+
+    return 0;
+}
+
+
+int draw_binary_histo(const TString h_MCmatch, const TString MC_category, const TString& title,TString out_name){
+
+    TFile* input_file = open_file();
+
+    TH1F* h1 = (TH1F*)input_file->Get(h_MCmatch);
+    
+    if ( !h1 ){
+        std::cout<< "null pointer for histogram named " << h_MCmatch << std::endl;
+        exit(-1);
+    }
+    
+
+    TString category1 = MC_category; //, category2 = Fk_category;
+    //SETUP
+    histoSetUp(h1, category1, title);
+    h1->GetYaxis()->SetRangeUser(0.01, 3.);
+    h1->GetXaxis()->SetBinLabel(1, "FALSE"); h1->GetXaxis()->SetBinLabel(2, "TRUE");
+
+    //STATISTICS
+    gStyle->SetOptStat(0);
+    gStyle->SetPaintTextFormat("1.2f");
+
+
+    //LEGEND
+    auto legend = new TLegend(0.62,0.8,.89,.89);
+    legend->SetBorderSize(0);
+    legend->AddEntry(h1, CategoryLegend(category1) ,"f");
+    //legend->AddEntry(h2, CategoryLegend(category2) ,"f");
+
+    TCanvas* c1 = new TCanvas("c1","canvas", 1024, 1024);
+    gPad->SetLogy();
+    h1->Draw("HIST TEXT0");
+    gPad->RedrawAxis();
+    gPad->SetMargin(0.12, 0.12, 0.1, 0.1);
+    //legend->Draw();
+
+    if (out_name == "") out_name = h_MCmatch;
+    c1->SaveAs(pngName(out_name));
+    c1->SaveAs(pdfName(out_name));
+    input_file->Close();
+
+    return 0;
+
+}
+
+
+void makeROCcurve(std::vector<TString> SGNhistos, std::vector<TString> BKGhistos, const TString out_name){
+
+  TFile* input_file = open_file();
+  TH1F* sigHist = new TH1F();
+  TH1F* bkgHist = new TH1F();
+  
+  int Nobservables = SGNhistos.size();
+  int nbins;  
+  float sig_integral = 0, bkg_integral = 0;
+  
+  TCanvas* c1 = new TCanvas("c1","canvas", 1024, 1024);
+  TGraph* vec_graph[Nobservables]; 
+  TMultiGraph *mg = new TMultiGraph();
+
+  //LEGEND
+  auto legend = new TLegend(0.50,0.15,.80,.30);
+  legend->SetBorderSize(0);
+  legend->SetTextSize(0.03);
+
+  for (int j = 0; j < Nobservables; j++){
+
+    sigHist = (TH1F*)input_file->Get(SGNhistos[j]);
+    bkgHist = (TH1F*)input_file->Get(BKGhistos[j]);
+
+    nbins = sigHist->GetNbinsX();
+    sig_integral = sigHist->Integral(1,nbins);
+    bkg_integral = bkgHist->Integral(1,nbins);
+    std::cout << "Histo number " << j << std::endl;
+    std::cout<<" total int  sig: "<<sig_integral<<" bkg: "<<bkg_integral<<std::endl;
+    std::vector<float> sigPoints(nbins);
+    std::vector<float> bkgPoints(nbins);
+    for ( int i = nbins; i > 0; i-- ) {
+      float sig_slice_integral = sigHist->Integral(i,nbins);
+      float bkg_slice_integral = bkgHist->Integral(i,nbins);
+      sigPoints.push_back(sig_slice_integral/sig_integral);
+      bkgPoints.push_back(bkg_slice_integral/bkg_integral);
+
+      std::cout<<i<<" "<<sig_slice_integral<<" "<<sig_slice_integral/sig_integral<<" "<<bkg_slice_integral<<" "<<bkg_slice_integral/bkg_integral<<std::endl;
+    }
+    
+    vec_graph[j] = new TGraph(sigPoints.size(),&bkgPoints[0], &sigPoints[0]);
+    vec_graph[j]->SetLineWidth(4);
+    vec_graph[j]->SetLineColor(2+j);
+    legend->AddEntry(vec_graph[j], SGNhistos[j], "l");
+    mg->Add(vec_graph[j]);
+    
+    std::cout <<"\n -------------------------\n" << std::endl;
+  } // on observables
+  //g->GetXaxis()->SetTitle("signal efficiency"); g->GetYaxis()->SetTitle("background efficiency");
+
+    c1->cd();
+    mg->Draw("AL");
+    mg->SetTitle("; background efficiency; signal efficiency");
+    legend->Draw();
+    c1->SaveAs(pngName(out_name));
+    c1->SaveAs(pdfName(out_name));
+  
+  input_file->Close();
+
+}
+
+
+
+
+void compare_years(const TString& tree_name, const TString branch_name, const TString& selection, const int Nbins = 100, const float xlow = 0., const float xhigh = 100, TString x_name = " ", TString out_name = " "){
+
+    //TFile* file_16preVFP = new TFile("outRoot/.root"); 
+    TFile* file_16       = new TFile("/eos/user/c/cbasile/B0toX3872K0s/data/CharmoniumUL_2016_blind.root");
+    TFile* file_17       = new TFile("/eos/user/c/cbasile/B0toX3872K0s/data/CharmoniumUL_2017_blind.root");
+    TFile* file_18       = new TFile("/eos/user/c/cbasile/B0toX3872K0s/data/CharmoniumUL_2018_blind.root");
+
+    //TTree* h_16preVFP = (TTree*)file_16preVFP->Get(tree_name);
+    TTree* t_16= (TTree*)file_16->Get(tree_name);
+    TH1F*  h_16= new TH1F("h_16", "", Nbins, xlow, xhigh);
+    t_16->Draw(branch_name+">>h_16", selection);
+    TTree* t_17= (TTree*)file_17->Get(tree_name);
+    TH1F*  h_17= new TH1F("h_17", "", Nbins, xlow, xhigh);
+    t_17->Draw(branch_name+">>h_17", selection);
+    TTree* t_18= (TTree*)file_18->Get(tree_name);
+    TH1F*  h_18= new TH1F("h_18", "", Nbins, xlow, xhigh);
+    t_18->Draw(branch_name+">>h_18", selection);
+
+    
+    //histoSetUp(TH1* histo, const TString& category, const TString& x_name, bool fill = true , bool norm = true)
+    //histoSetUp(h_16preVFP, "16preVFP", x_name, false, true);
+    if(x_name == " ") x_name = branch_name;
+    histoSetUp(h_16      , "16"      , x_name, false, true);
+    histoSetUp(h_17      , "17"      , x_name, false, true);
+    histoSetUp(h_18      , "18"      , x_name, false, true);
+
+    gStyle->SetOptStat(0);
+    gStyle->SetLineWidth(2);
+
+    //LEGEND                                                                                                                                                                    
+    auto legend = new TLegend(0.15,0.65,.40,.80);
+    legend->SetBorderSize(0);
+    legend->SetTextSize(0.035);
+    //legend->AddEntry(h_16preVFP,CategoryLegend("16preVFP"),"f");
+    legend->AddEntry(h_16,CategoryLegend("16"),"f");
+    legend->AddEntry(h_17,CategoryLegend("17"),"f");
+    legend->AddEntry(h_18,CategoryLegend("18"),"f");
+
+    TCanvas* c = new TCanvas("c", "", 800, 600);
+    gPad->SetLeftMargin(0.13);
+    gPad->SetBottomMargin(0.13);
+    //h_16preVFP->Draw("hist");
+    //h_16->SetMaximum(1.5*std::max( std::max(h_16preVFP->GetBinContent(h_16preVFP->GetMaximumBin()), h_16->GetBinContent(h_16->GetMaximumBin())) , 
+     //                                       std::max(h_17->GetBinContent(h_17->GetMaximumBin()), h_18->GetBinContent(h_18->GetMaximumBin()) ) ) ); 
+    h_16->SetMaximum(1.5*std::max( std::max(h_16->GetBinContent(h_16->GetMaximumBin()), h_17->GetBinContent(h_17->GetMaximumBin())) , 
+                                            std::max(h_17->GetBinContent(h_17->GetMaximumBin()), h_18->GetBinContent(h_18->GetMaximumBin()) ) ) ); 
+    h_16->Draw("hist");
+    h_17->Draw("same hist");
+    h_18->Draw("same hist");
+    legend->Draw();
+    if(out_name == " ") out_name = branch_name;
+    c->SaveAs("/eos/user/c/cbasile/www/B0toX3872K0s/HLT-emulation/FullRun2_data/"+ out_name + ".png");
+    c->SaveAs("/eos/user/c/cbasile/www/B0toX3872K0s/HLT-emulation/FullRun2_data/"+ out_name + ".pdf");
+
+
+    //file_16preVFP->Close();
+    file_16->Close();
+    file_17->Close();
+    file_18->Close();
+
+}//compare_years()
