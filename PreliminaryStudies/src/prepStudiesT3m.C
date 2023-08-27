@@ -60,14 +60,35 @@ void prepStudiesT3m::Loop(){
             h_MuLeading_eta->Fill(TauTo3Mu_mu1_eta[t]);
             h_MuSubLeading_eta->Fill(TauTo3Mu_mu2_eta[t]);
             h_MuTrailing_eta->Fill(TauTo3Mu_mu3_eta[t]);
+            h_Mu_Dz12->Fill(TauTo3Mu_dZmu12[t]);
+            h_Mu_Dz23->Fill(TauTo3Mu_dZmu23[t]);
+            h_Mu_Dz13->Fill(TauTo3Mu_dZmu13[t]);
 
             // Tau -> 3mu
             h_nTau->Fill(nTauTo3Mu);
             h_Tau_fit_M->Fill(TauTo3Mu_fitted_vc_mass[t]);
             h_Tau_fit_pT->Fill(TauTo3Mu_fitted_vc_pt[t]);
+            h_Tau_fit_eta->Fill(RecoTau_P4.Eta());
             h_Tau_relIso->Fill(TauTo3Mu_absIsolation[t]/TauTo3Mu_fitted_vc_pt[t]);
             h_Tau_fitNoVtx_M->Fill(TauTo3Mu_fitted_wovc_mass[t]);
             h_LxySign_BSvtx->Fill(TauTo3Mu_sigLxy_3muVtxBS[t]);
+            h_Tau_Mt->Fill(TauTo3Mu_mT[t]);
+            h_Tau_Pvtx->Fill(TauTo3Mu_vtx_prob[t]);
+            h_Tau_cosAlpha_BS->Fill(TauTo3Mu_CosAlpha2D_LxyP3mu[t]);
+
+            float Dphi_MET = fabs(RecoTau_P4.Phi()- DeepMETResolutionTune_phi);
+            if (Dphi_MET > 2*M_PI) Dphi_MET = 2*M_PI - Dphi_MET;
+            h_DPhi_TauDeepMET->Fill(Dphi_MET);
+            Dphi_MET = fabs(RecoTau_P4.Phi()- PuppiMET_phi);
+            if (Dphi_MET > 2*M_PI) Dphi_MET = 2*M_PI - Dphi_MET;
+            h_DPhi_TauPunziMET->Fill(Dphi_MET);
+            h_TauPt_DeepMET->Fill(RecoTau_P4.Pt()/DeepMETResolutionTune_pt);
+            h_TauPt_PunziMET->Fill(RecoTau_P4.Pt()/PuppiMET_pt);
+            h_missPz_min->Fill(TauPlusMET_DeepMETminPz[t]);
+            h_missPz_max->Fill(TauPlusMET_DeepMETmaxPz[t]);
+
+            // W
+            h_W_pT->Fill(TauPlusMET_pt[t]);
             
         }// loop on tau cands
     }// loop on events
@@ -99,14 +120,29 @@ void prepStudiesT3m::saveOutput(){
     h_MuLeading_eta->Write();
     h_MuSubLeading_eta->Write();
     h_MuTrailing_eta->Write();
-
+    h_Mu_Dz12->Write();
+    h_Mu_Dz23->Write();
+    h_Mu_Dz13->Write();
     h_nTau->Write();
     h_Tau_fit_M->Write();
     h_Tau_fit_pT->Write();
+    h_Tau_fit_eta->Write();
     h_Tau_fitNoVtx_M->Write();
     h_Tau_relIso->Write();
     h_LxySign_BSvtx->Write();
     h_diMuon_Mass->Write();
+    h_Tau_Mt->Write();
+    h_Tau_Pvtx->Write();
+    h_Tau_cosAlpha_BS->Write();
+
+    h_DPhi_TauDeepMET->Write();
+    h_DPhi_TauPunziMET->Write();
+    h_TauPt_DeepMET->Write();
+    h_TauPt_PunziMET->Write();
+    h_missPz_min->Write();
+    h_missPz_max->Write();
+
+    h_W_pT->Write();
 
     outFile_->Close();
     std::cout << " [OUTPUT] root file saved in " << outFilePath_ << std::endl;
