@@ -52,16 +52,18 @@ TFile* open_file(){
 Color_t PtlColorMap(const TString& particle){
 
   std::map <TString , Color_t> PtlColor{};
-  PtlColor["mu"] = kPink + 5;
-  PtlColor["muL"] = kAzure + 5;
-  PtlColor["muSL"] = kGreen + 5;
-  PtlColor["muT"] = kPink + 5;
+  PtlColor["mu"]    = kPink + 4;
+  PtlColor["muL"]   = kBlue + 2;
+  PtlColor["muSL"]  = kGreen + 2;
+  PtlColor["muT"]   = kOrange + 1;
 
-  PtlColor["Tau_vc"] = kRed;
+  PtlColor["Tau_vc"]   = kRed - 7;
   PtlColor["Tau_wovc"] = kBlue;
 
-  PtlColor["PuppiMET"] = kViolet;
-  PtlColor["DeepMET"] = kGreen;
+  PtlColor["PuppiMET"] = kViolet + 2;
+  PtlColor["DeepMET"] = kCyan +2;
+
+  PtlColor["W"] = kOrange;
 
   return PtlColor[particle];
 }
@@ -71,15 +73,17 @@ TString CategoryLegend(const TString& category){
 
   std::map <TString , TString> Leg_entry{};
   Leg_entry["mu"] = "#mu";
-  Leg_entry["muL"] = "Leading #mu";
-  Leg_entry["muSL"] = "Sub-leading #mu";
-  Leg_entry["muT"] = "Trailing #mu";
+  Leg_entry["muL"] = "leading #mu";
+  Leg_entry["muSL"] = "sub-leading #mu";
+  Leg_entry["muT"] = "trailing #mu";
 
-  Leg_entry["Tau_vc"] = "#tau";
-  Leg_entry["Tau_wovc"] = "#tau cand pre vtx costraint";
+  Leg_entry["Tau_vc"] = "3 #mu refit";
+  Leg_entry["Tau_wovc"] = "3 #mu NOrefit";
 
-  Leg_entry["PuppiMET"] = "Puppi MET";
-  Leg_entry["DeepMET"] = "Deep MET";
+  Leg_entry["PuppiMET"] = "PuppiMET";
+  Leg_entry["DeepMET"] = "DeepMET";
+  Leg_entry["W"] = "W cand";
+
 
   return Leg_entry[category];
 }
@@ -96,7 +100,7 @@ void histoSetUp(TH1* histo, const TString& category, const TString& x_name, bool
   histo->GetYaxis()->SetLabelSize(0.035);
 
   //WIDTH & COLOR
-  histo->SetLineWidth(3);
+  histo->SetLineWidth(2);
   histo->SetLineColor(PtlColorMap(category));
   if (fill) histo->SetFillColorAlpha(PtlColorMap(category), 0.3);
 
@@ -142,6 +146,7 @@ int draw_one_histo(const TString& histo_name, const TString& category, const TSt
     if (out_name == "") out_name = histo_name;
 
     histoSetUp(h, category, x_name, fill);
+    h->SetMaximum(1.3*h->GetBinContent(h->GetMaximumBin()));
 
     auto legend = new TLegend(0.60,0.75,.80,.80);
     legend->SetBorderSize(0);
@@ -198,7 +203,7 @@ int draw_two_histos(const TString histo1,const TString& category1, const TString
     double M1 = h1->GetBinContent(h1->GetMaximumBin());
     double M2 = h2->GetBinContent(h2->GetMaximumBin());
     if (M1 > M2){ h1->SetMaximum(1.2*M1);
-    }else {h1->SetMaximum(1.2*M2);}
+    }else {h1->SetMaximum(1.4*M2);}
 
     //LEGEND
     auto legend = new TLegend(0.60,0.70,.90,.80);
@@ -270,7 +275,7 @@ int draw_many_histos(const std::vector<TString> histo_names,const std::vector<TS
         legend->AddEntry(h, CategoryLegend(categories[i]) ,"f");
         h->Draw("HIST SAME");
     }
-    h1->SetMaximum(1.2*globalMax);
+    h1->SetMaximum(1.4*globalMax);
     gPad->SetLeftMargin(0.13);
     gPad->SetBottomMargin(0.13);
     gPad->RedrawAxis();
