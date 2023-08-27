@@ -1,5 +1,5 @@
 # Text files
-*.txt
+#*.txt
 
 # Multimedia
 *.pdf
@@ -9,6 +9,9 @@
 # py cache
 */__init__.py
 */__pycache__/*
+
+# vscode cache
+*.vscode
 
 # Prerequisites
 *.d
