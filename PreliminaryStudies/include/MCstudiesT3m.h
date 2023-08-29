@@ -42,6 +42,10 @@ class MCstudiesT3m : public MCTau3Mu_base{
    TH1F* h_Mu_TightID_BS= new TH1F("Mu_TightID_BS", "", 2, -0.5, 1.5);
 
    // muons kinematics
+   TH1F* h_gen_MuLeading_pT = new TH1F("gen_MuLeading_pT", "", 50, 0, 50);
+   TH1F* h_gen_MuSubLeading_pT = new TH1F("gen_MuSubLeading_pT", "", 50, 0, 50);
+   TH1F* h_gen_MuTrailing_pT = new TH1F("gen_MuTrailing_pT", "", 50, 0, 50);
+
    TH1F* h_MuLeading_pT = new TH1F("MuLeading_pT", "", 50, 0, 50);
    TH1F* h_MuSubLeading_pT = new TH1F("MuSubLeading_pT", "", 50, 0, 50);
    TH1F* h_MuTrailing_pT = new TH1F("MuTrailing_pT", "", 50, 0, 50);
@@ -55,6 +59,10 @@ class MCstudiesT3m : public MCTau3Mu_base{
    TH1F* h_Mu_Dz13 = new TH1F("Mu_Dz13", "", 40, 0, 0.4);
 
   // Tau
+   TH1F* h_gen_Tau_M = new TH1F("gen_Tau_M", "", 50, 1.6, 2.0);
+   TH1F* h_gen_Tau_pT = new TH1F("gen_Tau_pT", "", 40, 10, 100);
+   TH1F* h_gen_Tau_eta = new TH1F("gen_Tau_eta", "", 70, -3.5, 3.5);
+
    TH1F* h_nTau = new TH1F("nTau", "", 10, -0.5, 9.5);
    TH1F* h_Tau_fit_M = new TH1F("Tau_fit_M", "", 50, 1.6, 2.0);
    TH1F* h_Tau_fit_pT = new TH1F("Tau_fit_pT", "", 40, 10, 100);
@@ -90,6 +98,7 @@ class MCstudiesT3m : public MCTau3Mu_base{
 
   // W cand
   TH1F* h_W_pT = new TH1F("W_pT", "", 40, 0, 150);
+  TH1F* h_gen_W_pT = new TH1F("gen_W_pT", "", 40, 0, 150);
 
 
 

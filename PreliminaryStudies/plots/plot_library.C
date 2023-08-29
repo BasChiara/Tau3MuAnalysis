@@ -58,12 +58,14 @@ Color_t PtlColorMap(const TString& particle){
   PtlColor["muT"]   = kOrange + 1;
 
   PtlColor["Tau_vc"]   = kRed - 7;
+  PtlColor["Tau_gen"]  = kBlack;
   PtlColor["Tau_wovc"] = kBlue;
 
   PtlColor["PuppiMET"] = kViolet + 2;
   PtlColor["DeepMET"] = kCyan +2;
 
   PtlColor["W"] = kOrange;
+  PtlColor["W_gen"] = kBlack;
 
   return PtlColor[particle];
 }
@@ -78,11 +80,13 @@ TString CategoryLegend(const TString& category){
   Leg_entry["muT"] = "trailing #mu";
 
   Leg_entry["Tau_vc"] = "3 #mu refit";
-  Leg_entry["Tau_wovc"] = "3 #mu NOrefit";
+  Leg_entry["Tau_gen"] = "#tau gen-level";
+  Leg_entry["Tau_wovc"] = "3 #mu pre-refit";
 
   Leg_entry["PuppiMET"] = "PuppiMET";
   Leg_entry["DeepMET"] = "DeepMET";
-  Leg_entry["W"] = "W cand";
+  Leg_entry["W"] = "W reco-level";
+  Leg_entry["W_gen"] = "W gen-level";
 
 
   return Leg_entry[category];
@@ -100,7 +104,7 @@ void histoSetUp(TH1* histo, const TString& category, const TString& x_name, bool
   histo->GetYaxis()->SetLabelSize(0.035);
 
   //WIDTH & COLOR
-  histo->SetLineWidth(2);
+  histo->SetLineWidth(3);
   histo->SetLineColor(PtlColorMap(category));
   if (fill) histo->SetFillColorAlpha(PtlColorMap(category), 0.3);
 
