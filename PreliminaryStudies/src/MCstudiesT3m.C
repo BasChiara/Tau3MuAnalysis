@@ -43,6 +43,7 @@ void MCstudiesT3m::Loop(){
                     TauTo3Mu_mu2_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 &&
                     TauTo3Mu_mu3_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1) ) continue;
             nTriggerFired3Mu++;
+            h_nTau->Fill(nTauTo3Mu);
 
             // veto diMuonResonances
             if (TauTo3Mu_diMuVtxFit_bestProb[t] > 0) h_diMuon_Mass->Fill(TauTo3Mu_diMuVtxFit_bestMass[t]);
@@ -51,6 +52,17 @@ void MCstudiesT3m::Loop(){
 
             if( t != TauTo3Mu_MCmatch_idx) continue;
             nTauMCmatched++;
+
+            // GENERATOR-LEVEL
+            h_gen_MuLeading_pT->Fill(GenMu1_P4.Pt());
+            h_gen_MuSubLeading_pT->Fill(GenMu2_P4.Pt());
+            h_gen_MuTrailing_pT->Fill(GenMu3_P4.Pt());
+
+            h_gen_Tau_M->Fill(GenTau_P4.M());
+            h_gen_Tau_pT->Fill(GenTau_P4.Pt());
+            h_gen_Tau_eta->Fill(GenTau_P4.Eta());
+
+            h_gen_W_pT->Fill(GenW_P4.Pt());
 
             // muonsID
             h_Mu_MediumID->Fill(Muon_isMedium[TauTo3Mu_mu1_idx[t]]); h_Mu_MediumID->Fill(Muon_isMedium[TauTo3Mu_mu2_idx[t]]); h_Mu_MediumID->Fill(Muon_isMedium[TauTo3Mu_mu3_idx[t]]);
@@ -70,7 +82,6 @@ void MCstudiesT3m::Loop(){
             h_Mu_Dz13->Fill(TauTo3Mu_dZmu13[t]);
 
             // Tau -> 3mu
-            h_nTau->Fill(nTauTo3Mu);
             h_Tau_fit_M->Fill(TauTo3Mu_fitted_vc_mass[t]);
             h_Tau_fit_pT->Fill(RecoTau_P4.Pt());
             h_Tau_fit_eta->Fill(RecoTau_P4.Eta());
@@ -198,6 +209,16 @@ void MCstudiesT3m::saveOutput(){
 
     outFile_ = new TFile(outFilePath_, "RECREATE");
     outFile_->cd();
+
+    h_gen_MuLeading_pT->Write();
+    h_gen_MuSubLeading_pT->Write();
+    h_gen_MuTrailing_pT->Write();
+    h_gen_Tau_M->Write();
+    h_gen_Tau_pT->Write();
+    h_gen_Tau_eta->Write();
+    h_gen_W_pT->Write();
+
+
     h_Mu_MediumID->Write();
     h_Mu_SoftID->Write();
     h_Mu_SoftID_BS->Write();

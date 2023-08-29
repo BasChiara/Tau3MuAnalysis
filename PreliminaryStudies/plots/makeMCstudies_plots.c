@@ -7,7 +7,7 @@
     gStyle->SetPadTickX(1);
     gStyle->SetPadTickY(1);
 
-    SetInputFile("../outRoot/MCstudiesT3m_2022_preEE.root");
+    SetInputFile("../outRoot/MCstudiesT3m_MC_2022preEE.root");
     SetOutputFile("/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/");
 
     draw_binary_histo("Mu_MediumID", "mu", "#mu mediumID", "Mu_MediumID");
@@ -19,6 +19,9 @@
     draw_many_histos({"MuLeading_pT", "MuSubLeading_pT", "MuTrailing_pT"}, 
                      {"muL", "muSL", "muT"},
                      "p_{T}(#mu) (GeV)", "Muons_pT", true);
+    draw_many_histos({"gen_MuLeading_pT", "gen_MuSubLeading_pT", "gen_MuTrailing_pT"}, 
+                     {"muL", "muSL", "muT"},
+                     "p_{T}(#mu) (GeV)", "GenMuons_pT", true);                 
     draw_many_histos({"MuLeading_eta", "MuSubLeading_eta", "MuTrailing_eta"}, 
                      {"muL", "muSL", "muT"},
                      "#eta(#mu)", "Muons_eta", true);   
@@ -28,8 +31,8 @@
 
     // TAU PLOTS
     draw_two_histos("Tau_fitNoVtx_M", "Tau_wovc", "Tau_fit_M", "Tau_vc", "M(3#mu) (GeV)", "Tau_mass");
-    draw_one_histo("Tau_fit_pT", "Tau_vc", "p_{T}(3#mu) (GeV)", "Tau_fitted_pT");
-    draw_one_histo("Tau_fit_eta", "Tau_vc", "#eta (3#mu)", "Tau_fitted_pT");
+    draw_two_histos("Tau_fit_pT", "Tau_vc", "gen_Tau_eta", "Tau_gen","p_{T}(3#mu) (GeV)", "Tau_pT");
+    draw_two_histos("Tau_fit_eta", "Tau_vc", "gen_Tau_eta", "Tau_gen", "#eta (3#mu)", "Tau_eta");
     draw_one_histo("Tau_relIso","Tau_vc", "rel-iso 3#mu");
     draw_one_histo("LxySign_BSvtx", "Tau_vc", "L_{xy}(BS;3#mu-vtx)/#sigma");
     draw_one_histo("nTau", "Tau_vc", "3#mu candidates per event", "nTau", true, true);
@@ -51,6 +54,6 @@
     draw_one_histo("missPz_max", "DeepMET", "max #n p_{z} (GeV)");
 
 
-    draw_one_histo("W_pT", "W", "p_{T}(W) (GeV)");
+    draw_two_histoa("W_pT", "W", "gen_W_pT", "W_gen", "p_{T}(W) (GeV)");
 
 }
