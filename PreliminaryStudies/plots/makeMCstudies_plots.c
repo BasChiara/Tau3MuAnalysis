@@ -32,10 +32,10 @@
     draw_one_histo("Tau_fit_eta", "Tau_vc", "#eta (3#mu)", "Tau_fitted_pT");
     draw_one_histo("Tau_relIso","Tau_vc", "rel-iso 3#mu");
     draw_one_histo("LxySign_BSvtx", "Tau_vc", "L_{xy}(BS;3#mu-vtx)/#sigma");
-    draw_one_histo("nTau", "Tau_vc", "3#mu candidates per event", "nTau", true);
+    draw_one_histo("nTau", "Tau_vc", "3#mu candidates per event", "nTau", true, true);
     draw_one_histo("Tau_Mt", "Tau_vc", "m_{T}(3#mu)", "Tau_Mt");
     draw_one_histo("Tau_Pvtx", "Tau_vc", "3#mu vtx probability");
-    draw_one_histo("Tau_cosAlpha_BS", "Tau_vc", "cos_{#alpha}(3#mu vtx, BS)", "nTau", true);
+    draw_one_histo("Tau_cosAlpha_BS", "Tau_vc", "cos_{#alpha}(3#mu vtx, BS)", "Tau_cosAlpha_BS", true);
 
     // MET PLOTS
     draw_two_histos("diffGenPuppiMET", "PuppiMET", "diffGenDeepMET", "DeepMET", "genMET - recoMET (GeV)", "diffGenMET");

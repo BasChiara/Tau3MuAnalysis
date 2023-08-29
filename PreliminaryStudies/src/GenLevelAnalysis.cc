@@ -19,7 +19,10 @@ TChain* TChainLoader(const std::string& inputFileName) {
    ifstream *inputFile = new ifstream(inputFileName);
    if (inputFile != nullptr) 
       std::cout << " ... [INPUT] " << inputFileName << std::endl;
-   
+   else{
+		std::cout << " [ERROR] cannot open " << inputFileName << std::endl;
+		exit(-1);
+	}
    char Buffer[5000];
    char cDirPath[10000];
    while( !(inputFile->eof()) ){
