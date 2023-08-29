@@ -160,6 +160,7 @@ def main():
         srcfile.write(opt.application+' '+icfgfilename+' '+outdirtmp+' '+job_tag+' '+str(Nf)+' \n')
         if(opt.eos!=''):    
             outdireos = opt.eos+dataset+'/'
+            if not (os.path.isdir(outdireos)): os.system('mkdir -p '+outdireos)
             srcfile.write('cp '+rootoutputfile+' '+ outdireos +'\n')
             srcfile.write('rm '+rootoutputfile)
             print " output saved in final destination : " + outdireos
