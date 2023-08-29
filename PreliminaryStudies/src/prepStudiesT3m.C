@@ -3,7 +3,7 @@
 prepStudiesT3m::prepStudiesT3m(TTree *tree, const TString & outdir, const TString & tags) : Tau3Mu_base(tree){
 
     tags_ = tags;
-    if (tags_.Contains("data",TString::kIgnoreCase )) isBlind_ = true;
+    if (tags_.Contains("data",TString::kIgnoreCase ) || tags_.Contains("ParkingDoubleMuonLowMass",TString::kIgnoreCase )) isBlind_ = true;
     else isBlind_ = false;
     outFilePath_ = outdir + "/recoKinematicsT3m_"+ tags_ + ".root";
 
