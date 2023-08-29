@@ -6,13 +6,17 @@
 class prepStudiesT3m : public Tau3Mu_base{
 
 public:
- prepStudiesT3m(TTree *tree=0, const TString & tags = "2022_preEE");
+ prepStudiesT3m(TTree *tree=0, const TString & outdir = "./outRoot", const TString & tags = "2022_preEE");
  virtual ~prepStudiesT3m(){}
 
  void    Loop();
  void    saveOutput();
 
 private:
+  bool isBlind_;
+  float blindTauMass_low = 1.74;
+  float blindTauMass_high = 1.82;
+
  TString tags_;
 
  TString outFilePath_;

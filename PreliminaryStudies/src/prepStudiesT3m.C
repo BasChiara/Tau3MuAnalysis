@@ -1,9 +1,12 @@
 #include "../include/prepStudiesT3m.h"
 
-prepStudiesT3m::prepStudiesT3m(TTree *tree, const TString & tags) : Tau3Mu_base(tree){
+prepStudiesT3m::prepStudiesT3m(TTree *tree, const TString & outdir, const TString & tags) : Tau3Mu_base(tree){
 
     tags_ = tags;
-    outFilePath_ = "./outRoot/DATAstudiesT3m_"+ tags_ + ".root";
+    if (tags_.Contains("data",TString::kIgnoreCase )) isBlind_ = true;
+    else isBlind_ = false;
+    outFilePath_ = outdir + "/recoKinematicsT3m_"+ tags_ + ".root";
+
 
 }//prepStudiesT3m()
 
@@ -13,9 +16,9 @@ void prepStudiesT3m::Loop(){
 
    Long64_t nentries = fChain->GetEntriesFast();
    int Nevents = 0;
-   std::cout << "...in the Loop()"<< std::endl;
+   std::cout << " ...in the Loop()"<< std::endl;
    const Long64_t Nbreak = nentries + 10; 
-   const Long64_t Nprint = 1;//(int)(nentries/20.);
+   const Long64_t Nprint = (int)(nentries/20.);
    unsigned int nTriggerBit = 0, nTriggerFired3Mu = 0, nTauDiMuonVeto = 0;
 
 
@@ -36,6 +39,8 @@ void prepStudiesT3m::Loop(){
         for(unsigned int t = 0; t < nTauTo3Mu; t++){
 
             if(!RecoPartFillP4(t)) continue;
+            // blind if needed
+            if(isBlind_ && RecoTau_P4.M() > blindTauMass_low && RecoTau_P4.M() < blindTauMass_high ) continue;
             // check if the 3 muons fired the trigger
             if( !(TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 &&
                     TauTo3Mu_mu2_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 &&
