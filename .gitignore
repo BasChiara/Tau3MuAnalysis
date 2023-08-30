@@ -13,6 +13,9 @@
 */__init__.py
 */__pycache__/*
 
+# condor
+*/cbasile.cc
+
 # vscode cache
 *.vscode
 
