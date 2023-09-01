@@ -83,6 +83,7 @@ void MCstudiesT3m::Loop(){
 
             // Tau -> 3mu
             h_Tau_fit_M->Fill(TauTo3Mu_fitted_vc_mass[t]);
+            h_Tau_raw_M->Fill( (RecoMu1_P4+RecoMu2_P4+RecoMu3_P4).M() );
             h_Tau_fit_pT->Fill(RecoTau_P4.Pt());
             h_Tau_fit_eta->Fill(RecoTau_P4.Eta());
             h_Tau_relIso->Fill(TauTo3Mu_absIsolation[t]/TauTo3Mu_fitted_vc_pt[t]);
@@ -97,11 +98,13 @@ void MCstudiesT3m::Loop(){
             h_DPhi_TauDeepMET->Fill(Dphi_MET);
             Dphi_MET = fabs(RecoTau_P4.Phi()- PuppiMET_phi);
             if (Dphi_MET > 2*M_PI) Dphi_MET = 2*M_PI - Dphi_MET;
-            h_DPhi_TauPunziMET->Fill(Dphi_MET);
+            h_DPhi_TauPuppiMET->Fill(Dphi_MET);
             h_TauPt_DeepMET->Fill(RecoTau_P4.Pt()/DeepMETResolutionTune_pt);
-            h_TauPt_PunziMET->Fill(RecoTau_P4.Pt()/PuppiMET_pt);
-            h_missPz_min->Fill(TauPlusMET_DeepMETminPz[t]);
-            h_missPz_max->Fill(TauPlusMET_DeepMETmaxPz[t]);
+            h_TauPt_PuppiMET->Fill(RecoTau_P4.Pt()/PuppiMET_pt);
+            if (TauPlusMET_PuppiMETminPz[t]!=-999){
+               h_missPz_min->Fill(TauPlusMET_PuppiMETminPz[t]);
+               h_missPz_max->Fill(TauPlusMET_PuppiMETmaxPz[t]);
+            }
 
             // W
             h_W_pT->Fill(TauPlusMET_pt[t]);
@@ -149,9 +152,9 @@ bool  MCstudiesT3m::RecoPartFillP4(const int TauIdx){
                                 Muon_isMedium[TauTo3Mu_mu3_idx[TauIdx]];
 
     // muons
-    RecoMu1_P4.SetPt(TauTo3Mu_mu1_pt[TauIdx]); RecoMu1_P4.SetEta(TauTo3Mu_mu1_eta[TauIdx]); RecoMu1_P4.SetPhi(TauTo3Mu_mu1_phi[TauIdx]);
-    RecoMu2_P4.SetPt(TauTo3Mu_mu2_pt[TauIdx]); RecoMu2_P4.SetEta(TauTo3Mu_mu2_eta[TauIdx]); RecoMu2_P4.SetPhi(TauTo3Mu_mu2_phi[TauIdx]);
-    RecoMu3_P4.SetPt(TauTo3Mu_mu3_pt[TauIdx]); RecoMu3_P4.SetEta(TauTo3Mu_mu3_eta[TauIdx]); RecoMu3_P4.SetPhi(TauTo3Mu_mu3_phi[TauIdx]);
+    RecoMu1_P4.SetPt(TauTo3Mu_mu1_pt[TauIdx]); RecoMu1_P4.SetEta(TauTo3Mu_mu1_eta[TauIdx]); RecoMu1_P4.SetPhi(TauTo3Mu_mu1_phi[TauIdx]); RecoMu1_P4.SetM(Muon_MASS);
+    RecoMu2_P4.SetPt(TauTo3Mu_mu2_pt[TauIdx]); RecoMu2_P4.SetEta(TauTo3Mu_mu2_eta[TauIdx]); RecoMu2_P4.SetPhi(TauTo3Mu_mu2_phi[TauIdx]); RecoMu2_P4.SetM(Muon_MASS);
+    RecoMu3_P4.SetPt(TauTo3Mu_mu3_pt[TauIdx]); RecoMu3_P4.SetEta(TauTo3Mu_mu3_eta[TauIdx]); RecoMu3_P4.SetPhi(TauTo3Mu_mu3_phi[TauIdx]); RecoMu3_P4.SetM(Muon_MASS);
 
     // tau
     RecoTau_P4.SetPt(TauTo3Mu_fitted_vc_pt[TauIdx]);  RecoTau_P4.SetEta(TauTo3Mu_fitted_vc_eta[TauIdx]); RecoTau_P4.SetPhi(TauTo3Mu_fitted_vc_phi[TauIdx]);  RecoTau_P4.SetM(TauTo3Mu_fitted_vc_mass[TauIdx]);
@@ -236,6 +239,7 @@ void MCstudiesT3m::saveOutput(){
     h_Mu_Dz13->Write();
     h_nTau->Write();
     h_Tau_fit_M->Write();
+    h_Tau_raw_M->Write();
     h_Tau_fit_pT->Write();
     h_Tau_fit_eta->Write();
     h_Tau_fitNoVtx_M->Write();
@@ -255,9 +259,9 @@ void MCstudiesT3m::saveOutput(){
     h_ratioLongGenDeepMET->Write();
     h_ratioPerpGenDeepMET->Write();
     h_DPhi_TauDeepMET->Write();
-    h_DPhi_TauPunziMET->Write();
+    h_DPhi_TauPuppiMET->Write();
     h_TauPt_DeepMET->Write();
-    h_TauPt_PunziMET->Write();
+    h_TauPt_PuppiMET->Write();
     h_missPz_min->Write();
     h_missPz_max->Write();
 
