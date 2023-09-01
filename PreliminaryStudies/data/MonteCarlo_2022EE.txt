@@ -1,0 +1,4 @@
+#######  2nd version of MC for Tau3Mu analysisi (August 30) #######  
+## fix to missing Pz
+/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano2022_2023Aug30_ext/WtoTauNu_Tauto3Mu_TuneCP5_13p6TeV_pythia8/crab_WnuTau3Mu_2022EE/230830_133225/0000/
+
