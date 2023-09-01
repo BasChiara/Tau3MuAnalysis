@@ -54,6 +54,6 @@
     draw_one_histo("missPz_max", "DeepMET", "max #n p_{z} (GeV)");
 
 
-    draw_two_histoa("W_pT", "W", "gen_W_pT", "W_gen", "p_{T}(W) (GeV)");
+    draw_two_histos("W_pT", "W", "gen_W_pT", "W_gen", "p_{T}(W) (GeV)");
 
 }
