@@ -2,6 +2,7 @@
 #define MCstudiesT3m_h
 
 #include "include/MCTau3Mu_base.h"
+#include "include/constants.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -65,6 +66,7 @@ class MCstudiesT3m : public MCTau3Mu_base{
 
    TH1F* h_nTau = new TH1F("nTau", "", 10, -0.5, 9.5);
    TH1F* h_Tau_fit_M = new TH1F("Tau_fit_M", "", 50, 1.6, 2.0);
+   TH1F* h_Tau_raw_M = new TH1F("Tau_raw_M", "", 50, 1.6, 2.0);
    TH1F* h_Tau_fit_pT = new TH1F("Tau_fit_pT", "", 40, 10, 100);
    TH1F* h_Tau_fit_eta = new TH1F("Tau_fit_eta", "", 70, -3.5, 3.5);
    TH1F* h_Tau_relIso = new TH1F("Tau_relIso", "", 60, 0, 3);
@@ -89,11 +91,11 @@ class MCstudiesT3m : public MCTau3Mu_base{
 
    TH1F* h_DPhi_TauDeepMET = new TH1F("DPhi_TauDeepMET", "", 50, 0, 3.14);
    TH1F* h_TauPt_DeepMET = new TH1F("TauPt_DeepMET", "", 60, 0, 6.);
-   TH1F* h_DPhi_TauPunziMET = new TH1F("DPhi_TauPunziMET", "", 50, 0, 3.14);
-   TH1F* h_TauPt_PunziMET = new TH1F("TauPt_PunziMET", "", 60, 0, 6.);
+   TH1F* h_DPhi_TauPuppiMET = new TH1F("DPhi_TauPuppiMET", "", 50, 0, 3.14);
+   TH1F* h_TauPt_PuppiMET = new TH1F("TauPt_PuppiMET", "", 60, 0, 6.);
 
    TH1F* h_missPz_min = new TH1F("missPz_min", "", 100, -300, 300);
-   TH1F* h_missPz_max = new TH1F("missPz_max", "", 100, 0, 4000);
+   TH1F* h_missPz_max = new TH1F("missPz_max", "", 100, -4000, 4000);
 
 
   // W cand
