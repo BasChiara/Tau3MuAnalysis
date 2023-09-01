@@ -113,7 +113,7 @@ TChain* TChainLoader(const std::string& inputFileName) {
          exit(-1);
       }
 
-      if (strcmp(file->d_name, "xNANO_") < 0) continue; // skip "." and ".." and "log" 
+      if (strcmp(file->d_name, "tau3muNANO_") < 0) continue; // skip "." and ".." and "log" 
       std::string file_path = DirPath + std::string(file->d_name);   
         stat(file_path.c_str(), &file_stats); 
       if(file_stats.st_size/1000. < 2378 ) continue;
@@ -144,8 +144,8 @@ int main(int argc, char* argv[]) {
 	
 	inputFileName = argv[1];
 	outputDir = argv[2];
-    dataset = argv[3];
-    if (argc > 4) Nfiles = std::stoi(argv[4]);
+   dataset = argv[3];
+   if (argc > 4) Nfiles = std::stoi(argv[4]);
 
 	TChain* chain = new TChain();
 	if(dataset.Contains("data",TString::kIgnoreCase) || dataset.Contains("ParkingDoubleMuonLowMass",TString::kIgnoreCase) )

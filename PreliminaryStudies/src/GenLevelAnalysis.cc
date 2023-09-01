@@ -55,7 +55,7 @@ TChain* TChainLoader(const std::string& inputFileName) {
          exit(-1);
       }
 
-      if (strcmp(file->d_name, "xNANO_") < 0) continue; // skip "." and ".." and "log" 
+      if (strcmp(file->d_name, "tau3muNANO_") < 0) continue; // skip "." and ".." and "log" 
       std::string file_path = DirPath + std::string(file->d_name);   
         stat(file_path.c_str(), &file_stats); 
       if(file_stats.st_size/1000. < 2378 ) continue;
