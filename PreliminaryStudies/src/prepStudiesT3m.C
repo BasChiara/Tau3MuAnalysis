@@ -5,6 +5,7 @@ prepStudiesT3m::prepStudiesT3m(TTree *tree, const TString & outdir, const TStrin
     tags_ = tags;
     if (tags_.Contains("data",TString::kIgnoreCase ) || tags_.Contains("ParkingDoubleMuonLowMass",TString::kIgnoreCase )) isBlind_ = true;
     else isBlind_ = false;
+    if(isBlind_) std::cout << " > running analysis blind" << std::endl;
     outFilePath_ = outdir + "/recoKinematicsT3m_"+ tags_ + ".root";
 
 
