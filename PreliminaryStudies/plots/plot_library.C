@@ -21,7 +21,7 @@ using namespace std;
 // void draw_two_histograms()
 // TGraph* makeROCcurve(TH1F* sigHist, TH1F* bkgHist){
 
-TString inRootFile_  = "../outRoot/MCstudiesT3m_2022_preEE.root"; 
+TString inRootFile_  = "../outRoot/MCstudiesT3m_MC_2022preEE.root"; 
 TString outPath_     = "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/";
 
 
@@ -81,7 +81,7 @@ TString CategoryLegend(const TString& category){
 
   Leg_entry["Tau_vc"] = "3 #mu refit";
   Leg_entry["Tau_gen"] = "#tau gen-level";
-  Leg_entry["Tau_wovc"] = "3 #mu pre-refit";
+  Leg_entry["Tau_wovc"] = "3 #mu raw";
 
   Leg_entry["PuppiMET"] = "PuppiMET";
   Leg_entry["DeepMET"] = "DeepMET";
@@ -106,8 +106,10 @@ void histoSetUp(TH1* histo, const TString& category, const TString& x_name, bool
   //WIDTH & COLOR
   histo->SetLineWidth(3);
   histo->SetLineColor(PtlColorMap(category));
-  if (fill) histo->SetFillColorAlpha(PtlColorMap(category), 0.3);
-
+  if (fill){
+    histo->SetFillColorAlpha(PtlColorMap(category), 0.3);
+    histo->SetFillStyle(3004);
+  }
   //NORMALIZATION
   if(norm )histo->Scale(1./histo->Integral());
 }
@@ -138,7 +140,7 @@ void CMSxxx(TCanvas* c){
 
 }
 
-int draw_one_histo(const TString& histo_name, const TString& category, const TString& x_name, TString out_name = "", bool LogY = false, bool fill = false){
+int draw_one_histo(const TString& histo_name, const TString& category, const TString& x_name, TString out_name = "", bool LogY = false, bool fill = true){
     
     TFile* input_file = open_file();
 
@@ -181,7 +183,7 @@ int draw_one_histo(const TString& histo_name, const TString& category, const TSt
 }//draw_pT()
 
 
-int draw_two_histos(const TString histo1,const TString& category1, const TString histo2, const TString& category2, const TString& x_name, TString out_name = "", bool fill = false, bool LogY = false){
+int draw_two_histos(const TString histo1,const TString& category1, const TString histo2, const TString& category2, const TString& x_name, TString out_name = "", bool fill = true, bool LogY = false){
 
     TFile* input_file = open_file();
     TH1F* h1 = (TH1F*)input_file->Get(histo1);
@@ -236,7 +238,7 @@ int draw_two_histos(const TString histo1,const TString& category1, const TString
     return 0;
 }
 
-int draw_many_histos(const std::vector<TString> histo_names,const std::vector<TString> categories, const TString& x_name, TString out_name = "", bool fill = false, bool LogY = false){
+int draw_many_histos(const std::vector<TString> histo_names,const std::vector<TString> categories, const TString& x_name, TString out_name = "", bool fill = true, bool LogY = false){
 
     TFile* input_file = open_file();
     TH1F* h1 = (TH1F*)input_file->Get(histo_names[0]);
