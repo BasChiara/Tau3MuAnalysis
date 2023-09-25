@@ -1,4 +1,5 @@
 #include "../include/prepStudiesT3m.h"
+#include "../include/FileReader.h"
 
 
 //C++ includes
@@ -138,20 +139,23 @@ int main(int argc, char* argv[]) {
     int Nfiles = 1000;
 	if ( argc < 2 ){
 		std::cout << " [ERROR] missing arguments : insert the file and the dataset you want to use :-)" << std::endl; 
-		std::cout <<  argv[0] <<" inputFile [outpudir] [dataset] [Nfiles]" << std::endl;
+		std::cout <<  argv[0] <<" [inputFile] [outpudir] [dataset] [Nfiles]" << std::endl;
 		return 1;
 	}
 	
 	inputFileName = argv[1];
 	outputDir = argv[2];
-   dataset = argv[3];
-   if (argc > 4) Nfiles = std::stoi(argv[4]);
+    dataset = argv[3];
+    if (argc > 4) Nfiles = std::stoi(argv[4]);
 
 	TChain* chain = new TChain();
+    FileReader file_loader = FileReader(inputFileName);
 	if(dataset.Contains("data",TString::kIgnoreCase) || dataset.Contains("ParkingDoubleMuonLowMass",TString::kIgnoreCase) )
-		chain = xrootd_TChainLoader(inputFileName, Nfiles);
+		//chain = xrootd_TChainLoader(inputFileName, Nfiles);
+        chain = file_loader.xrootdTChain_loader(Nfiles);
 	else if (dataset.Contains("mc",TString::kIgnoreCase )) 
-		chain = TChainLoader(inputFileName);
+		//chain = TChainLoader(inputFileName);
+		chain = file_loader.lxplusTChain_loader();
 	else{
 		std::cout << " [ERROR] dataset must be specified as MC or DATA (no case sensitive)" << std::endl;
 		exit(-1);
