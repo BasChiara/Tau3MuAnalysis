@@ -1,0 +1,6 @@
+#######  3rd version of MC for Tau3Mu analysisi (September 01) #######  
+## fix to missing Pz
+## removal of double fit
+/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano2022_2023Sep16/WtoTauNu_Tauto3Mu_TuneCP5_13p6TeV_pythia8/crab_WnuTau3Mu_2022/230916_122436/0000/
+/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano2022_2023Sep16/WtoTauNu_Tauto3Mu_TuneCP5_13p6TeV_pythia8/crab_WnuTau3Mu_2022EE/230916_122443/0000/
+
