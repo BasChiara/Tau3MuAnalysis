@@ -63,14 +63,15 @@ class MCstudiesT3m : public MCTau3Mu_base{
    TH1F* h_gen_Tau_M = new TH1F("gen_Tau_M", "", 50, 1.6, 2.0);
    TH1F* h_gen_Tau_pT = new TH1F("gen_Tau_pT", "", 40, 10, 100);
    TH1F* h_gen_Tau_eta = new TH1F("gen_Tau_eta", "", 70, -3.5, 3.5);
+   TH1F* h_gen_Tau_phi = new TH1F("gen_Tau_phi", "", 63, -3.15, 3.15);
 
    TH1F* h_nTau = new TH1F("nTau", "", 10, -0.5, 9.5);
    TH1F* h_Tau_fit_M = new TH1F("Tau_fit_M", "", 50, 1.6, 2.0);
    TH1F* h_Tau_raw_M = new TH1F("Tau_raw_M", "", 50, 1.6, 2.0);
    TH1F* h_Tau_fit_pT = new TH1F("Tau_fit_pT", "", 40, 10, 100);
    TH1F* h_Tau_fit_eta = new TH1F("Tau_fit_eta", "", 70, -3.5, 3.5);
+   TH1F* h_Tau_fit_phi = new TH1F("Tau_fit_phi", "", 63, -3.15, 3.15);
    TH1F* h_Tau_relIso = new TH1F("Tau_relIso", "", 60, 0, 3);
-   TH1F* h_Tau_fitNoVtx_M = new TH1F("Tau_fitNoVtx_M", "", 50, 1.6, 2.0);
    TH1F* h_diMuon_Mass = new TH1F("diMuon_Mass", "", 200, 0., 95);
 
    TH1F* h_LxySign_BSvtx = new TH1F("LxySign_BSvtx", "", 40, 0, 30);

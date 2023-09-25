@@ -61,6 +61,7 @@ void MCstudiesT3m::Loop(){
             h_gen_Tau_M->Fill(GenTau_P4.M());
             h_gen_Tau_pT->Fill(GenTau_P4.Pt());
             h_gen_Tau_eta->Fill(GenTau_P4.Eta());
+            h_gen_Tau_phi->Fill(GenTau_P4.Phi());
 
             h_gen_W_pT->Fill(GenW_P4.Pt());
 
@@ -82,14 +83,14 @@ void MCstudiesT3m::Loop(){
             h_Mu_Dz13->Fill(TauTo3Mu_dZmu13[t]);
 
             // Tau -> 3mu
-            h_Tau_fit_M->Fill(TauTo3Mu_fitted_vc_mass[t]);
+            h_Tau_fit_M->Fill(TauTo3Mu_fitted_mass[t]);
             h_Tau_raw_M->Fill( (RecoMu1_P4+RecoMu2_P4+RecoMu3_P4).M() );
             h_Tau_fit_pT->Fill(RecoTau_P4.Pt());
             h_Tau_fit_eta->Fill(RecoTau_P4.Eta());
-            h_Tau_relIso->Fill(TauTo3Mu_absIsolation[t]/TauTo3Mu_fitted_vc_pt[t]);
-            h_Tau_fitNoVtx_M->Fill(TauTo3Mu_fitted_wovc_mass[t]);
+            h_Tau_fit_phi->Fill(RecoTau_P4.Phi());
+            h_Tau_relIso->Fill(TauTo3Mu_absIsolation[t]/TauTo3Mu_fitted_pt[t]);
             h_LxySign_BSvtx->Fill(TauTo3Mu_sigLxy_3muVtxBS[t]);
-            h_Tau_Mt->Fill(TauTo3Mu_mT[t]);
+            h_Tau_Mt->Fill(TauPlusMET_Tau_Puppi_mT[t]);
             h_Tau_Pvtx->Fill(TauTo3Mu_vtx_prob[t]);
             h_Tau_cosAlpha_BS->Fill(TauTo3Mu_CosAlpha2D_LxyP3mu[t]);
             
@@ -157,7 +158,7 @@ bool  MCstudiesT3m::RecoPartFillP4(const int TauIdx){
     RecoMu3_P4.SetPt(TauTo3Mu_mu3_pt[TauIdx]); RecoMu3_P4.SetEta(TauTo3Mu_mu3_eta[TauIdx]); RecoMu3_P4.SetPhi(TauTo3Mu_mu3_phi[TauIdx]); RecoMu3_P4.SetM(Muon_MASS);
 
     // tau
-    RecoTau_P4.SetPt(TauTo3Mu_fitted_vc_pt[TauIdx]);  RecoTau_P4.SetEta(TauTo3Mu_fitted_vc_eta[TauIdx]); RecoTau_P4.SetPhi(TauTo3Mu_fitted_vc_phi[TauIdx]);  RecoTau_P4.SetM(TauTo3Mu_fitted_vc_mass[TauIdx]);
+    RecoTau_P4.SetPt(TauTo3Mu_fitted_pt[TauIdx]);  RecoTau_P4.SetEta(TauTo3Mu_fitted_eta[TauIdx]); RecoTau_P4.SetPhi(TauTo3Mu_fitted_phi[TauIdx]);  RecoTau_P4.SetM(TauTo3Mu_fitted_mass[TauIdx]);
 
     return muonsTrksQualityCheck;
 }// RecoPartFillP4
@@ -219,6 +220,7 @@ void MCstudiesT3m::saveOutput(){
     h_gen_Tau_M->Write();
     h_gen_Tau_pT->Write();
     h_gen_Tau_eta->Write();
+    h_gen_Tau_phi->Write();
     h_gen_W_pT->Write();
 
 
@@ -242,7 +244,7 @@ void MCstudiesT3m::saveOutput(){
     h_Tau_raw_M->Write();
     h_Tau_fit_pT->Write();
     h_Tau_fit_eta->Write();
-    h_Tau_fitNoVtx_M->Write();
+    h_Tau_fit_phi->Write();
     h_Tau_relIso->Write();
     h_LxySign_BSvtx->Write();
     h_diMuon_Mass->Write();
