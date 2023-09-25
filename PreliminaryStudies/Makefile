@@ -28,6 +28,9 @@ OUTEXE				= $(INCLUDEDIR)/bin/
 .SUFFIXES: .cc,.C,.hh,.h
 .PREFIXES: ./lib/
 
+$(OUTLIB)FileReader.o: $(INCLUDEDIR)src/FileReader.C
+		$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)FileReader.o $<
+
 $(OUTLIB)MCTau3Mu_base.o: $(INCLUDEDIR)src/MCTau3Mu_base.C
 		$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)MCTau3Mu_base.o $<
 $(OUTLIB)Tau3Mu_base.o: $(INCLUDEDIR)src/Tau3Mu_base.C
@@ -39,6 +42,7 @@ $(OUTLIB)prepStudiesT3m.o: $(INCLUDEDIR)src/prepStudiesT3m.C
 # ==================== GEN LEVEL ANALYSIS =========================
 
 GenLev:$(INCLUDEDIR)src/GenLevelAnalysis.cc\
+		$(OUTLIB)FileReader.o\
 		$(OUTLIB)MCTau3Mu_base.o\
 		$(OUTLIB)MCstudiesT3m.o
 		$(CXX) $(CXXFLAGS) -ldl -o $(OUTEXE)GenLevelAnalysis $(OUTLIB)/*.o $(GLIBS) $(LDFLAGS) $ $<
@@ -48,6 +52,7 @@ GenLev.clean:
 # ==================== RECO LEVEL ANALYSIS =========================
 
 RecoLev: $(INCLUDEDIR)src/RecoLevelAnalysis.cc\
+		 $(OUTLIB)FileReader.o\
 		 $(OUTLIB)Tau3Mu_base.o\
 		 $(OUTLIB)prepStudiesT3m.o
 		 $(CXX) $(CXXFLAGS) -ldl -o $(OUTEXE)RecoLevelAnalysis $(OUTLIB)/*.o $(GLIBS) $(LDFLAGS) $ $<
