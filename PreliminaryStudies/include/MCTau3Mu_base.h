@@ -32,6 +32,7 @@ public :
    UInt_t          nTauTo3Mu;
    Float_t         TauTo3Mu_CosAlpha2D_LxyP3mu[15];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr[15];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr[15];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_absIsolation[15];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_dZmu12[15];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_dZmu13[15];   //[nTauTo3Mu]
@@ -64,6 +65,7 @@ public :
    Int_t           TauTo3Mu_charge[15];   //[nTauTo3Mu]
    Int_t           TauTo3Mu_diMuVtxFit_toVeto[15];   //[nTauTo3Mu]
    Int_t           TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[15];   //[nTauTo3Mu]
+   Int_t           TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[15];   //[nTauTo3Mu]
    Int_t           TauTo3Mu_mu1_charge[15];   //[nTauTo3Mu]
    Int_t           TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[15];   //[nTauTo3Mu]
    Int_t           TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[15];   //[nTauTo3Mu]
@@ -257,6 +259,7 @@ public :
    TBranch        *b_nTauTo3Mu;   //!
    TBranch        *b_TauTo3Mu_CosAlpha2D_LxyP3mu;   //!
    TBranch        *b_TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr;   //!
+   TBranch        *b_TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr;   //!
    TBranch        *b_TauTo3Mu_absIsolation;   //!
    TBranch        *b_TauTo3Mu_dZmu12;   //!
    TBranch        *b_TauTo3Mu_dZmu13;   //!
@@ -289,6 +292,7 @@ public :
    TBranch        *b_TauTo3Mu_charge;   //!
    TBranch        *b_TauTo3Mu_diMuVtxFit_toVeto;   //!
    TBranch        *b_TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1;   //!
+   TBranch        *b_TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15;   //!
    TBranch        *b_TauTo3Mu_mu1_charge;   //!
    TBranch        *b_TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass;   //!
    TBranch        *b_TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15;   //!
@@ -563,6 +567,7 @@ void MCTau3Mu_base::Init(TTree *tree)
    fChain->SetBranchAddress("nTauTo3Mu", &nTauTo3Mu, &b_nTauTo3Mu);
    fChain->SetBranchAddress("TauTo3Mu_CosAlpha2D_LxyP3mu", TauTo3Mu_CosAlpha2D_LxyP3mu, &b_TauTo3Mu_CosAlpha2D_LxyP3mu);
    fChain->SetBranchAddress("TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr", TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr, &b_TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr);
+   fChain->SetBranchAddress("TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr", TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr, &b_TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr);
    fChain->SetBranchAddress("TauTo3Mu_absIsolation", TauTo3Mu_absIsolation, &b_TauTo3Mu_absIsolation);
    fChain->SetBranchAddress("TauTo3Mu_dZmu12", TauTo3Mu_dZmu12, &b_TauTo3Mu_dZmu12);
    fChain->SetBranchAddress("TauTo3Mu_dZmu13", TauTo3Mu_dZmu13, &b_TauTo3Mu_dZmu13);
@@ -595,6 +600,7 @@ void MCTau3Mu_base::Init(TTree *tree)
    fChain->SetBranchAddress("TauTo3Mu_charge", TauTo3Mu_charge, &b_TauTo3Mu_charge);
    fChain->SetBranchAddress("TauTo3Mu_diMuVtxFit_toVeto", TauTo3Mu_diMuVtxFit_toVeto, &b_TauTo3Mu_diMuVtxFit_toVeto);
    fChain->SetBranchAddress("TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1", TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1, &b_TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1);
+   fChain->SetBranchAddress("TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15", TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15, &b_TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15);
    fChain->SetBranchAddress("TauTo3Mu_mu1_charge", TauTo3Mu_mu1_charge, &b_TauTo3Mu_mu1_charge);
    fChain->SetBranchAddress("TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass", TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass, &b_TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass);
    fChain->SetBranchAddress("TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15", TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15, &b_TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15);

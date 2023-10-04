@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Sat Aug 26 17:13:35 2023 by ROOT version 6.24/07
+// Mon Oct  2 08:35:43 2023 by ROOT version 6.24/07
 // from TTree Events/Events
-// found on file: data/tau3muNANO_data_2023Aug24_230.root
+// found on file: data/tau3muNANO_data_2023Sep27_10.root
 //////////////////////////////////////////////////////////
 
 #ifndef Tau3Mu_base_h
@@ -11,13 +11,11 @@
 #include <TROOT.h>
 #include <TChain.h>
 #include <TFile.h>
+#include "constants.h"
 #include <TH1F.h>
 #include "Math/Vector4D.h"
 #include "Math/GenVector/VectorUtil.h"
 #include "Math/GenVector/PtEtaPhiM4D.h"
-
-#include <cmath>
-#include "constants.h"
 
 // Header file for the classes stored in the TTree if any.
 
@@ -35,27 +33,21 @@ public :
    UInt_t          bunchCrossing;
    UInt_t          nTauTo3Mu;
    Float_t         TauTo3Mu_CosAlpha2D_LxyP3mu[10];   //[nTauTo3Mu]
-   Float_t         TauTo3Mu_MET_pt[10];   //[nTauTo3Mu]
-   Float_t         TauTo3Mu_PuppiMET_pt[10];   //[nTauTo3Mu]
-   Float_t         TauTo3Mu_Puppi_mT[10];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr[10];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_absIsolation[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_dZmu12[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_dZmu13[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_dZmu23[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_diMuVtxFit_bestMass[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_diMuVtxFit_bestProb[10];   //[nTauTo3Mu]
-   Float_t         TauTo3Mu_fitted_vc_eta[10];   //[nTauTo3Mu]
-   Float_t         TauTo3Mu_fitted_vc_mass[10];   //[nTauTo3Mu]
-   Float_t         TauTo3Mu_fitted_vc_phi[10];   //[nTauTo3Mu]
-   Float_t         TauTo3Mu_fitted_vc_pt[10];   //[nTauTo3Mu]
-   Float_t         TauTo3Mu_fitted_wovc_eta[10];   //[nTauTo3Mu]
-   Float_t         TauTo3Mu_fitted_wovc_mass[10];   //[nTauTo3Mu]
-   Float_t         TauTo3Mu_fitted_wovc_phi[10];   //[nTauTo3Mu]
-   Float_t         TauTo3Mu_fitted_wovc_pt[10];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_fitted_eta[10];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_fitted_mass[10];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_fitted_phi[10];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_fitted_pt[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_iso_ptChargedFromPU[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_iso_ptChargedFromPV[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_iso_ptPhotons[10];   //[nTauTo3Mu]
-   Float_t         TauTo3Mu_mT[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_mu1_dr[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_mu1_eta[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_mu1_phi[10];   //[nTauTo3Mu]
@@ -72,10 +64,10 @@ public :
    Float_t         TauTo3Mu_vtx_Ndof[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_vtx_chi2[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_vtx_prob[10];   //[nTauTo3Mu]
-   Int_t           TauTo3Mu_MET_isPf[10];   //[nTauTo3Mu]
-   Int_t           TauTo3Mu_PuppiMET_isPf[10];   //[nTauTo3Mu]
    Int_t           TauTo3Mu_charge[10];   //[nTauTo3Mu]
    Int_t           TauTo3Mu_diMuVtxFit_toVeto[10];   //[nTauTo3Mu]
+   Int_t           TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[10];   //[nTauTo3Mu]
+   Int_t           TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[10];   //[nTauTo3Mu]
    Int_t           TauTo3Mu_mu1_charge[10];   //[nTauTo3Mu]
    Int_t           TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[10];   //[nTauTo3Mu]
    Int_t           TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[10];   //[nTauTo3Mu]
@@ -111,6 +103,9 @@ public :
    Float_t         TauPlusMET_Puppi_eta[10];   //[nTauPlusMET]
    Float_t         TauPlusMET_Puppi_phi[10];   //[nTauPlusMET]
    Float_t         TauPlusMET_Puppi_pt[10];   //[nTauPlusMET]
+   Float_t         TauPlusMET_Tau_Deep_mT[10];   //[nTauPlusMET]
+   Float_t         TauPlusMET_Tau_Puppi_mT[10];   //[nTauPlusMET]
+   Float_t         TauPlusMET_Tau_mT[10];   //[nTauPlusMET]
    Float_t         TauPlusMET_eta[10];   //[nTauPlusMET]
    Float_t         TauPlusMET_mass[10];   //[nTauPlusMET]
    Float_t         TauPlusMET_phi[10];   //[nTauPlusMET]
@@ -142,21 +137,21 @@ public :
    Float_t         MET_sumEt;
    Float_t         MET_sumPtUnclustered;
    UInt_t          nMuon;
-   Float_t         Muon_dZpv[30];   //[nMuon]
-   Float_t         Muon_err_dZpv[30];   //[nMuon]
-   Float_t         Muon_phi[30];   //[nMuon]
-   Float_t         Muon_pt[30];   //[nMuon]
-   Int_t           Muon_charge[30];   //[nMuon]
-   Int_t           Muon_isSoft_BS[30];   //[nMuon]
-   Int_t           Muon_isTight_BS[30];   //[nMuon]
-   Int_t           Muon_trackQuality[30];   //[nMuon]
-   Bool_t          Muon_isGlobal[30];   //[nMuon]
-   Bool_t          Muon_isLoose[30];   //[nMuon]
-   Bool_t          Muon_isMedium[30];   //[nMuon]
-   Bool_t          Muon_isPFcand[30];   //[nMuon]
-   Bool_t          Muon_isSoft[30];   //[nMuon]
-   Bool_t          Muon_isTight[30];   //[nMuon]
-   Bool_t          Muon_isTracker[30];   //[nMuon]
+   Float_t         Muon_dZpv[20];   //[nMuon]
+   Float_t         Muon_err_dZpv[20];   //[nMuon]
+   Float_t         Muon_phi[20];   //[nMuon]
+   Float_t         Muon_pt[20];   //[nMuon]
+   Int_t           Muon_charge[20];   //[nMuon]
+   Int_t           Muon_isSoft_BS[20];   //[nMuon]
+   Int_t           Muon_isTight_BS[20];   //[nMuon]
+   Int_t           Muon_trackQuality[20];   //[nMuon]
+   Bool_t          Muon_isGlobal[20];   //[nMuon]
+   Bool_t          Muon_isLoose[20];   //[nMuon]
+   Bool_t          Muon_isMedium[20];   //[nMuon]
+   Bool_t          Muon_isPFcand[20];   //[nMuon]
+   Bool_t          Muon_isSoft[20];   //[nMuon]
+   Bool_t          Muon_isTight[20];   //[nMuon]
+   Bool_t          Muon_isTracker[20];   //[nMuon]
    Float_t         PuppiMET_phi;
    Float_t         PuppiMET_phiJERDown;
    Float_t         PuppiMET_phiJERUp;
@@ -207,22 +202,22 @@ public :
    Int_t           PV_npvs;
    Int_t           PV_npvsGood;
    UInt_t          nSV;
-   Float_t         SV_dlen[10];   //[nSV]
-   Float_t         SV_dlenSig[10];   //[nSV]
-   Float_t         SV_dxy[10];   //[nSV]
-   Float_t         SV_dxySig[10];   //[nSV]
-   Float_t         SV_pAngle[10];   //[nSV]
-   Int_t           SV_charge[10];   //[nSV]
-   Float_t         SV_chi2[10];   //[nSV]
-   Float_t         SV_eta[10];   //[nSV]
-   Float_t         SV_mass[10];   //[nSV]
-   Float_t         SV_ndof[10];   //[nSV]
-   Float_t         SV_phi[10];   //[nSV]
-   Float_t         SV_pt[10];   //[nSV]
-   Float_t         SV_x[10];   //[nSV]
-   Float_t         SV_y[10];   //[nSV]
-   Float_t         SV_z[10];   //[nSV]
-   UChar_t         SV_ntracks[10];   //[nSV]
+   Float_t         SV_dlen[15];   //[nSV]
+   Float_t         SV_dlenSig[15];   //[nSV]
+   Float_t         SV_dxy[15];   //[nSV]
+   Float_t         SV_dxySig[15];   //[nSV]
+   Float_t         SV_pAngle[15];   //[nSV]
+   Int_t           SV_charge[15];   //[nSV]
+   Float_t         SV_chi2[15];   //[nSV]
+   Float_t         SV_eta[15];   //[nSV]
+   Float_t         SV_mass[15];   //[nSV]
+   Float_t         SV_ndof[15];   //[nSV]
+   Float_t         SV_phi[15];   //[nSV]
+   Float_t         SV_pt[15];   //[nSV]
+   Float_t         SV_x[15];   //[nSV]
+   Float_t         SV_y[15];   //[nSV]
+   Float_t         SV_z[15];   //[nSV]
+   UChar_t         SV_ntracks[15];   //[nSV]
 
    // List of branches
    TBranch        *b_run;   //!
@@ -231,27 +226,21 @@ public :
    TBranch        *b_bunchCrossing;   //!
    TBranch        *b_nTauTo3Mu;   //!
    TBranch        *b_TauTo3Mu_CosAlpha2D_LxyP3mu;   //!
-   TBranch        *b_TauTo3Mu_MET_pt;   //!
-   TBranch        *b_TauTo3Mu_PuppiMET_pt;   //!
-   TBranch        *b_TauTo3Mu_Puppi_mT;   //!
+   TBranch        *b_TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr;   //!
+   TBranch        *b_TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr;   //!
    TBranch        *b_TauTo3Mu_absIsolation;   //!
    TBranch        *b_TauTo3Mu_dZmu12;   //!
    TBranch        *b_TauTo3Mu_dZmu13;   //!
    TBranch        *b_TauTo3Mu_dZmu23;   //!
    TBranch        *b_TauTo3Mu_diMuVtxFit_bestMass;   //!
    TBranch        *b_TauTo3Mu_diMuVtxFit_bestProb;   //!
-   TBranch        *b_TauTo3Mu_fitted_vc_eta;   //!
-   TBranch        *b_TauTo3Mu_fitted_vc_mass;   //!
-   TBranch        *b_TauTo3Mu_fitted_vc_phi;   //!
-   TBranch        *b_TauTo3Mu_fitted_vc_pt;   //!
-   TBranch        *b_TauTo3Mu_fitted_wovc_eta;   //!
-   TBranch        *b_TauTo3Mu_fitted_wovc_mass;   //!
-   TBranch        *b_TauTo3Mu_fitted_wovc_phi;   //!
-   TBranch        *b_TauTo3Mu_fitted_wovc_pt;   //!
+   TBranch        *b_TauTo3Mu_fitted_eta;   //!
+   TBranch        *b_TauTo3Mu_fitted_mass;   //!
+   TBranch        *b_TauTo3Mu_fitted_phi;   //!
+   TBranch        *b_TauTo3Mu_fitted_pt;   //!
    TBranch        *b_TauTo3Mu_iso_ptChargedFromPU;   //!
    TBranch        *b_TauTo3Mu_iso_ptChargedFromPV;   //!
    TBranch        *b_TauTo3Mu_iso_ptPhotons;   //!
-   TBranch        *b_TauTo3Mu_mT;   //!
    TBranch        *b_TauTo3Mu_mu1_dr;   //!
    TBranch        *b_TauTo3Mu_mu1_eta;   //!
    TBranch        *b_TauTo3Mu_mu1_phi;   //!
@@ -268,10 +257,10 @@ public :
    TBranch        *b_TauTo3Mu_vtx_Ndof;   //!
    TBranch        *b_TauTo3Mu_vtx_chi2;   //!
    TBranch        *b_TauTo3Mu_vtx_prob;   //!
-   TBranch        *b_TauTo3Mu_MET_isPf;   //!
-   TBranch        *b_TauTo3Mu_PuppiMET_isPf;   //!
    TBranch        *b_TauTo3Mu_charge;   //!
    TBranch        *b_TauTo3Mu_diMuVtxFit_toVeto;   //!
+   TBranch        *b_TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15;   //!
+   TBranch        *b_TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1;   //!
    TBranch        *b_TauTo3Mu_mu1_charge;   //!
    TBranch        *b_TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass;   //!
    TBranch        *b_TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15;   //!
@@ -307,6 +296,9 @@ public :
    TBranch        *b_TauPlusMET_Puppi_eta;   //!
    TBranch        *b_TauPlusMET_Puppi_phi;   //!
    TBranch        *b_TauPlusMET_Puppi_pt;   //!
+   TBranch        *b_TauPlusMET_Tau_Deep_mT;   //!
+   TBranch        *b_TauPlusMET_Tau_Puppi_mT;   //!
+   TBranch        *b_TauPlusMET_Tau_mT;   //!
    TBranch        *b_TauPlusMET_eta;   //!
    TBranch        *b_TauPlusMET_mass;   //!
    TBranch        *b_TauPlusMET_phi;   //!
@@ -446,9 +438,9 @@ Tau3Mu_base::Tau3Mu_base(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("data/tau3muNANO_data_2023Aug24_230.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("data/tau3muNANO_data_2023Sep27_10.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("data/tau3muNANO_data_2023Aug24_230.root");
+         f = new TFile("data/tau3muNANO_data_2023Sep27_10.root");
       }
       f->GetObject("Events",tree);
 
@@ -503,27 +495,21 @@ void Tau3Mu_base::Init(TTree *tree)
    fChain->SetBranchAddress("bunchCrossing", &bunchCrossing, &b_bunchCrossing);
    fChain->SetBranchAddress("nTauTo3Mu", &nTauTo3Mu, &b_nTauTo3Mu);
    fChain->SetBranchAddress("TauTo3Mu_CosAlpha2D_LxyP3mu", TauTo3Mu_CosAlpha2D_LxyP3mu, &b_TauTo3Mu_CosAlpha2D_LxyP3mu);
-   fChain->SetBranchAddress("TauTo3Mu_MET_pt", TauTo3Mu_MET_pt, &b_TauTo3Mu_MET_pt);
-   fChain->SetBranchAddress("TauTo3Mu_PuppiMET_pt", TauTo3Mu_PuppiMET_pt, &b_TauTo3Mu_PuppiMET_pt);
-   fChain->SetBranchAddress("TauTo3Mu_Puppi_mT", TauTo3Mu_Puppi_mT, &b_TauTo3Mu_Puppi_mT);
+   fChain->SetBranchAddress("TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr", TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr, &b_TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr);
+   fChain->SetBranchAddress("TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr", TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr, &b_TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr);
    fChain->SetBranchAddress("TauTo3Mu_absIsolation", TauTo3Mu_absIsolation, &b_TauTo3Mu_absIsolation);
    fChain->SetBranchAddress("TauTo3Mu_dZmu12", TauTo3Mu_dZmu12, &b_TauTo3Mu_dZmu12);
    fChain->SetBranchAddress("TauTo3Mu_dZmu13", TauTo3Mu_dZmu13, &b_TauTo3Mu_dZmu13);
    fChain->SetBranchAddress("TauTo3Mu_dZmu23", TauTo3Mu_dZmu23, &b_TauTo3Mu_dZmu23);
    fChain->SetBranchAddress("TauTo3Mu_diMuVtxFit_bestMass", TauTo3Mu_diMuVtxFit_bestMass, &b_TauTo3Mu_diMuVtxFit_bestMass);
    fChain->SetBranchAddress("TauTo3Mu_diMuVtxFit_bestProb", TauTo3Mu_diMuVtxFit_bestProb, &b_TauTo3Mu_diMuVtxFit_bestProb);
-   fChain->SetBranchAddress("TauTo3Mu_fitted_vc_eta", TauTo3Mu_fitted_vc_eta, &b_TauTo3Mu_fitted_vc_eta);
-   fChain->SetBranchAddress("TauTo3Mu_fitted_vc_mass", TauTo3Mu_fitted_vc_mass, &b_TauTo3Mu_fitted_vc_mass);
-   fChain->SetBranchAddress("TauTo3Mu_fitted_vc_phi", TauTo3Mu_fitted_vc_phi, &b_TauTo3Mu_fitted_vc_phi);
-   fChain->SetBranchAddress("TauTo3Mu_fitted_vc_pt", TauTo3Mu_fitted_vc_pt, &b_TauTo3Mu_fitted_vc_pt);
-   fChain->SetBranchAddress("TauTo3Mu_fitted_wovc_eta", TauTo3Mu_fitted_wovc_eta, &b_TauTo3Mu_fitted_wovc_eta);
-   fChain->SetBranchAddress("TauTo3Mu_fitted_wovc_mass", TauTo3Mu_fitted_wovc_mass, &b_TauTo3Mu_fitted_wovc_mass);
-   fChain->SetBranchAddress("TauTo3Mu_fitted_wovc_phi", TauTo3Mu_fitted_wovc_phi, &b_TauTo3Mu_fitted_wovc_phi);
-   fChain->SetBranchAddress("TauTo3Mu_fitted_wovc_pt", TauTo3Mu_fitted_wovc_pt, &b_TauTo3Mu_fitted_wovc_pt);
+   fChain->SetBranchAddress("TauTo3Mu_fitted_eta", TauTo3Mu_fitted_eta, &b_TauTo3Mu_fitted_eta);
+   fChain->SetBranchAddress("TauTo3Mu_fitted_mass", TauTo3Mu_fitted_mass, &b_TauTo3Mu_fitted_mass);
+   fChain->SetBranchAddress("TauTo3Mu_fitted_phi", TauTo3Mu_fitted_phi, &b_TauTo3Mu_fitted_phi);
+   fChain->SetBranchAddress("TauTo3Mu_fitted_pt", TauTo3Mu_fitted_pt, &b_TauTo3Mu_fitted_pt);
    fChain->SetBranchAddress("TauTo3Mu_iso_ptChargedFromPU", TauTo3Mu_iso_ptChargedFromPU, &b_TauTo3Mu_iso_ptChargedFromPU);
    fChain->SetBranchAddress("TauTo3Mu_iso_ptChargedFromPV", TauTo3Mu_iso_ptChargedFromPV, &b_TauTo3Mu_iso_ptChargedFromPV);
    fChain->SetBranchAddress("TauTo3Mu_iso_ptPhotons", TauTo3Mu_iso_ptPhotons, &b_TauTo3Mu_iso_ptPhotons);
-   fChain->SetBranchAddress("TauTo3Mu_mT", TauTo3Mu_mT, &b_TauTo3Mu_mT);
    fChain->SetBranchAddress("TauTo3Mu_mu1_dr", TauTo3Mu_mu1_dr, &b_TauTo3Mu_mu1_dr);
    fChain->SetBranchAddress("TauTo3Mu_mu1_eta", TauTo3Mu_mu1_eta, &b_TauTo3Mu_mu1_eta);
    fChain->SetBranchAddress("TauTo3Mu_mu1_phi", TauTo3Mu_mu1_phi, &b_TauTo3Mu_mu1_phi);
@@ -540,10 +526,10 @@ void Tau3Mu_base::Init(TTree *tree)
    fChain->SetBranchAddress("TauTo3Mu_vtx_Ndof", TauTo3Mu_vtx_Ndof, &b_TauTo3Mu_vtx_Ndof);
    fChain->SetBranchAddress("TauTo3Mu_vtx_chi2", TauTo3Mu_vtx_chi2, &b_TauTo3Mu_vtx_chi2);
    fChain->SetBranchAddress("TauTo3Mu_vtx_prob", TauTo3Mu_vtx_prob, &b_TauTo3Mu_vtx_prob);
-   fChain->SetBranchAddress("TauTo3Mu_MET_isPf", TauTo3Mu_MET_isPf, &b_TauTo3Mu_MET_isPf);
-   fChain->SetBranchAddress("TauTo3Mu_PuppiMET_isPf", TauTo3Mu_PuppiMET_isPf, &b_TauTo3Mu_PuppiMET_isPf);
    fChain->SetBranchAddress("TauTo3Mu_charge", TauTo3Mu_charge, &b_TauTo3Mu_charge);
    fChain->SetBranchAddress("TauTo3Mu_diMuVtxFit_toVeto", TauTo3Mu_diMuVtxFit_toVeto, &b_TauTo3Mu_diMuVtxFit_toVeto);
+   fChain->SetBranchAddress("TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15", TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15, &b_TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15);
+   fChain->SetBranchAddress("TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1", TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1, &b_TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1);
    fChain->SetBranchAddress("TauTo3Mu_mu1_charge", TauTo3Mu_mu1_charge, &b_TauTo3Mu_mu1_charge);
    fChain->SetBranchAddress("TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass", TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass, &b_TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass);
    fChain->SetBranchAddress("TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15", TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15, &b_TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15);
@@ -579,6 +565,9 @@ void Tau3Mu_base::Init(TTree *tree)
    fChain->SetBranchAddress("TauPlusMET_Puppi_eta", TauPlusMET_Puppi_eta, &b_TauPlusMET_Puppi_eta);
    fChain->SetBranchAddress("TauPlusMET_Puppi_phi", TauPlusMET_Puppi_phi, &b_TauPlusMET_Puppi_phi);
    fChain->SetBranchAddress("TauPlusMET_Puppi_pt", TauPlusMET_Puppi_pt, &b_TauPlusMET_Puppi_pt);
+   fChain->SetBranchAddress("TauPlusMET_Tau_Deep_mT", TauPlusMET_Tau_Deep_mT, &b_TauPlusMET_Tau_Deep_mT);
+   fChain->SetBranchAddress("TauPlusMET_Tau_Puppi_mT", TauPlusMET_Tau_Puppi_mT, &b_TauPlusMET_Tau_Puppi_mT);
+   fChain->SetBranchAddress("TauPlusMET_Tau_mT", TauPlusMET_Tau_mT, &b_TauPlusMET_Tau_mT);
    fChain->SetBranchAddress("TauPlusMET_eta", TauPlusMET_eta, &b_TauPlusMET_eta);
    fChain->SetBranchAddress("TauPlusMET_mass", TauPlusMET_mass, &b_TauPlusMET_mass);
    fChain->SetBranchAddress("TauPlusMET_phi", TauPlusMET_phi, &b_TauPlusMET_phi);
