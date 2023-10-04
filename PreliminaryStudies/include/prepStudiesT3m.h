@@ -1,8 +1,8 @@
 #ifndef prepStudiesT3m_h
 #define prepStudiesT3m_h
 
-#include "../include/Tau3Mu_base.h"
-
+#include "Tau3Mu_base.h"
+#include "constants.h"
 class prepStudiesT3m : public Tau3Mu_base{
 
 public:
@@ -10,17 +10,37 @@ public:
  virtual ~prepStudiesT3m(){}
 
  void    Loop();
+ void    outTreeSetUp();
  void    saveOutput();
 
+ // HLT trigger methods
+ bool    TriggerMatching(const int TauIdx, const int config = -1);
+ bool    HLT_Tau3Mu_emulator(const int TauIdx);
+ bool    HLT_DoubleMu_emulator(const int TauIdx);
+
 private:
+  // HLT paths
+  HLT_paths HLTconf_ = HLT_Tau3Mu;
+
+  // blinding parameters
   bool isBlind_;
-  float blindTauMass_low = 1.74;
-  float blindTauMass_high = 1.82;
+  const float blindTauMass_low = 1.74;
+  const float blindTauMass_high = 1.82;
 
  TString tags_;
 
  TString outFilePath_;
  TFile*  outFile_;
+ TTree* outTree_;
+
+ // TTree branches
+  float Event, LumiBlock, Run;
+ // * muons ID
+  int Mu_MediumID, Mu_SoftID_PV, Mu_SoftID_BS, Mu_TightID_PV, Mu_TightID_BS;
+  float Mu_leading_pT, Mu_subLeading_pT, My_trailing_pT;
+  float Mu_leading_eta, Mu_subLeading_eta, My_trailing_eta;
+  
+
 
    // TH1
    // muond ID

@@ -7,6 +7,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include "TH1F.h"
+#include "TH2F.h"
 
 
 class MCstudiesT3m : public MCTau3Mu_base{
@@ -16,11 +17,14 @@ class MCstudiesT3m : public MCTau3Mu_base{
    virtual ~MCstudiesT3m();
 
    void    Loop();
+   bool    TriggerMatching(const int TauIdx, const int config = -1);
    int     MCtruthMatching(const bool verbose = false);
    bool    RecoPartFillP4(const int TauIdx);
+   bool    HLT_Tau3Mu_emulator(const int TauIdx);
+   bool    HLT_DoubleMu_emulator(const int TauIdx);
 
    void    saveOutput();
-    
+  
    private:
    
    // particle P4 
@@ -30,11 +34,17 @@ class MCstudiesT3m : public MCTau3Mu_base{
 
    // MC matching tau candidate
    int TauTo3Mu_MCmatch_idx;
+   // HLT paths
+   HLT_paths HLTconf_ = HLT_Tau3Mu;
+                                    // 1 : HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 or HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15
+                                    // 2 : HLT_DoubleMu4_3_LowMass
+                                    // 3 : HLT_overlap
 
    // [OUTPUT]
    TString outFilePath_;
    TFile*  outFile_;
-   // TH1
+   // trigger
+   TH2F* h_HLT_T3MvsDM4 = new TH2F("HLT_T3MvsDM4", "", 2, -0.5, 1.5, 2, -0.5, 1.5);
    // muond ID
    TH1F* h_Mu_MediumID = new TH1F("Mu_MediumID", "", 2, -0.5, 1.5);
    TH1F* h_Mu_SoftID   = new TH1F("Mu_SoftID", "", 2, -0.5, 1.5);
@@ -70,7 +80,7 @@ class MCstudiesT3m : public MCTau3Mu_base{
    TH1F* h_Tau_raw_M = new TH1F("Tau_raw_M", "", 50, 1.6, 2.0);
    TH1F* h_Tau_fit_pT = new TH1F("Tau_fit_pT", "", 40, 10, 100);
    TH1F* h_Tau_fit_eta = new TH1F("Tau_fit_eta", "", 70, -3.5, 3.5);
-   TH1F* h_Tau_fit_phi = new TH1F("Tau_fit_phi", "", 63, -3.15, 3.15);
+   TH1F* h_Tau_fit_phi = new TH1F("Tau_fit_phi", "", 30, -3.15, 3.15);
    TH1F* h_Tau_relIso = new TH1F("Tau_relIso", "", 60, 0, 3);
    TH1F* h_diMuon_Mass = new TH1F("diMuon_Mass", "", 200, 0., 95);
 

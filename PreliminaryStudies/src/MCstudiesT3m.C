@@ -18,7 +18,8 @@ void MCstudiesT3m::Loop(){
     const Long64_t Nbreak = nentries + 10; 
     const Long64_t Nprint = (int)(nentries/20.);
 
-    unsigned int nTriggerBit = 0, nTriggerFired3Mu = 0, nTauDiMuonVeto = 0, nTauMCmatched = 0;
+    unsigned int nTriggerBit = 0, nEvTriggerFired_Tau3Mu = 0, nEvTriggerFired_DoubleMu = 0, nTriggerFired3Mu = 0, nTauDiMuonVeto = 0, nTauMCmatched = 0;
+    bool flag_HLT_Tau3mu = false, flag_HLT_DoubleMu = false;
 
     for (Long64_t jentry=0; jentry<nentries;jentry++) {
         
@@ -28,20 +29,29 @@ void MCstudiesT3m::Loop(){
         nb = fChain->GetEntry(jentry);   nbytes += nb;
 
         // --- TRIGGER BIT
-        if(!HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1) continue;
+        if((HLTconf_ == HLT_paths::HLT_Tau3Mu) &&
+            !(HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 || HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15)) continue;
+        if((HLTconf_ == HLT_paths::HLT_DoubleMu) &&
+            !HLT_DoubleMu4_3_LowMass) continue;
         nTriggerBit++;
         // --- MC truth & matching
         GenPartFillP4();
         TauTo3Mu_MCmatch_idx = MCtruthMatching();
 
         // --- loop on TAU candidates
+        flag_HLT_Tau3mu = false; flag_HLT_DoubleMu = false;
         for(unsigned int t = 0; t < nTauTo3Mu; t++){
-
+            // check muons MediumID
             if(!RecoPartFillP4(t)) continue;
-            // check if the 3 muons fired the trigger
-            if( !(TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 &&
-                    TauTo3Mu_mu2_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 &&
-                    TauTo3Mu_mu3_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1) ) continue;
+
+            // trigger matching
+            if(!TriggerMatching(t)) continue;
+            if(HLTconf_ == HLT_paths::HLT_Tau3Mu)   flag_HLT_Tau3mu = true;
+            if(HLTconf_ == HLT_paths::HLT_DoubleMu) flag_HLT_DoubleMu = true;
+            if(HLTconf_ == HLT_paths::HLT_overlap){
+                flag_HLT_Tau3mu   = TriggerMatching(t,HLT_paths::HLT_Tau3Mu);
+                flag_HLT_DoubleMu = TriggerMatching(t,HLT_paths::HLT_DoubleMu);
+            }
             nTriggerFired3Mu++;
             h_nTau->Fill(nTauTo3Mu);
 
@@ -113,6 +123,11 @@ void MCstudiesT3m::Loop(){
         
         }// loop on tau cands
 
+        // HLT superposition
+        h_HLT_T3MvsDM4->Fill(flag_HLT_DoubleMu, flag_HLT_Tau3mu);
+        if(flag_HLT_Tau3mu) nEvTriggerFired_Tau3Mu++;
+        if(flag_HLT_DoubleMu) nEvTriggerFired_DoubleMu++;
+
         // MET - Puppi correction
         h_diffGenPuppiMET->Fill(GenMET_pt-PuppiMET_pt);
         float PuppiMET_Nu_Dphi = PuppiMET_phi - GenNu_P4.Phi();
@@ -133,10 +148,13 @@ void MCstudiesT3m::Loop(){
 
     }// loop on events
 
+    h_HLT_T3MvsDM4->Scale(1./nentries);
     saveOutput();
 
     std::cout << " == summary == " << std::endl;
-    std::cout << " Events wich fired HLT " << nTriggerBit << std::endl;
+    std::cout << " Events whith HLT-bit ON " << nTriggerBit << std::endl;
+    std::cout << " Events which fully fired HLT_Tau3Mu " << nEvTriggerFired_Tau3Mu << std::endl;
+    std::cout << " Events which fully fired HLT_DoubleMu " << nEvTriggerFired_DoubleMu << std::endl;
     std::cout << " Tau candidates with 3 fired muons " << nTriggerFired3Mu << std::endl;
     std::cout << " Tau candidates after diMu veto " << nTauDiMuonVeto << std::endl;
     std::cout << " Tau candidates MC matched " << nTauMCmatched << std::endl;
@@ -208,11 +226,89 @@ int   MCstudiesT3m::MCtruthMatching(const bool verbose){
 
 }// MCtruthMatching
 
+bool MCstudiesT3m::TriggerMatching(const int TauIdx, const int config){
+    int trigger_configuration = (config == -1 ? HLTconf_ : config);
+    bool is_fired_trigger = false;
+    if(trigger_configuration == HLT_paths::HLT_Tau3Mu){
+        // check if the 3 muons + tau fired the trigger
+        bool is_fired_1 = HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 &&
+                            TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[TauIdx] &&
+                            TauTo3Mu_mu2_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[TauIdx] &&
+                            TauTo3Mu_mu3_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[TauIdx] &&
+                            TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[TauIdx];
+        bool is_fired_2 = HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15 &&
+                            TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[TauIdx] &&
+                            TauTo3Mu_mu2_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[TauIdx] &&
+                            TauTo3Mu_mu3_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[TauIdx]&&
+                            TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[TauIdx];
+        is_fired_trigger = (is_fired_1 || is_fired_2) && HLT_Tau3Mu_emulator(TauIdx);
+    }
+    if(trigger_configuration == HLT_paths::HLT_DoubleMu){
+        is_fired_trigger = HLT_DoubleMu4_3_LowMass &&
+                            TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[TauIdx]&&
+                            TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx]&&
+                            TauTo3Mu_mu3_fired_DoubleMu4_3_LowMass[TauIdx]&&
+                            HLT_DoubleMu_emulator(TauIdx);
+    }
+    if(trigger_configuration == HLT_paths::HLT_overlap) is_fired_trigger = true;
+    return is_fired_trigger;
+}//TriggerMatching()
+
+
+bool MCstudiesT3m::HLT_Tau3Mu_emulator(const int TauIdx){
+
+    //** single muon
+    const float minPT_mu1 = 7.0, minPT_mu2 = 1.0, minPT_mu3 = 1.0;
+    const float maxEta_mu = 2.5;
+    if(RecoMu1_P4.Pt() < minPT_mu1 || RecoMu2_P4.Pt() < minPT_mu2 || RecoMu3_P4.Pt() < minPT_mu3 ) return false;
+    if(fabs(RecoMu1_P4.Eta()) > maxEta_mu || fabs(RecoMu2_P4.Eta()) > maxEta_mu || fabs(RecoMu3_P4.Eta()) > maxEta_mu ) return false;
+    //** di-muon
+    const float minM_mumu = 2*Muon_MASS, maxM_mumu = 1.9;
+    const float maxDR_muBS = 0.5, maxDZ_mumu = 0.7;
+    if(!((TauTo3Mu_dZmu12[TauIdx] < maxDZ_mumu && TauTo3Mu_mu1_dr[TauIdx] < maxDR_muBS && TauTo3Mu_mu2_dr[TauIdx] < maxDR_muBS && (RecoMu1_P4+RecoMu2_P4).M() > minM_mumu && (RecoMu1_P4+RecoMu2_P4).M() < maxM_mumu ) ||  // mu_1, mu_2
+         (TauTo3Mu_dZmu23[TauIdx] < maxDZ_mumu && TauTo3Mu_mu2_dr[TauIdx] < maxDR_muBS && TauTo3Mu_mu3_dr[TauIdx] < maxDR_muBS && (RecoMu2_P4+RecoMu3_P4).M() > minM_mumu && (RecoMu2_P4+RecoMu3_P4).M() < maxM_mumu ) ||  // mu_2, mu_3
+         (TauTo3Mu_dZmu13[TauIdx] < maxDZ_mumu && TauTo3Mu_mu1_dr[TauIdx] < maxDR_muBS && TauTo3Mu_mu3_dr[TauIdx] < maxDR_muBS && (RecoMu1_P4+RecoMu3_P4).M() > minM_mumu && (RecoMu1_P4+RecoMu3_P4).M() < maxM_mumu) )  // mu_1, mu_3
+    ) return false;
+    //** muon-Tau
+    const float maxDZ_muTau = 0.3, maxDR_muTau = 0.3;
+    //if(0) return false; // insert the selection on DZ(tau,mu)
+    if( ROOT::Math::VectorUtil::DeltaR( RecoMu1_P4 ,RecoTau_P4) > maxDR_muTau ||
+        ROOT::Math::VectorUtil::DeltaR( RecoMu2_P4 ,RecoTau_P4) > maxDR_muTau || 
+        ROOT::Math::VectorUtil::DeltaR( RecoMu3_P4 ,RecoTau_P4) > maxDR_muTau) return false;
+    //** TAU
+    const float minPT_tau = 15.0, maxEta_tau = 2.5, minM_tau = 1.3, maxM_tau = 2.1;
+    const float maxIsoCh_tau = 2.0, maxRelIsoCh_tau = 0.2;
+    if(RecoTau_P4.Pt() < minPT_tau || RecoTau_P4.M() < minM_tau || RecoTau_P4.M() > maxM_tau || fabs(RecoTau_P4.Eta()) > maxEta_tau) return false;
+    if(TauTo3Mu_iso_ptChargedFromPV[TauIdx] > maxIsoCh_tau || TauTo3Mu_iso_ptChargedFromPV[TauIdx]/RecoTau_P4.Pt() > maxRelIsoCh_tau) return false;
+    
+    return true;
+}//HLT_emulator()
+
+bool MCstudiesT3m::HLT_DoubleMu_emulator(const int TauIdx){
+    // single muon
+    const float minPT_mu1 = 3.0, minPT_mu2 = 4.0;
+    const float maxEta_mu = 2.5;
+    if(RecoMu1_P4.Pt() < minPT_mu1 || RecoMu3_P4.Pt() < minPT_mu2) return false;
+    if(fabs(RecoMu1_P4.Eta()) > maxEta_mu || fabs(RecoMu2_P4.Eta()) > maxEta_mu || fabs(RecoMu3_P4.Eta()) > maxEta_mu ) return false;
+    const float minPT_mumu = 4.9, minM_mumu = 0.2, maxM_mumu = 8.5;
+    if(!(( (RecoMu1_P4+RecoMu2_P4).M() > minM_mumu && (RecoMu1_P4+RecoMu2_P4).M() < maxM_mumu && (RecoMu1_P4+RecoMu2_P4).Pt() > minPT_mumu ) ||
+         ( (RecoMu2_P4+RecoMu3_P4).M() > minM_mumu && (RecoMu2_P4+RecoMu3_P4).M() < maxM_mumu && (RecoMu2_P4+RecoMu3_P4).Pt() > minPT_mumu ) ||
+         ( (RecoMu1_P4+RecoMu3_P4).M() > minM_mumu && (RecoMu1_P4+RecoMu3_P4).M() < maxM_mumu && (RecoMu1_P4+RecoMu3_P4).Pt() > minPT_mumu ) )
+    ) return false;
+    const float minVtx_prob = 0.005; // on MuMu vertex fit
+    const float maxDCA_mumu = 0.5;
+
+    return true;
+
+}//HLT_DoubleMu_emulator()
+
 
 void MCstudiesT3m::saveOutput(){
 
     outFile_ = new TFile(outFilePath_, "RECREATE");
     outFile_->cd();
+    
+    h_HLT_T3MvsDM4->Write();
 
     h_gen_MuLeading_pT->Write();
     h_gen_MuSubLeading_pT->Write();
