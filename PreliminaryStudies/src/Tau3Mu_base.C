@@ -37,7 +37,7 @@ bool  Tau3Mu_base::RecoPartFillP4(const int TauIdx){
     RecoMu3_P4.SetPt(TauTo3Mu_mu3_pt[TauIdx]); RecoMu3_P4.SetEta(TauTo3Mu_mu3_eta[TauIdx]); RecoMu3_P4.SetPhi(TauTo3Mu_mu3_phi[TauIdx]); RecoMu1_P4.SetM(Muon_MASS);
 
     // tau
-    RecoTau_P4.SetPt(TauTo3Mu_fitted_vc_pt[TauIdx]);  RecoTau_P4.SetEta(TauTo3Mu_fitted_vc_eta[TauIdx]); RecoTau_P4.SetPhi(TauTo3Mu_fitted_vc_phi[TauIdx]);  RecoTau_P4.SetM(TauTo3Mu_fitted_vc_mass[TauIdx]);
+    RecoTau_P4.SetPt(TauTo3Mu_fitted_pt[TauIdx]);  RecoTau_P4.SetEta(TauTo3Mu_fitted_eta[TauIdx]); RecoTau_P4.SetPhi(TauTo3Mu_fitted_phi[TauIdx]);  RecoTau_P4.SetM(TauTo3Mu_fitted_mass[TauIdx]);
 
     // met in the transverse plane
 
