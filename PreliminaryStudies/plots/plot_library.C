@@ -4,6 +4,7 @@
 #include <TString.h>
 
 #include <TH1.h>
+#include <TH2.h>
 #include <TH1F.h>
 #include <TTree.h>
 #include <TGraph.h>
@@ -296,6 +297,54 @@ int draw_many_histos(const std::vector<TString> histo_names,const std::vector<TS
 
     return 0;
 }
+
+int draw_2D_histo(const TString& histo_name, const TString& x_name, const TString& y_name, TString out_name = "", bool LogZ = false){
+
+  TFile* input_file = open_file();
+
+  TH2F* h = (TH2F*)input_file->Get(histo_name);
+  if ( !h ){
+    std::cout<< "null pointer for histogram named " << histo_name << std::endl;
+    exit(-1);
+  }
+  if (out_name == "") out_name = histo_name;
+
+  //histoSetUp(h, category, x_name, fill);
+  h->GetXaxis()->SetTitle(x_name);
+  h->GetXaxis()->SetTitleSize(0.04);
+  h->GetXaxis()->SetLabelSize(0.05);
+  h->GetXaxis()->SetTitleOffset(1.6);
+  h->GetXaxis()->SetBinLabel(1, "0"); h->GetXaxis()->SetBinLabel(2, "1");
+  h->GetYaxis()->SetTitle(y_name);
+  h->GetYaxis()->SetTitleOffset(1.6);
+  h->GetYaxis()->SetTitleSize(0.04);
+  h->GetYaxis()->SetLabelSize(0.05);
+  h->GetYaxis()->SetBinLabel(1, "0"); h->GetYaxis()->SetBinLabel(2, "1");
+  h->SetMarkerSize(2);
+  
+
+  //STATISTICS
+  gStyle->SetOptStat(0);
+
+  //TEXT
+  gStyle->SetPaintTextFormat("1.3f");
+
+
+  TCanvas* c1 = new TCanvas("c1","canvas", 1024,1024);
+  c1->DrawFrame(0,0,1,1);
+  h->Draw("COLZ TEXT0");
+  gPad->SetMargin(0.13, 0.13,0.13,0.13);
+  c1->Update(); 
+  if (out_name == "") out_name = histo_name;
+  if (LogZ) c1->SetLogz();
+  else c1->SetLogy(0);
+  c1->SaveAs(pngName(out_name));
+  c1->SaveAs(pdfName(out_name));
+
+  input_file->Close();
+  return 0;
+
+}//draw_2D_histo
 
 
 int draw_binary_histo(const TString h_MCmatch, const TString MC_category, const TString& title,TString out_name){
