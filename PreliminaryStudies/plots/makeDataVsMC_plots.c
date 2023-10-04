@@ -8,7 +8,7 @@
     gStyle->SetPadTickY(1);
 
     SetInputFile_DataMC("/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/condor_data/ParkingDoubleMuonLowMass_2022E.root","../outRoot/MCstudiesT3m_MC_2022.root");
-    SetOutputFile("/eos/user/c/cbasile/www/Tau3Mu_Run3/DataVsMC/");
+    SetOutputFile("/eos/user/c/cbasile/www/Tau3Mu_Run3/DataVsMC/2022/");
 
     draw_DataVsMC("Mu_MediumID", "#mu mediumID", "", true, true);
     draw_DataVsMC("Mu_SoftID", "#mu softID", "", true, true);

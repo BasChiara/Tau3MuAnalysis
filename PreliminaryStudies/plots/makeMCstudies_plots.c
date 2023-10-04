@@ -7,8 +7,8 @@
     gStyle->SetPadTickX(1);
     gStyle->SetPadTickY(1);
 
-    SetInputFile("../outRoot/MCstudiesT3m_MC_2022preEE.root");
-    SetOutputFile("/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/");
+    SetInputFile("../outRoot/MCstudiesT3m_MC_2022.root");
+    SetOutputFile("/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2022/");
 
     draw_binary_histo("Mu_MediumID", "mu", "#mu mediumID", "Mu_MediumID");
     draw_binary_histo("Mu_SoftID", "mu", "#mu softID", "Mu_SoftID");
@@ -30,9 +30,10 @@
     draw_one_histo("Mu_Dz13", "mu", "#Delta z (#mu_{1},#mu_{3}) (cm)");
 
     // TAU PLOTS
-    draw_two_histos("Tau_fitNoVtx_M", "Tau_wovc", "Tau_fit_M", "Tau_vc", "M(3#mu) (GeV)", "Tau_mass");
-    draw_two_histos("Tau_fit_pT", "Tau_vc", "gen_Tau_eta", "Tau_gen","p_{T}(3#mu) (GeV)", "Tau_pT");
+    //draw_two_histos("Tau_fitNoVtx_M", "Tau_wovc", "Tau_fit_M", "Tau_vc", "M(3#mu) (GeV)", "Tau_mass");
+    draw_two_histos("Tau_fit_pT", "Tau_vc", "gen_Tau_pT", "Tau_gen","p_{T}(3#mu) (GeV)", "Tau_pT");
     draw_two_histos("Tau_fit_eta", "Tau_vc", "gen_Tau_eta", "Tau_gen", "#eta (3#mu)", "Tau_eta");
+    draw_two_histos("Tau_fit_phi", "Tau_vc", "gen_Tau_phi", "Tau_gen", "#eta (3#mu)", "Tau_phi");
     draw_one_histo("Tau_relIso","Tau_vc", "rel-iso 3#mu");
     draw_one_histo("LxySign_BSvtx", "Tau_vc", "L_{xy}(BS;3#mu-vtx)/#sigma");
     draw_one_histo("nTau", "Tau_vc", "3#mu candidates per event", "nTau", true, true);
@@ -47,11 +48,11 @@
     draw_two_histos("ratioPerpGenPuppiMET", "PuppiMET", "ratioPerpGenDeepMET", "DeepMET", "transverse-recoMET/p_{T}(#nu)", "ratioPerpGenMET", false, true);
     
     draw_one_histo("DPhi_TauDeepMET", "DeepMET", "#Delta #phi (3 #mu, MET)");
-    draw_one_histo("DPhi_TauPunziMET", "PuppiMET", "#Delta #phi (3 #mu, MET)");
+    draw_one_histo("DPhi_TauPuppiMET", "PuppiMET", "#Delta #phi (3 #mu, MET)");
     draw_one_histo("TauPt_DeepMET", "DeepMET", "p_{T}(3 #mu)/MET");
-    draw_one_histo("TauPt_PunziMET", "PuppiMET", "p_{T}(3 #mu)/MET");
-    draw_one_histo("missPz_min", "DeepMET", "min #n p_{z} (GeV)");
-    draw_one_histo("missPz_max", "DeepMET", "max #n p_{z} (GeV)");
+    draw_one_histo("TauPt_PuppiMET", "PuppiMET", "p_{T}(3 #mu)/MET");
+    draw_one_histo("missPz_min", "DeepMET", "min p_{z}^{#nu} (GeV)");
+    draw_one_histo("missPz_max", "DeepMET", "max p_{z}^{#nu} (GeV)");
 
 
     draw_two_histos("W_pT", "W", "gen_W_pT", "W_gen", "p_{T}(W) (GeV)");
