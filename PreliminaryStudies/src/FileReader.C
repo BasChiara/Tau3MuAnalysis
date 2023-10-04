@@ -86,12 +86,12 @@ TChain* FileReader::xrootdTChain_loader(const int& Nfiles){
         if (!strstr(Buffer,"#") && !(strspn(Buffer," ") == strlen(Buffer)))
         {
             sscanf(Buffer,"%s",MyRootFile);
-            std::cout << " [+] start adding "<< filesToAdd << " files from " << MyRootFile << std::endl;
+            //std::cout << " [+] start adding "<< filesToAdd << " files from " << MyRootFile << std::endl;
             for(int i = 0; i < filesToAdd; i++){
                 ChainPath = TString(MyRootFile);
                 if(ChainPath.EndsWith("_")) ChainPath.Append(Form("%d.root", i+1));
                 else ChainPath.Append(Form("%.3d.root", i));
-                std::cout << " + chaining " << ChainPath << std::endl; 
+                //std::cout << " + chaining " << ChainPath << std::endl; 
                 int status = outChain_->Add(TString(ChainPath));
                 Nfile++;
                 if(Nfile > 1000 || Nfile == Nfiles) filesToAdd -= 1000;
