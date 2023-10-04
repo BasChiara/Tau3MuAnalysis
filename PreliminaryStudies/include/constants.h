@@ -17,5 +17,13 @@ constexpr float Muon_MASS    = 0.10565837;
 constexpr float Muon_WIDTH   = 0.00000001;
 
 
+// HLT-path enumerator
+enum HLT_paths {
+    HLT_Tau3Mu = 1,
+    HLT_DoubleMu = 2,
+    HLT_overlap = 3
+};
+
+
 
 #endif
