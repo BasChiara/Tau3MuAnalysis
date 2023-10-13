@@ -6,8 +6,10 @@ prepStudiesT3m::prepStudiesT3m(TTree *tree, const TString & outdir, const TStrin
     if (tags_.Contains("data",TString::kIgnoreCase ) || tags_.Contains("ParkingDoubleMuonLowMass",TString::kIgnoreCase )) isBlind_ = true;
     else isBlind_ = false;
     if(isBlind_) std::cout << " > running analysis blind" << std::endl;
+    
+    // output
     outFilePath_ = outdir + "/recoKinematicsT3m_"+ tags_ + ".root";
-
+    outTreeSetUp();
 
 }//prepStudiesT3m()
 
@@ -39,6 +41,10 @@ void prepStudiesT3m::Loop(){
             !HLT_DoubleMu4_3_LowMass) continue;
         nTriggerBit++;
 
+        LumiBlock = luminosityBlock;
+        Run = run;
+        Event = event;
+
         // --- loop on TAU candidates
         flag_HLT_Tau3mu = false; flag_HLT_DoubleMu = false;
         for(unsigned int t = 0; t < nTauTo3Mu; t++){
@@ -55,22 +61,42 @@ void prepStudiesT3m::Loop(){
                 flag_HLT_DoubleMu = TriggerMatching(t,HLT_paths::HLT_DoubleMu);
             }
             nTriggerFired3Mu++;
+            HLT_isfired_Tau3Mu = flag_HLT_DoubleMu; HLT_isfired_Tau3Mu = flag_HLT_Tau3mu; 
+
+            n_tau = nTauTo3Mu;
             h_nTau->Fill(nTauTo3Mu);
 
             // blind if needed
             if(isBlind_ && RecoTau_P4.M() > blindTauMass_low && RecoTau_P4.M() < blindTauMass_high ) continue;
             // veto diMuonResonances
-            if (TauTo3Mu_diMuVtxFit_bestProb[t] > 0) h_diMuon_Mass->Fill(TauTo3Mu_diMuVtxFit_bestMass[t]);
+            if (TauTo3Mu_diMuVtxFit_bestProb[t] > 0){
+                h_diMuon_Mass->Fill(TauTo3Mu_diMuVtxFit_bestMass[t]);
+                tau_dimuon_mass = TauTo3Mu_diMuVtxFit_bestMass[t];
+            }
             if (TauTo3Mu_diMuVtxFit_toVeto[t]) continue;
             nTauDiMuonVeto++;
 
             // muonsID
+            tau_mu1_MediumID    = Muon_isMedium[TauTo3Mu_mu1_idx[t]];   tau_mu2_MediumID   = Muon_isMedium[TauTo3Mu_mu2_idx[t]];    tau_mu3_MediumID   = Muon_isMedium[TauTo3Mu_mu2_idx[t]];
+            tau_mu1_SoftID_PV   = Muon_isSoft[TauTo3Mu_mu1_idx[t]];     tau_mu2_SoftID_PV  = Muon_isSoft[TauTo3Mu_mu2_idx[t]];      tau_mu3_SoftID_PV  = Muon_isSoft[TauTo3Mu_mu3_idx[t]];
+            tau_mu1_SoftID_BS   = Muon_isSoft_BS[TauTo3Mu_mu1_idx[t]];  tau_mu2_SoftID_BS  = Muon_isSoft_BS[TauTo3Mu_mu2_idx[t]];   tau_mu3_SoftID_BS  = Muon_isSoft_BS[TauTo3Mu_mu3_idx[t]];
+            tau_mu1_TightID_PV  = Muon_isTight[TauTo3Mu_mu1_idx[t]];    tau_mu2_TightID_PV = Muon_isTight[TauTo3Mu_mu2_idx[t]];     tau_mu3_TightID_PV = Muon_isTight[TauTo3Mu_mu3_idx[t]];
+            tau_mu1_TightID_BS  = Muon_isTight_BS[TauTo3Mu_mu1_idx[t]]; tau_mu2_TightID_BS = Muon_isTight_BS[TauTo3Mu_mu2_idx[t]];  tau_mu3_TightID_BS = Muon_isTight_BS[TauTo3Mu_mu3_idx[t]];
+
+
+            //-------
             h_Mu_MediumID->Fill(Muon_isMedium[TauTo3Mu_mu1_idx[t]]); h_Mu_MediumID->Fill(Muon_isMedium[TauTo3Mu_mu2_idx[t]]); h_Mu_MediumID->Fill(Muon_isMedium[TauTo3Mu_mu3_idx[t]]);
             h_Mu_SoftID->Fill(Muon_isSoft[TauTo3Mu_mu1_idx[t]]); h_Mu_SoftID->Fill(Muon_isSoft[TauTo3Mu_mu2_idx[t]]); h_Mu_SoftID->Fill(Muon_isSoft[TauTo3Mu_mu3_idx[t]]);
             h_Mu_SoftID_BS->Fill(Muon_isSoft_BS[TauTo3Mu_mu1_idx[t]]); h_Mu_SoftID_BS->Fill(Muon_isSoft_BS[TauTo3Mu_mu2_idx[t]]); h_Mu_SoftID_BS->Fill(Muon_isSoft_BS[TauTo3Mu_mu3_idx[t]]);
             h_Mu_TightID->Fill(Muon_isTight[TauTo3Mu_mu1_idx[t]]); h_Mu_TightID->Fill(Muon_isTight[TauTo3Mu_mu2_idx[t]]); h_Mu_TightID->Fill(Muon_isTight[TauTo3Mu_mu3_idx[t]]);
             h_Mu_TightID_BS->Fill(Muon_isTight_BS[TauTo3Mu_mu1_idx[t]]); h_Mu_TightID_BS->Fill(Muon_isTight_BS[TauTo3Mu_mu2_idx[t]]); h_Mu_TightID_BS->Fill(Muon_isTight_BS[TauTo3Mu_mu3_idx[t]]);
+            
             // muons kinematics
+            
+            tau_mu1_pt  = TauTo3Mu_mu1_pt[t];   tau_mu2_pt  = TauTo3Mu_mu2_pt[t];   tau_mu3_pt  = TauTo3Mu_mu3_pt[t];
+            tau_mu1_eta = TauTo3Mu_mu2_eta[t];  tau_mu2_eta = TauTo3Mu_mu2_eta[t];  tau_mu3_eta = TauTo3Mu_mu3_eta[t];
+            tau_mu12_dZ = TauTo3Mu_dZmu12[t];   tau_mu23_dZ = TauTo3Mu_dZmu23[t];   tau_mu13_dZ = TauTo3Mu_dZmu13[t];
+            //----
             h_MuLeading_pT->Fill(TauTo3Mu_mu1_pt[t]);
             h_MuSubLeading_pT->Fill(TauTo3Mu_mu2_pt[t]);
             h_MuTrailing_pT->Fill(TauTo3Mu_mu3_pt[t]);
@@ -82,6 +108,15 @@ void prepStudiesT3m::Loop(){
             h_Mu_Dz13->Fill(TauTo3Mu_dZmu13[t]);
 
             // Tau -> 3mu
+            tau_fit_mass = TauTo3Mu_fitted_mass[t]; 
+            tau_fit_pt = TauTo3Mu_fitted_pt[t]; 
+            tau_fit_eta = TauTo3Mu_fitted_eta[t], tau_fit_phi = TauTo3Mu_fitted_phi[t];
+            tau_relIso = TauTo3Mu_absIsolation[t]/TauTo3Mu_fitted_pt[t];
+            tau_Lxy_sign_BS = TauTo3Mu_sigLxy_3muVtxBS[t];
+            tau_fit_mt = TauPlusMET_Tau_Puppi_mT[t];
+            tau_fit_vprob = TauTo3Mu_vtx_prob[t];
+            tau_cosAlpha_BS = TauTo3Mu_CosAlpha2D_LxyP3mu[t];
+            //---
             h_Tau_fit_M->Fill(TauTo3Mu_fitted_mass[t]);
             h_Tau_fit_pT->Fill(TauTo3Mu_fitted_pt[t]);
             h_Tau_fit_eta->Fill(RecoTau_P4.Eta());
@@ -90,21 +125,29 @@ void prepStudiesT3m::Loop(){
             h_Tau_Mt->Fill(TauPlusMET_Tau_Puppi_mT[t]);
             h_Tau_Pvtx->Fill(TauTo3Mu_vtx_prob[t]);
             h_Tau_cosAlpha_BS->Fill(TauTo3Mu_CosAlpha2D_LxyP3mu[t]);
-
+            // tau + MET (Puppi)
             float Dphi_MET = fabs(RecoTau_P4.Phi()- DeepMETResolutionTune_phi);
             if (Dphi_MET > 2*M_PI) Dphi_MET = 2*M_PI - Dphi_MET;
             h_DPhi_TauDeepMET->Fill(Dphi_MET);
             Dphi_MET = fabs(RecoTau_P4.Phi()- PuppiMET_phi);
             if (Dphi_MET > 2*M_PI) Dphi_MET = 2*M_PI - Dphi_MET;
-            h_DPhi_TauPunziMET->Fill(Dphi_MET);
+            h_DPhi_TauPuppiMET->Fill(Dphi_MET);
             h_TauPt_DeepMET->Fill(RecoTau_P4.Pt()/DeepMETResolutionTune_pt);
-            h_TauPt_PunziMET->Fill(RecoTau_P4.Pt()/PuppiMET_pt);
+            h_TauPt_PuppiMET->Fill(RecoTau_P4.Pt()/PuppiMET_pt);
             h_missPz_min->Fill(TauPlusMET_DeepMETminPz[t]);
             h_missPz_max->Fill(TauPlusMET_DeepMETmaxPz[t]);
 
+            //---
+            tau_met_pt = PuppiMET_pt; tau_met_phi = PuppiMET_phi;
+            tau_met_ratio_pt = RecoTau_P4.Pt()/PuppiMET_pt;
+            tau_met_Dphi = Dphi_MET;            
+            miss_pz_min = TauPlusMET_DeepMETminPz[t], miss_pz_max = TauPlusMET_DeepMETmaxPz[t];
+
             // W
+            W_pt = TauPlusMET_pt[t];
             h_W_pT->Fill(TauPlusMET_pt[t]);
-            
+
+            outTree_->Fill();
         }// loop on tau cands
 
         // HLT summary
@@ -158,13 +201,15 @@ void prepStudiesT3m::saveOutput(){
     h_Tau_cosAlpha_BS->Write();
 
     h_DPhi_TauDeepMET->Write();
-    h_DPhi_TauPunziMET->Write();
+    h_DPhi_TauPuppiMET->Write();
     h_TauPt_DeepMET->Write();
-    h_TauPt_PunziMET->Write();
+    h_TauPt_PuppiMET->Write();
     h_missPz_min->Write();
     h_missPz_max->Write();
 
     h_W_pT->Write();
+
+    outTree_->Write();
 
     outFile_->Close();
     std::cout << " [OUTPUT] root file saved in " << outFilePath_ << std::endl;
@@ -246,3 +291,56 @@ bool prepStudiesT3m::HLT_Tau3Mu_emulator(const int TauIdx){
     return true;
 
 }//HLT_Tau3Mu_emulator()
+
+void prepStudiesT3m::outTreeSetUp(){
+    
+    outTree_ = new TTree(outTree_name_, "Tau3Mu candidates with HLT implemented");
+    std::cout << " out tree setting up ... " << std::endl;
+
+    outTree_->Branch("run", &Run, "run/i");
+	outTree_->Branch("LumiBlock", &LumiBlock, "LumiBlock/i");
+	outTree_->Branch("event", &Event, "Event/l");
+    // * HLT
+    outTree_->Branch("HLT_isfired_Tau3Mu",     &HLT_isfired_Tau3Mu,   "HLT_isfired_Tau3Mu/I");
+    outTree_->Branch("HLT_isfired_DoubleMu",   &HLT_isfired_DoubleMu, "HLT_isfired_DoubleMu/I");
+    // * muons
+    outTree_->Branch("tau_mu1_MediumID",     &tau_mu1_MediumID,   "tau_mu1_MediumID/I");
+    outTree_->Branch("tau_mu2_MediumID",     &tau_mu2_MediumID,   "tau_mu2_MediumID/I");
+    outTree_->Branch("tau_mu3_MediumID",     &tau_mu3_MediumID,   "tau_mu3_MediumID/I");
+    outTree_->Branch("tau_mu1_SoftID_PV",    &tau_mu1_SoftID_PV,  "tau_mu1_SoftID_PV/I");
+    outTree_->Branch("tau_mu2_SoftID_PV",    &tau_mu2_SoftID_PV,  "tau_mu2_SoftID_PV/I");
+    outTree_->Branch("tau_mu3_SoftID_PV",    &tau_mu3_SoftID_PV,  "tau_mu3_SoftID_PV/I");
+    outTree_->Branch("tau_mu1_SoftID_BS",    &tau_mu1_SoftID_BS,  "tau_mu1_SoftID_BS/I");
+    outTree_->Branch("tau_mu2_SoftID_BS",    &tau_mu2_SoftID_BS,  "tau_mu2_SoftID_BS/I");
+    outTree_->Branch("tau_mu3_SoftID_BS",    &tau_mu3_SoftID_BS,  "tau_mu3_SoftID_BS/I");
+    outTree_->Branch("tau_mu1_TightID_PV",   &tau_mu1_TightID_PV, "tau_mu1_TightID_PV/I");
+    outTree_->Branch("tau_mu2_TightID_PV",   &tau_mu2_TightID_PV, "tau_mu2_TightID_PV/I");
+    outTree_->Branch("tau_mu3_TightID_PV",   &tau_mu3_TightID_PV, "tau_mu3_TightID_PV/I");
+    outTree_->Branch("tau_mu1_TightID_BS",   &tau_mu1_TightID_BS, "tau_mu1_TightID_BS/I");
+    outTree_->Branch("tau_mu2_TightID_BS",   &tau_mu2_TightID_BS, "tau_mu2_TightID_BS/I");
+    outTree_->Branch("tau_mu3_TightID_BS",   &tau_mu3_TightID_BS, "tau_mu3_TightID_BS/I");
+    // * tau canditates
+    outTree_->Branch("n_tau",           &n_tau,           "n_tau/I");
+    outTree_->Branch("tau_fit_mass",    &tau_fit_mass,    "tau_fit_mass/F");
+    outTree_->Branch("tau_fit_pt",      &tau_fit_pt,      "tau_fit_pt/F");
+    outTree_->Branch("tau_fit_eta",     &tau_fit_eta,     "tau_fit_eta/F");
+    outTree_->Branch("tau_fit_phi",     &tau_fit_phi,     "tau_fit_phi/F");
+    outTree_->Branch("tau_relIso",      &tau_relIso,      "tau_relIso/F");
+    outTree_->Branch("tau_dimuon_mass", &tau_dimuon_mass, "tau_dimuon_mass/F");
+    outTree_->Branch("tau_Lxy_sign_BS", &tau_Lxy_sign_BS, "tau_Lxy_sign_BS/F");
+    outTree_->Branch("tau_fit_mt",      &tau_fit_mt,      "tau_fit_mt/F");
+    outTree_->Branch("tau_fit_vprob",   &tau_fit_vprob,   "tau_fit_vprob/F");
+    outTree_->Branch("tau_cosAlpha_BS", &tau_cosAlpha_BS, "tau_cosAlpha_BS/F");
+    // * tau + MET
+    outTree_->Branch("tau_met_Dphi",     &tau_met_Dphi,     "tau_met_Dphi/F");
+    outTree_->Branch("tau_met_ratio_pt", &tau_met_ratio_pt, "tau_met_ratio_pt/F");
+    outTree_->Branch("tau_met_pt",       &tau_met_pt,       "tau_met_pt/F");
+    outTree_->Branch("miss_pz_min",      &miss_pz_min,      "miss_pz_min/F");
+    outTree_->Branch("miss_pz_max",      &miss_pz_max,      "miss_pz_max/F");
+    outTree_->Branch("W_pt",             &W_pt,             "W_pt/F");
+
+
+    //outTree_->Branch("", &, "/")
+
+
+}// outTreeSetUp()

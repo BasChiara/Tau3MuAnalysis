@@ -31,19 +31,38 @@ private:
 
  TString outFilePath_;
  TFile*  outFile_;
- TTree* outTree_;
+ TTree*  outTree_;
+ const TString outTree_name_ = "Tau3Mu_HLTemul_tree";
 
  // TTree branches
-  float Event, LumiBlock, Run;
- // * muons ID
-  int Mu_MediumID, Mu_SoftID_PV, Mu_SoftID_BS, Mu_TightID_PV, Mu_TightID_BS;
-  float Mu_leading_pT, Mu_subLeading_pT, My_trailing_pT;
-  float Mu_leading_eta, Mu_subLeading_eta, My_trailing_eta;
+  UInt_t LumiBlock, Run;
+  ULong64_t Event;
+  // HLT_bit
+  int HLT_isfired_Tau3Mu, HLT_isfired_DoubleMu;
+ // * muons
+  int   tau_mu1_MediumID,  tau_mu2_MediumID,  tau_mu3_MediumID;
+  int   tau_mu1_SoftID_PV, tau_mu2_SoftID_PV, tau_mu3_SoftID_PV;
+  int   tau_mu1_SoftID_BS, tau_mu2_SoftID_BS, tau_mu3_SoftID_BS;
+  int   tau_mu1_TightID_PV,tau_mu2_TightID_PV,tau_mu3_TightID_PV;
+  int   tau_mu1_TightID_BS,tau_mu2_TightID_BS,tau_mu3_TightID_BS;
+  float tau_mu1_pt, tau_mu2_pt, tau_mu3_pt;
+  float tau_mu1_eta, tau_mu2_eta, tau_mu3_eta;
+  float tau_mu12_dZ, tau_mu23_dZ, tau_mu13_dZ;
+ // * tau candidates
+  int n_tau;
+  float tau_fit_mass, tau_fit_pt, tau_fit_eta, tau_fit_phi;
+  float tau_relIso, tau_dimuon_mass, tau_Lxy_sign_BS;
+  float tau_fit_mt, tau_fit_vprob, tau_cosAlpha_BS;
+// * tau + MET
+  float tau_met_pt, tau_met_phi;
+  float tau_met_Dphi, tau_met_ratio_pt;
+  float miss_pz_min, miss_pz_max;
+  float W_pt;
   
 
 
-   // TH1
-   // muond ID
+  // TH1
+  // muond ID
    TH1F* h_Mu_MediumID = new TH1F("Mu_MediumID", "", 2, -0.5, 1.5);
    TH1F* h_Mu_SoftID   = new TH1F("Mu_SoftID", "", 2, -0.5, 1.5);
    TH1F* h_Mu_SoftID_BS= new TH1F("Mu_SoftID_BS", "", 2, -0.5, 1.5);
@@ -80,8 +99,8 @@ private:
   // Tau + MET
   TH1F* h_DPhi_TauDeepMET = new TH1F("DPhi_TauDeepMET", "", 50, 0, 3.14);
   TH1F* h_TauPt_DeepMET = new TH1F("TauPt_DeepMET", "", 60, 0, 6.);
-  TH1F* h_DPhi_TauPunziMET = new TH1F("DPhi_TauPunziMET", "", 50, 0, 3.14);
-  TH1F* h_TauPt_PunziMET = new TH1F("TauPt_PunziMET", "", 60, 0, 6.);
+  TH1F* h_DPhi_TauPuppiMET = new TH1F("DPhi_TauPuppiMET", "", 50, 0, 3.14);
+  TH1F* h_TauPt_PuppiMET = new TH1F("TauPt_PuppiMET", "", 60, 0, 6.);
 
   TH1F* h_missPz_min = new TH1F("missPz_min", "", 100, -300, 300);
   TH1F* h_missPz_max = new TH1F("missPz_max", "", 100, 0, 4000);  
