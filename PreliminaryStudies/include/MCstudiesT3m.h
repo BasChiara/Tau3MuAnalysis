@@ -35,10 +35,7 @@ class MCstudiesT3m : public MCTau3Mu_base{
    // MC matching tau candidate
    int TauTo3Mu_MCmatch_idx;
    // HLT paths
-   HLT_paths HLTconf_ = HLT_Tau3Mu;
-                                    // 1 : HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 or HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15
-                                    // 2 : HLT_DoubleMu4_3_LowMass
-                                    // 3 : HLT_overlap
+   HLT_paths HLTconf_ = HLT_overlap; // HLT_DoubleMu, HLT_Tau3Mu, HLT_overlap
 
    // [OUTPUT]
    TString outFilePath_;
