@@ -3,7 +3,6 @@
 MCstudiesT3m::MCstudiesT3m(TTree *tree, const TString & tags) : MCTau3Mu_base(tree, tags){
 
     outFilePath_ = "./outRoot/MCstudiesT3m_"+ tags_ + ".root";
-
     
 }
 
