@@ -32,6 +32,9 @@ void MCstudiesT3m::Loop(){
             !(HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 || HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15)) continue;
         if((HLTconf_ == HLT_paths::HLT_DoubleMu) &&
             !HLT_DoubleMu4_3_LowMass) continue;
+        if((HLTconf_ == HLT_paths::HLT_overlap) &&
+	   !(HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 || HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15 || HLT_DoubleMu4_3_LowMass)) continue;
+
         nTriggerBit++;
         // --- MC truth & matching
         GenPartFillP4();
@@ -151,6 +154,7 @@ void MCstudiesT3m::Loop(){
     saveOutput();
 
     std::cout << " == summary == " << std::endl;
+    std::cout << " Events " << nentries << std::endl;
     std::cout << " Events whith HLT-bit ON " << nTriggerBit << std::endl;
     std::cout << " Events which fully fired HLT_Tau3Mu " << nEvTriggerFired_Tau3Mu << std::endl;
     std::cout << " Events which fully fired HLT_DoubleMu " << nEvTriggerFired_DoubleMu << std::endl;
@@ -244,10 +248,12 @@ bool MCstudiesT3m::TriggerMatching(const int TauIdx, const int config){
     }
     if(trigger_configuration == HLT_paths::HLT_DoubleMu){
         is_fired_trigger = HLT_DoubleMu4_3_LowMass &&
-                            TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[TauIdx]&&
-                            TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx]&&
-                            TauTo3Mu_mu3_fired_DoubleMu4_3_LowMass[TauIdx]&&
-                            HLT_DoubleMu_emulator(TauIdx);
+	  (
+	   (TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx]) ||
+	   (TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu3_fired_DoubleMu4_3_LowMass[TauIdx]) ||
+	   (TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu3_fired_DoubleMu4_3_LowMass[TauIdx])
+	   ) && 
+	  HLT_DoubleMu_emulator(TauIdx);
     }
     if(trigger_configuration == HLT_paths::HLT_overlap) is_fired_trigger = true;
     return is_fired_trigger;
@@ -261,6 +267,7 @@ bool MCstudiesT3m::HLT_Tau3Mu_emulator(const int TauIdx){
     const float maxEta_mu = 2.5;
     if(RecoMu1_P4.Pt() < minPT_mu1 || RecoMu2_P4.Pt() < minPT_mu2 || RecoMu3_P4.Pt() < minPT_mu3 ) return false;
     if(fabs(RecoMu1_P4.Eta()) > maxEta_mu || fabs(RecoMu2_P4.Eta()) > maxEta_mu || fabs(RecoMu3_P4.Eta()) > maxEta_mu ) return false;
+
     //** di-muon
     const float minM_mumu = 2*Muon_MASS, maxM_mumu = 1.9;
     const float maxDR_muBS = 0.5, maxDZ_mumu = 0.7;
@@ -268,12 +275,14 @@ bool MCstudiesT3m::HLT_Tau3Mu_emulator(const int TauIdx){
          (TauTo3Mu_dZmu23[TauIdx] < maxDZ_mumu && TauTo3Mu_mu2_dr[TauIdx] < maxDR_muBS && TauTo3Mu_mu3_dr[TauIdx] < maxDR_muBS && (RecoMu2_P4+RecoMu3_P4).M() > minM_mumu && (RecoMu2_P4+RecoMu3_P4).M() < maxM_mumu ) ||  // mu_2, mu_3
          (TauTo3Mu_dZmu13[TauIdx] < maxDZ_mumu && TauTo3Mu_mu1_dr[TauIdx] < maxDR_muBS && TauTo3Mu_mu3_dr[TauIdx] < maxDR_muBS && (RecoMu1_P4+RecoMu3_P4).M() > minM_mumu && (RecoMu1_P4+RecoMu3_P4).M() < maxM_mumu) )  // mu_1, mu_3
     ) return false;
+
     //** muon-Tau
     const float maxDZ_muTau = 0.3, maxDR_muTau = 0.3;
     //if(0) return false; // insert the selection on DZ(tau,mu)
     if( ROOT::Math::VectorUtil::DeltaR( RecoMu1_P4 ,RecoTau_P4) > maxDR_muTau ||
         ROOT::Math::VectorUtil::DeltaR( RecoMu2_P4 ,RecoTau_P4) > maxDR_muTau || 
         ROOT::Math::VectorUtil::DeltaR( RecoMu3_P4 ,RecoTau_P4) > maxDR_muTau) return false;
+
     //** TAU
     const float minPT_tau = 15.0, maxEta_tau = 2.5, minM_tau = 1.3, maxM_tau = 2.1;
     const float maxIsoCh_tau = 2.0, maxRelIsoCh_tau = 0.2;
@@ -281,23 +290,72 @@ bool MCstudiesT3m::HLT_Tau3Mu_emulator(const int TauIdx){
     if(TauTo3Mu_iso_ptChargedFromPV[TauIdx] > maxIsoCh_tau || TauTo3Mu_iso_ptChargedFromPV[TauIdx]/RecoTau_P4.Pt() > maxRelIsoCh_tau) return false;
     
     return true;
+
 }//HLT_emulator()
 
 bool MCstudiesT3m::HLT_DoubleMu_emulator(const int TauIdx){
-    // single muon
-    const float minPT_mu1 = 3.0, minPT_mu2 = 4.0;
-    const float maxEta_mu = 2.5;
-    if(RecoMu1_P4.Pt() < minPT_mu1 || RecoMu3_P4.Pt() < minPT_mu2) return false;
-    if(fabs(RecoMu1_P4.Eta()) > maxEta_mu || fabs(RecoMu2_P4.Eta()) > maxEta_mu || fabs(RecoMu3_P4.Eta()) > maxEta_mu ) return false;
-    const float minPT_mumu = 4.9, minM_mumu = 0.2, maxM_mumu = 8.5;
-    if(!(( (RecoMu1_P4+RecoMu2_P4).M() > minM_mumu && (RecoMu1_P4+RecoMu2_P4).M() < maxM_mumu && (RecoMu1_P4+RecoMu2_P4).Pt() > minPT_mumu ) ||
-         ( (RecoMu2_P4+RecoMu3_P4).M() > minM_mumu && (RecoMu2_P4+RecoMu3_P4).M() < maxM_mumu && (RecoMu2_P4+RecoMu3_P4).Pt() > minPT_mumu ) ||
-         ( (RecoMu1_P4+RecoMu3_P4).M() > minM_mumu && (RecoMu1_P4+RecoMu3_P4).M() < maxM_mumu && (RecoMu1_P4+RecoMu3_P4).Pt() > minPT_mumu ) )
-    ) return false;
-    const float minVtx_prob = 0.005; // on MuMu vertex fit
-    const float maxDCA_mumu = 0.5;
+  
+  // which pair
+  bool use12=false;
+  bool use13=false;
+  bool use23=false;
+  if (TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx]) use12=true;
+  if (TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu3_fired_DoubleMu4_3_LowMass[TauIdx]) use13=true;
+  if (TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu3_fired_DoubleMu4_3_LowMass[TauIdx]) use23=true;
 
-    return true;
+  // single muon - eta
+  const float minPT_mu1 = 4.0, minPT_mu2 = 3.0;
+  const float maxEta_mu = 2.5;
+  bool eta12=true;
+  bool eta13=true;
+  bool eta23=true;
+  if (use12 && ( (fabs(RecoMu1_P4.Eta()) > maxEta_mu) || (fabs(RecoMu2_P4.Eta()) > maxEta_mu) )) eta12=false;
+  if (use13 && ( (fabs(RecoMu1_P4.Eta()) > maxEta_mu) || (fabs(RecoMu3_P4.Eta()) > maxEta_mu) )) eta13=false;
+  if (use23 && ( (fabs(RecoMu2_P4.Eta()) > maxEta_mu) || (fabs(RecoMu3_P4.Eta()) > maxEta_mu) )) eta23=false;
+  if (!eta12 && !eta13 && !eta23) return false;
+
+  // single muon - pT
+  float minPt=-999.;
+  float maxPt=-999.;
+  if (use12) {
+    if (RecoMu1_P4.Pt()>RecoMu2_P4.Pt()) { maxPt = RecoMu1_P4.Pt(); minPt = RecoMu2_P4.Pt(); }
+    else { maxPt = RecoMu2_P4.Pt(); minPt = RecoMu1_P4.Pt(); }
+  }
+  if (use13) {
+    if (RecoMu1_P4.Pt()>RecoMu3_P4.Pt()) { maxPt = RecoMu1_P4.Pt(); minPt = RecoMu3_P4.Pt(); }
+    else { maxPt = RecoMu3_P4.Pt(); minPt = RecoMu1_P4.Pt(); }
+  }
+  if (use23) {
+    if (RecoMu2_P4.Pt()>RecoMu3_P4.Pt()) { maxPt = RecoMu2_P4.Pt(); minPt = RecoMu3_P4.Pt(); }
+    else { maxPt = RecoMu3_P4.Pt(); minPt = RecoMu2_P4.Pt(); }
+  }
+  if( maxPt < minPT_mu1 || minPt < minPT_mu2) return false;
+
+
+  // double muon
+  float ptMM=-999.;
+  float massMM=-999.;
+  const float minPT_mumu = 4.9, minM_mumu = 0.2, maxM_mumu = 8.5;
+
+  if (use12) {
+    ptMM=(RecoMu1_P4+RecoMu2_P4).Pt();
+    massMM=(RecoMu1_P4+RecoMu2_P4).M();
+  }
+  if (use13) {
+    ptMM=(RecoMu1_P4+RecoMu3_P4).Pt();
+    massMM=(RecoMu1_P4+RecoMu3_P4).M();
+  }
+  if (use23) {
+    ptMM=(RecoMu2_P4+RecoMu3_P4).Pt();
+    massMM=(RecoMu2_P4+RecoMu3_P4).M();
+  }
+
+  if(!(massMM>minM_mumu && massMM< maxM_mumu && ptMM> minPT_mumu)) return false;
+
+  const float minVtx_prob = 0.005; // on MuMu vertex fit
+  const float maxDCA_mumu = 0.5;
+  
+  return true;
 
 }//HLT_DoubleMu_emulator()
 
