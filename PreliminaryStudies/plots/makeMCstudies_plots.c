@@ -30,10 +30,10 @@
     draw_one_histo("Mu_Dz13", "mu", "#Delta z (#mu_{1},#mu_{3}) (cm)");
 
     // TAU PLOTS
-    //draw_two_histos("Tau_fitNoVtx_M", "Tau_wovc", "Tau_fit_M", "Tau_vc", "M(3#mu) (GeV)", "Tau_mass");
+    draw_two_histos("Tau_raw_M", "Tau_wovc", "Tau_fit_M", "Tau_vc", "M(3#mu) (GeV)", "Tau_mass");
     draw_two_histos("Tau_fit_pT", "Tau_vc", "gen_Tau_pT", "Tau_gen","p_{T}(3#mu) (GeV)", "Tau_pT");
     draw_two_histos("Tau_fit_eta", "Tau_vc", "gen_Tau_eta", "Tau_gen", "#eta (3#mu)", "Tau_eta");
-    draw_two_histos("Tau_fit_phi", "Tau_vc", "gen_Tau_phi", "Tau_gen", "#eta (3#mu)", "Tau_phi");
+    draw_two_histos("Tau_fit_phi", "Tau_vc", "gen_Tau_phi", "Tau_gen", "#phi (3#mu)", "Tau_phi");
     draw_one_histo("Tau_relIso","Tau_vc", "rel-iso 3#mu");
     draw_one_histo("LxySign_BSvtx", "Tau_vc", "L_{xy}(BS;3#mu-vtx)/#sigma");
     draw_one_histo("nTau", "Tau_vc", "3#mu candidates per event", "nTau", true, true);

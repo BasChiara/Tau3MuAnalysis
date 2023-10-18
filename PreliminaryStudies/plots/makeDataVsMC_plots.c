@@ -7,7 +7,7 @@
     gStyle->SetPadTickX(1);
     gStyle->SetPadTickY(1);
 
-    SetInputFile_DataMC("/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/condor_data/ParkingDoubleMuonLowMass_2022E.root","../outRoot/MCstudiesT3m_MC_2022.root");
+    SetInputFile_DataMC("/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/condor_data/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022E.root","../outRoot/MCstudiesT3m_MC_2022_HLT_Tau3Mu.root");
     SetOutputFile("/eos/user/c/cbasile/www/Tau3Mu_Run3/DataVsMC/2022/");
 
     draw_DataVsMC("Mu_MediumID", "#mu mediumID", "", true, true);
@@ -42,8 +42,8 @@
 
     draw_DataVsMC("DPhi_TauPunziMET","#Delta #phi (3 #mu, MET)");
     draw_DataVsMC("TauPt_PunziMET", "p_{T}(3 #mu)/MET");
-    //draw_DataVsMC("missPz_min", "min p_{z} (GeV)");
-    //draw_DataVsMC("missPz_max", "max #n p_{z} (GeV)");
+    draw_DataVsMC("missPz_min", "min p_{z} (GeV)");
+    draw_DataVsMC("missPz_max", "max #n p_{z} (GeV)");
 
 
     draw_DataVsMC("W_pT", "p_{T}(W) (GeV)");
