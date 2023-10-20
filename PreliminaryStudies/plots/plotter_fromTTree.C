@@ -58,6 +58,7 @@ int draw_one_histo(const TString& branch_name, const TString& category, const TS
   TH1F* h = new TH1F("h", "", Nbins, x_low, x_high);
   inTree->Draw(branch_name+">>h");
   histoSetUp(h, category, x_name, fill, norm);
+  h->SetMaximum(1.4*h->GetBinContent(h->GetMaximumBin()));
   // canva
   TCanvas* c1 = new TCanvas("c1","canvas", 800,800);
   c1->DrawFrame(0,0,1,1);
@@ -102,8 +103,8 @@ int draw_many_histos(std::vector<TString> branches, std::vector<TString> categor
   gPad->SetBottomMargin(0.13);
   gStyle->SetOptStat(0);
   // TLegend
-  float leg_entry_dy = 0.3
-  auto legend = new TLegend(0.60,0.80-branches.size()*leg_entry_dy,0.80,0.80);
+  float leg_entry_dy = 0.04;
+  auto legend = new TLegend(0.60,0.80-branches.size()*leg_entry_dy,0.85,0.80);
   legend->SetBorderSize(0);
   legend->SetTextSize(0.035);
 
