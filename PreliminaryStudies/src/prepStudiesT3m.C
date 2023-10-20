@@ -94,7 +94,7 @@ void prepStudiesT3m::Loop(){
             // muons kinematics
             
             tau_mu1_pt  = TauTo3Mu_mu1_pt[t];   tau_mu2_pt  = TauTo3Mu_mu2_pt[t];   tau_mu3_pt  = TauTo3Mu_mu3_pt[t];
-            tau_mu1_eta = TauTo3Mu_mu2_eta[t];  tau_mu2_eta = TauTo3Mu_mu2_eta[t];  tau_mu3_eta = TauTo3Mu_mu3_eta[t];
+            tau_mu1_eta = TauTo3Mu_mu1_eta[t];  tau_mu2_eta = TauTo3Mu_mu2_eta[t];  tau_mu3_eta = TauTo3Mu_mu3_eta[t];
             tau_mu12_dZ = TauTo3Mu_dZmu12[t];   tau_mu23_dZ = TauTo3Mu_dZmu23[t];   tau_mu13_dZ = TauTo3Mu_dZmu13[t];
             //----
             h_MuLeading_pT->Fill(TauTo3Mu_mu1_pt[t]);
@@ -108,6 +108,7 @@ void prepStudiesT3m::Loop(){
             h_Mu_Dz13->Fill(TauTo3Mu_dZmu13[t]);
 
             // Tau -> 3mu
+            tau_raw_mass = (RecoMu1_P4+RecoMu2_P4+RecoMu3_P4).M(); 
             tau_fit_mass = TauTo3Mu_fitted_mass[t]; 
             tau_fit_pt = TauTo3Mu_fitted_pt[t]; 
             tau_fit_eta = TauTo3Mu_fitted_eta[t], tau_fit_phi = TauTo3Mu_fitted_phi[t];
@@ -304,6 +305,7 @@ void prepStudiesT3m::outTreeSetUp(){
     outTree_->Branch("HLT_isfired_Tau3Mu",     &HLT_isfired_Tau3Mu,   "HLT_isfired_Tau3Mu/I");
     outTree_->Branch("HLT_isfired_DoubleMu",   &HLT_isfired_DoubleMu, "HLT_isfired_DoubleMu/I");
     // * muons
+    // ** IDs
     outTree_->Branch("tau_mu1_MediumID",     &tau_mu1_MediumID,   "tau_mu1_MediumID/I");
     outTree_->Branch("tau_mu2_MediumID",     &tau_mu2_MediumID,   "tau_mu2_MediumID/I");
     outTree_->Branch("tau_mu3_MediumID",     &tau_mu3_MediumID,   "tau_mu3_MediumID/I");
@@ -319,8 +321,19 @@ void prepStudiesT3m::outTreeSetUp(){
     outTree_->Branch("tau_mu1_TightID_BS",   &tau_mu1_TightID_BS, "tau_mu1_TightID_BS/I");
     outTree_->Branch("tau_mu2_TightID_BS",   &tau_mu2_TightID_BS, "tau_mu2_TightID_BS/I");
     outTree_->Branch("tau_mu3_TightID_BS",   &tau_mu3_TightID_BS, "tau_mu3_TightID_BS/I");
+    // ** kinematics
+    outTree_->Branch("tau_mu1_pt",     &tau_mu1_pt,   "tau_mu1_pt/F");
+    outTree_->Branch("tau_mu2_pt",     &tau_mu2_pt,   "tau_mu2_pt/F");
+    outTree_->Branch("tau_mu3_pt",     &tau_mu3_pt,   "tau_mu3_pt/F");
+    outTree_->Branch("tau_mu1_eta",     &tau_mu1_eta,   "tau_mu1_eta/F");
+    outTree_->Branch("tau_mu2_eta",     &tau_mu2_eta,   "tau_mu2_eta/F");
+    outTree_->Branch("tau_mu3_eta",     &tau_mu3_eta,   "tau_mu3_eta/F");
+    outTree_->Branch("tau_mu12_dZ",     &tau_mu12_dZ,   "tau_mu12_dZ/F");
+    outTree_->Branch("tau_mu13_dZ",     &tau_mu13_dZ,   "tau_mu13_dZ/F");
+    outTree_->Branch("tau_mu23_dZ",     &tau_mu23_dZ,   "tau_mu23_dZ/F");
     // * tau canditates
     outTree_->Branch("n_tau",           &n_tau,           "n_tau/I");
+    outTree_->Branch("tau_raw_mass",    &tau_raw_mass,    "tau_raw_mass/F");
     outTree_->Branch("tau_fit_mass",    &tau_fit_mass,    "tau_fit_mass/F");
     outTree_->Branch("tau_fit_pt",      &tau_fit_pt,      "tau_fit_pt/F");
     outTree_->Branch("tau_fit_eta",     &tau_fit_eta,     "tau_fit_eta/F");

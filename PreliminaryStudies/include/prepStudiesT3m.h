@@ -50,6 +50,7 @@ private:
   float tau_mu12_dZ, tau_mu23_dZ, tau_mu13_dZ;
  // * tau candidates
   int n_tau;
+  float tau_raw_mass;
   float tau_fit_mass, tau_fit_pt, tau_fit_eta, tau_fit_phi;
   float tau_relIso, tau_dimuon_mass, tau_Lxy_sign_BS;
   float tau_fit_mt, tau_fit_vprob, tau_cosAlpha_BS;
