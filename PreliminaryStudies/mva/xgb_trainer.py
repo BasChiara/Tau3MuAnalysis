@@ -35,23 +35,23 @@ labels['tau_fit_pt'         ] = '$\\tau$ $p_{T}$'
 labels['tau_fit_mt'         ] = '$m_{T}(\\tau, MET)$'
 labels['tau_relIso'         ] = '$\\tau$ iso'
 labels['tau_met_Dphi'       ] = '$\Delta\phi(\\tau MET)$'
-labels['tau_met_pt'  ] = 'MET $p_{T}$'
+labels['tau_met_pt'         ] = 'MET $p_{T}$'
 labels['tau_met_ratio_pt'   ] = '$\\tau$ $p_{T}$/MET $p_{T}$' # only for >= v2
 labels['W_pt'               ] = 'W $p_{T}$'
-labels['miss_pz_max'                             ] = '$max(ME_z^i)$'
-labels['miss_pz_min'                             ] = '$min(ME_z^i)$'
-#labels['abs(mu1_z-mu2_z)'                             ] = '$\Delta z (\mu_1, \mu_2)$'
-#labels['abs(mu1_z-mu3_z)'                             ] = '$\Delta z (\mu_1, \mu_3)$'
-#labels['abs(mu2_z-mu3_z)'                             ] = '$\Delta z (\mu_2, \mu_3)$'
-labels['tau_Lxy_sign_BS'                                    ] = 'SV L/$\sigma$'
-labels['tau_fit_vprob'                                  ] = 'SV prob'
-labels['tau_cosAlpha_BS'                                   ] = 'SV cos($\\theta_{IP}$)'
-labels['tau_mu1_TightID_PV'                                        ] = '$\mu_1$ ID'
-labels['tau_mu2_TightID_PV'                                        ] = '$\mu_2$ ID'
-labels['tau_mu3_TightID_PV'                                        ] = '$\mu_3$ ID'
-labels['tau_fit_eta'                                       ] = '$|\eta_{\\tau}|$'
-labels['bdt'                                          ] = 'BDT'
-labels['tau_fit_mass'                          ] = '$\\tau$ mass'
+labels['miss_pz_max'        ] = '$max(ME_z^i)$'
+labels['miss_pz_min'        ] = '$min(ME_z^i)$'
+labels['tau_mu12_dZ'        ] = '$\Delta z (\mu_1, \mu_2)$'
+labels['tau_mu13_dZ'        ] = '$\Delta z (\mu_1, \mu_3)$'
+labels['tau_mu23_dZ'        ] = '$\Delta z (\mu_2, \mu_3)$'
+labels['tau_Lxy_sign_BS'    ] = 'SV L/$\sigma$'
+labels['tau_fit_vprob'      ] = 'SV prob'
+labels['tau_cosAlpha_BS'    ] = 'SV cos($\\theta_{IP}$)'
+labels['tau_mu1_TightID_PV' ] = '$\mu_1$ ID'
+labels['tau_mu2_TightID_PV' ] = '$\mu_2$ ID'
+labels['tau_mu3_TightID_PV' ] = '$\mu_3$ ID'
+labels['tau_fit_eta'        ] = '$|\eta_{\\tau}|$'
+labels['bdt'                ] = 'BDT'
+labels['tau_fit_mass'       ] = '$\\tau$ mass'
 
 ##########################################################################################
 # Define the gini metric - from https://www.kaggle.com/c/ClaimPredictionChallenge/discussion/703#5897
@@ -60,7 +60,9 @@ labels['tau_fit_mass'                          ] = '$\\tau$ mass'
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--load_model', help='load pkl instead of training')
-parser.add_argument('--tag', default= 'emulateRun2', help='tag to the training')
+parser.add_argument('--plot_outdir',default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/BDTtraining/', help=' output directory for plots')
+parser.add_argument('--tag',        default= 'emulateRun2', help='tag to the training')
+parser.add_argument('--debug',      action = 'store_true' ,help='set it to have useful printout')
 
 args = parser.parse_args()
 tag = args.tag
@@ -79,9 +81,9 @@ features = [
     'W_pt',
     'miss_pz_min',
     'miss_pz_max',
-#    'abs(mu1_z-mu2_z)', 
-#    'abs(mu1_z-mu3_z)', 
-#    'abs(mu2_z-mu3_z)',
+    'tau_mu12_dZ',
+    'tau_mu23_dZ',
+    'tau_mu13_dZ',
     'tau_Lxy_sign_BS',
     'tau_fit_vprob',
 ]
@@ -95,7 +97,6 @@ branches = features + [
     'tau_mu1_SoftID_PV', 'tau_mu2_SoftID_PV', 'tau_mu2_TightID_PV',
     'tau_mu1_SoftID_PV', 'tau_mu3_SoftID_PV', 'tau_mu3_TightID_PV',
 ]
-
 ##########################################################################################
 
 sig_selection = 'tau_fit_mass > 1.6 & tau_fit_mass < 2.0 & event % 10 == 0'
@@ -104,7 +105,7 @@ bkg_selection = '((tau_fit_mass > 1.6 & tau_fit_mass < 1.72) || (tau_fit_mass > 
 ##########################################################################################
 
 signals     = [
-    '/afs/cern.ch/user/c/cbasile/CMSSW_12_4_11_patch3-Tau3Mu/src/Tau3MuAnalysis/PreliminaryStudies/outRoot/recoKinematicsT3m_MC_2022EE.root'
+    '/afs/cern.ch/user/c/cbasile/CMSSW_12_4_11_patch3-Tau3Mu/src/Tau3MuAnalysis/PreliminaryStudies/outRoot/recoKinematicsT3m_MC_2022EE_HLT_Tau3Mu.root'
 ]
 
 backgrounds  = [
@@ -116,10 +117,10 @@ tree_name = 'Tau3Mu_HLTemul_tree'
 sig_rdf = ROOT.RDataFrame(tree_name, signals, branches).Filter(sig_selection).Define('weight', '1')
 #sig = pd.DataFrame( root_numpy.root2array(signals    , 'tree', branches  = branches + ['weight'], selection = sig_selection) )
 sig = pd.DataFrame( sig_rdf.AsNumpy() )
-#print(sig)
+if(args.debug):print(sig)
 bkg_rdf = ROOT.RDataFrame(tree_name, backgrounds, branches).Filter(bkg_selection).Define('weight', '1')
 bkg = pd.DataFrame( bkg_rdf.AsNumpy() )
-#print(bkg)
+if(args.debug):print(bkg)
 #bkg = pd.DataFrame( root_numpy.root2array(backgrounds, 'tree', branches  = branches + ['weight'], selection = bkg_selection) )
 
 print('... processing input ...')
@@ -143,10 +144,15 @@ bkg['target'] = np.zeros(bkg.shape[0]).astype(int)
 
 data = pd.concat([sig, bkg])
 data = data.sample(frac = 1, random_state = 1986).reset_index(drop=True)
+check_for_nan = data.isnull().values.any()
+print ("check for NaN " + str(check_for_nan))
+if (check_for_nan):
+    data = data.dropna()
+    check_for_nan = data.isnull().values.any()
+    print ("check again for NaN " + str(check_for_nan))
 data['id'] = np.arange(len(data))
-#print(data)
+if(args.debug):print(data)
 train, test = train_test_split(data, test_size=0.4, random_state=1986)
-
 kfold = 2 # DA CAMBIARE 
 skf = StratifiedKFold(n_splits=kfold, random_state=1986, shuffle=True)
 
@@ -168,10 +174,6 @@ if args.load_model is None:
         y_train, y_valid = (train[train.id.isin(train_index)]['target']).values.astype(int), (train[train.id.isin(test_index)]['target']).values.astype(int)
         print(max(y_train))
         print(min(y_train))
-        #label_encoder = LabelEncoder()
-        #y_train_encoded = label_encoder.fit_transform(y_train)
-        #y_valid_encoded = label_encoder.transform(y_valid)
-        #print(min(y_train))
         
         clf = XGBClassifier(
             booster          = 'gbtree',
@@ -194,17 +196,20 @@ if args.load_model is None:
         clf.fit(
             X_train, 
             y_train,
-            eval_set              = [(X_valid, y_valid)],#[(X_train, y_train), (X_valid, y_valid)],
+            eval_set              = [(X_train, y_train),(X_valid, y_valid)],
             early_stopping_rounds = 100, #100
             eval_metric           = 'auc',
             verbose               = True,
             #sample_weight         = train['weight'],
         )
-
+        
+        best_iteration = clf.get_booster().best_iteration
+        print('[Fold %d/%d] - best iteration %d' %(i+1, kfold, best_iteration))
         classifiers[i] = clf
         
         print('[Fold %d/%d Prediciton:]' % (i + 1, kfold))
         # Predict on our test data
+        # to use the best iteration 
         p_test = clf.predict_proba(test[features])[:, 1]
         sub['score'] += p_test/kfold
 
@@ -247,6 +252,8 @@ bkg  ['bdt'] = np.zeros(bkg.shape[0]).astype(float)
 
 for i, iclas in classifiers.items():
     print ('evaluating the %d-th classifier' %i)
+    best_iteration = iclas.get_booster().best_iteration
+    print('[Fold %d/%d] - best iteration %d' %(i+1, n_class, best_iteration))  
     train['bdt_fold%d' %i] = iclas.predict_proba(train[features])[:, 1]
     test ['bdt_fold%d' %i] = iclas.predict_proba(test [features])[:, 1]
     sig  ['bdt_fold%d' %i] = iclas.predict_proba(sig[features])[:, 1]
@@ -310,7 +317,8 @@ plt.legend(loc='best')
 plt.grid()
 plt.title('ROC')
 plt.tight_layout()
-plt.savefig('roc_%s.pdf' %tag)
+plt.savefig('%sroc_%s.png' %(args.plot_outdir,tag))
+plt.savefig('%sroc_%s.pdf' %(args.plot_outdir,tag))
 plt.clf()
 
 roc_file = open('roc_%s.pck' % tag, 'wb')
@@ -400,11 +408,13 @@ plt.suptitle('KS p-value: sig = %.3f%s - bkg = %.2f%s' %(ks_sig.pvalue * 100., '
 # ks_bkg = ks_w2(train_bkg, test_bkg, train_bkg_w, test_bkg_w)
 # plt.suptitle('KS p-value: sig = %.3f%s - bkg = %.2f%s' %(ks_sig * 100., '%', ks_bkg * 100., '%'))
 
-plt.savefig('overtrain_%s.pdf' %tag)
+plt.savefig('%sovertrain_%s.pdf' %(args.plot_outdir,tag))
+plt.savefig('%sovertrain_%s.png' %(args.plot_outdir,tag))
 
 plt.yscale('log')
 
-plt.savefig('overtrain_log_%s.pdf' %tag)
+plt.savefig('%sovertrain_log_%s.pdf' %(args.plot_outdir, tag))
+plt.savefig('%sovertrain_log_%s.png' %(args.plot_outdir, tag))
 
 plt.clf()
 
@@ -438,6 +448,6 @@ plt.barh(y_pos, orderedfscores.values())
 plt.yticks(y_pos, bars)
 # plot_importance(clf)
 plt.tight_layout()
-plt.savefig('feat_importance_%s.pdf' %tag)
+plt.savefig('%sfeat_importance_%s.pdf' %(args.plot_outdir,tag))
 plt.clf()
 
