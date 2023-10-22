@@ -51,8 +51,8 @@ void MCstudiesT3m::Loop(){
             if(HLTconf_ == HLT_paths::HLT_Tau3Mu)   flag_HLT_Tau3mu = true;
             if(HLTconf_ == HLT_paths::HLT_DoubleMu) flag_HLT_DoubleMu = true;
             if(HLTconf_ == HLT_paths::HLT_overlap){
-                flag_HLT_Tau3mu   = TriggerMatching(t,HLT_paths::HLT_Tau3Mu);
-                flag_HLT_DoubleMu = TriggerMatching(t,HLT_paths::HLT_DoubleMu);
+                if(!flag_HLT_Tau3mu)   flag_HLT_Tau3mu   = TriggerMatching(t,HLT_paths::HLT_Tau3Mu);
+                if(!flag_HLT_DoubleMu) flag_HLT_DoubleMu = TriggerMatching(t,HLT_paths::HLT_DoubleMu);
             }
             nTriggerFired3Mu++;
             h_nTau->Fill(nTauTo3Mu);
@@ -285,9 +285,10 @@ bool MCstudiesT3m::HLT_Tau3Mu_emulator(const int TauIdx){
 
     //** TAU
     const float minPT_tau = 15.0, maxEta_tau = 2.5, minM_tau = 1.3, maxM_tau = 2.1;
-    const float maxIsoCh_tau = 2.0, maxRelIsoCh_tau = 0.2;
     if(RecoTau_P4.Pt() < minPT_tau || RecoTau_P4.M() < minM_tau || RecoTau_P4.M() > maxM_tau || fabs(RecoTau_P4.Eta()) > maxEta_tau) return false;
-    if(TauTo3Mu_iso_ptChargedFromPV[TauIdx] > maxIsoCh_tau || TauTo3Mu_iso_ptChargedFromPV[TauIdx]/RecoTau_P4.Pt() > maxRelIsoCh_tau) return false;
+    const float maxIsoCh_tau = 2.0, maxRelIsoCh_tau = 0.2;
+    // --> Iso @ HLT level not comparable with reco isolation offline 
+    //if(TauTo3Mu_iso_ptChargedFromPV[TauIdx] > maxIsoCh_tau || TauTo3Mu_iso_ptChargedFromPV[TauIdx]/RecoTau_P4.Pt() > maxRelIsoCh_tau) return false;
     
     return true;
 
@@ -309,10 +310,10 @@ bool MCstudiesT3m::HLT_DoubleMu_emulator(const int TauIdx){
   bool eta12=true;
   bool eta13=true;
   bool eta23=true;
-  if (use12 && ( (fabs(RecoMu1_P4.Eta()) > maxEta_mu) || (fabs(RecoMu2_P4.Eta()) > maxEta_mu) )) eta12=false;
-  if (use13 && ( (fabs(RecoMu1_P4.Eta()) > maxEta_mu) || (fabs(RecoMu3_P4.Eta()) > maxEta_mu) )) eta13=false;
-  if (use23 && ( (fabs(RecoMu2_P4.Eta()) > maxEta_mu) || (fabs(RecoMu3_P4.Eta()) > maxEta_mu) )) eta23=false;
-  if (!eta12 && !eta13 && !eta23) return false;
+  if (use12 && ( (fabs(RecoMu1_P4.Eta()) > maxEta_mu) || (fabs(RecoMu2_P4.Eta()) > maxEta_mu) )) use12=false;
+  if (use13 && ( (fabs(RecoMu1_P4.Eta()) > maxEta_mu) || (fabs(RecoMu3_P4.Eta()) > maxEta_mu) )) use12=false;
+  if (use23 && ( (fabs(RecoMu2_P4.Eta()) > maxEta_mu) || (fabs(RecoMu3_P4.Eta()) > maxEta_mu) )) use23=false;
+  if (!use12 && !use13 && !use23) return false;
 
   // single muon - pT
   float minPt=-999.;
@@ -320,16 +321,20 @@ bool MCstudiesT3m::HLT_DoubleMu_emulator(const int TauIdx){
   if (use12) {
     if (RecoMu1_P4.Pt()>RecoMu2_P4.Pt()) { maxPt = RecoMu1_P4.Pt(); minPt = RecoMu2_P4.Pt(); }
     else { maxPt = RecoMu2_P4.Pt(); minPt = RecoMu1_P4.Pt(); }
+    use12 = maxPt > minPT_mu1 && minPt > minPT_mu2;
+
   }
   if (use13) {
     if (RecoMu1_P4.Pt()>RecoMu3_P4.Pt()) { maxPt = RecoMu1_P4.Pt(); minPt = RecoMu3_P4.Pt(); }
     else { maxPt = RecoMu3_P4.Pt(); minPt = RecoMu1_P4.Pt(); }
+    use13 = maxPt > minPT_mu1 && minPt > minPT_mu2;
   }
   if (use23) {
     if (RecoMu2_P4.Pt()>RecoMu3_P4.Pt()) { maxPt = RecoMu2_P4.Pt(); minPt = RecoMu3_P4.Pt(); }
     else { maxPt = RecoMu3_P4.Pt(); minPt = RecoMu2_P4.Pt(); }
+    use23 = maxPt > minPT_mu1 && minPt > minPT_mu2;
   }
-  if( maxPt < minPT_mu1 || minPt < minPT_mu2) return false;
+  if (!use12 && !use13 && !use23) return false;
 
 
   // double muon
@@ -340,18 +345,21 @@ bool MCstudiesT3m::HLT_DoubleMu_emulator(const int TauIdx){
   if (use12) {
     ptMM=(RecoMu1_P4+RecoMu2_P4).Pt();
     massMM=(RecoMu1_P4+RecoMu2_P4).M();
+    use12 = massMM>minM_mumu && massMM< maxM_mumu && ptMM> minPT_mumu;
   }
   if (use13) {
     ptMM=(RecoMu1_P4+RecoMu3_P4).Pt();
     massMM=(RecoMu1_P4+RecoMu3_P4).M();
+    use13 = massMM>minM_mumu && massMM< maxM_mumu && ptMM> minPT_mumu;
   }
   if (use23) {
     ptMM=(RecoMu2_P4+RecoMu3_P4).Pt();
     massMM=(RecoMu2_P4+RecoMu3_P4).M();
+    use23 = massMM>minM_mumu && massMM< maxM_mumu && ptMM> minPT_mumu;
   }
+  if (!use12 && !use13 && !use23) return false;
 
-  if(!(massMM>minM_mumu && massMM< maxM_mumu && ptMM> minPT_mumu)) return false;
-
+ 
   const float minVtx_prob = 0.005; // on MuMu vertex fit
   const float maxDCA_mumu = 0.5;
   
