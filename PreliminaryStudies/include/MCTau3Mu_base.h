@@ -31,6 +31,9 @@ public :
    UInt_t          bunchCrossing;
    UInt_t          nTauTo3Mu;
    Float_t         TauTo3Mu_CosAlpha2D_LxyP3mu[15];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_DCAmu12[15];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_DCAmu13[15];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_DCAmu23[15];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr[15];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr[15];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_absIsolation[15];   //[nTauTo3Mu]
@@ -59,6 +62,9 @@ public :
    Float_t         TauTo3Mu_mu3_phi[15];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_mu3_pt[15];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_sigLxy_3muVtxBS[15];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_vtxFitProbMu12[15];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_vtxFitProbMu13[15];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_vtxFitProbMu23[15];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_vtx_Ndof[15];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_vtx_chi2[15];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_vtx_prob[15];   //[nTauTo3Mu]
@@ -258,6 +264,9 @@ public :
    TBranch        *b_bunchCrossing;   //!
    TBranch        *b_nTauTo3Mu;   //!
    TBranch        *b_TauTo3Mu_CosAlpha2D_LxyP3mu;   //!
+   TBranch        *b_TauTo3Mu_DCAmu12;   //!
+   TBranch        *b_TauTo3Mu_DCAmu13;   //!
+   TBranch        *b_TauTo3Mu_DCAmu23;   //!
    TBranch        *b_TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr;   //!
    TBranch        *b_TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr;   //!
    TBranch        *b_TauTo3Mu_absIsolation;   //!
@@ -286,6 +295,9 @@ public :
    TBranch        *b_TauTo3Mu_mu3_phi;   //!
    TBranch        *b_TauTo3Mu_mu3_pt;   //!
    TBranch        *b_TauTo3Mu_sigLxy_3muVtxBS;   //!
+   TBranch        *b_TauTo3Mu_vtxFitProbMu12;   //!
+   TBranch        *b_TauTo3Mu_vtxFitProbMu13;   //!
+   TBranch        *b_TauTo3Mu_vtxFitProbMu23;   //!   
    TBranch        *b_TauTo3Mu_vtx_Ndof;   //!
    TBranch        *b_TauTo3Mu_vtx_chi2;   //!
    TBranch        *b_TauTo3Mu_vtx_prob;   //!
@@ -566,6 +578,9 @@ void MCTau3Mu_base::Init(TTree *tree)
    fChain->SetBranchAddress("bunchCrossing", &bunchCrossing, &b_bunchCrossing);
    fChain->SetBranchAddress("nTauTo3Mu", &nTauTo3Mu, &b_nTauTo3Mu);
    fChain->SetBranchAddress("TauTo3Mu_CosAlpha2D_LxyP3mu", TauTo3Mu_CosAlpha2D_LxyP3mu, &b_TauTo3Mu_CosAlpha2D_LxyP3mu);
+   fChain->SetBranchAddress("TauTo3Mu_DCAmu12", TauTo3Mu_DCAmu12, &b_TauTo3Mu_DCAmu12);
+   fChain->SetBranchAddress("TauTo3Mu_DCAmu13", TauTo3Mu_DCAmu13, &b_TauTo3Mu_DCAmu13);
+   fChain->SetBranchAddress("TauTo3Mu_DCAmu23", TauTo3Mu_DCAmu23, &b_TauTo3Mu_DCAmu23);
    fChain->SetBranchAddress("TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr", TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr, &b_TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr);
    fChain->SetBranchAddress("TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr", TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr, &b_TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr);
    fChain->SetBranchAddress("TauTo3Mu_absIsolation", TauTo3Mu_absIsolation, &b_TauTo3Mu_absIsolation);
@@ -594,6 +609,9 @@ void MCTau3Mu_base::Init(TTree *tree)
    fChain->SetBranchAddress("TauTo3Mu_mu3_phi", TauTo3Mu_mu3_phi, &b_TauTo3Mu_mu3_phi);
    fChain->SetBranchAddress("TauTo3Mu_mu3_pt", TauTo3Mu_mu3_pt, &b_TauTo3Mu_mu3_pt);
    fChain->SetBranchAddress("TauTo3Mu_sigLxy_3muVtxBS", TauTo3Mu_sigLxy_3muVtxBS, &b_TauTo3Mu_sigLxy_3muVtxBS);
+   fChain->SetBranchAddress("TauTo3Mu_vtxFitProbMu12", TauTo3Mu_vtxFitProbMu12, &b_TauTo3Mu_vtxFitProbMu12);
+   fChain->SetBranchAddress("TauTo3Mu_vtxFitProbMu13", TauTo3Mu_vtxFitProbMu13, &b_TauTo3Mu_vtxFitProbMu13);
+   fChain->SetBranchAddress("TauTo3Mu_vtxFitProbMu23", TauTo3Mu_vtxFitProbMu23, &b_TauTo3Mu_vtxFitProbMu23);
    fChain->SetBranchAddress("TauTo3Mu_vtx_Ndof", TauTo3Mu_vtx_Ndof, &b_TauTo3Mu_vtx_Ndof);
    fChain->SetBranchAddress("TauTo3Mu_vtx_chi2", TauTo3Mu_vtx_chi2, &b_TauTo3Mu_vtx_chi2);
    fChain->SetBranchAddress("TauTo3Mu_vtx_prob", TauTo3Mu_vtx_prob, &b_TauTo3Mu_vtx_prob);
