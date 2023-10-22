@@ -252,7 +252,7 @@ bool MCstudiesT3m::TriggerMatching(const int TauIdx, const int config){
 	   (TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx]) ||
 	   (TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu3_fired_DoubleMu4_3_LowMass[TauIdx]) ||
 	   (TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu3_fired_DoubleMu4_3_LowMass[TauIdx])
-	   ) && 
+	   ) &&
 	  HLT_DoubleMu_emulator(TauIdx);
     }
     if(trigger_configuration == HLT_paths::HLT_overlap) is_fired_trigger = true;
@@ -336,6 +336,12 @@ bool MCstudiesT3m::HLT_DoubleMu_emulator(const int TauIdx){
   }
   if (!use12 && !use13 && !use23) return false;
 
+  // single muon - compatibility with BS
+  float maxDR_mu = 2.0;
+  if (use12 && ( (TauTo3Mu_mu1_dr[TauIdx]>maxDR_mu) || (TauTo3Mu_mu2_dr[TauIdx]>maxDR_mu) )) use12=false;
+  if (use13 && ( (TauTo3Mu_mu1_dr[TauIdx]>maxDR_mu) || (TauTo3Mu_mu3_dr[TauIdx]>maxDR_mu) )) use13=false;
+  if (use23 && ( (TauTo3Mu_mu2_dr[TauIdx]>maxDR_mu) || (TauTo3Mu_mu3_dr[TauIdx]>maxDR_mu) )) use23=false;
+  if (!use12 && !use13 && !use23) return false;
 
   // double muon
   float ptMM=-999.;
@@ -359,9 +365,19 @@ bool MCstudiesT3m::HLT_DoubleMu_emulator(const int TauIdx){
   }
   if (!use12 && !use13 && !use23) return false;
 
- 
-  const float minVtx_prob = 0.005; // on MuMu vertex fit
-  const float maxDCA_mumu = 0.5;
+  // DCA
+  const float maxDCA_mumu = 0.5;  
+  if (use12 && TauTo3Mu_DCAmu12[TauIdx]>maxDCA_mumu) use12 = false;
+  if (use13 && TauTo3Mu_DCAmu13[TauIdx]>maxDCA_mumu) use13 = false;
+  if (use23 && TauTo3Mu_DCAmu23[TauIdx]>maxDCA_mumu) use23 = false;
+  if (!use12 && !use13 && !use23) return false;
+
+  // MuMu vertex fit 
+  const float minVtx_prob = 0.005; 
+  if (use12 && TauTo3Mu_vtxFitProbMu12[TauIdx]<minVtx_prob) use12 = false;
+  if (use13 && TauTo3Mu_vtxFitProbMu13[TauIdx]<minVtx_prob) use13 = false;
+  if (use23 && TauTo3Mu_vtxFitProbMu23[TauIdx]<minVtx_prob) use23 = false;
+  if (!use12 && !use13 && !use23) return false;
   
   return true;
 
