@@ -2,6 +2,7 @@
 #define prepStudiesT3m_h
 
 #include "Tau3Mu_base.h"
+#include <cmath>
 #include "constants.h"
 class prepStudiesT3m : public Tau3Mu_base{
 
@@ -20,7 +21,7 @@ public:
 
 private:
   // HLT paths
-  HLT_paths HLTconf_ = HLT_Tau3Mu;
+  HLT_paths HLTconf_ = HLT_Tau3Mu;  // HLT_DoubleMu, HLT_Tau3Mu, HLT_overlap
 
   // blinding parameters
   bool isBlind_;
@@ -41,18 +42,22 @@ private:
   int HLT_isfired_Tau3Mu, HLT_isfired_DoubleMu;
  // * muons
   int   tau_mu1_MediumID,  tau_mu2_MediumID,  tau_mu3_MediumID;
+  int   tau_mu1_LooseID,  tau_mu2_LooseID,  tau_mu3_LooseID;
   int   tau_mu1_SoftID_PV, tau_mu2_SoftID_PV, tau_mu3_SoftID_PV;
   int   tau_mu1_SoftID_BS, tau_mu2_SoftID_BS, tau_mu3_SoftID_BS;
   int   tau_mu1_TightID_PV,tau_mu2_TightID_PV,tau_mu3_TightID_PV;
   int   tau_mu1_TightID_BS,tau_mu2_TightID_BS,tau_mu3_TightID_BS;
   float tau_mu1_pt, tau_mu2_pt, tau_mu3_pt;
   float tau_mu1_eta, tau_mu2_eta, tau_mu3_eta;
+  float tau_mu1_z, tau_mu2_z, tau_mu3_z;
   float tau_mu12_dZ, tau_mu23_dZ, tau_mu13_dZ;
  // * tau candidates
   int n_tau;
   float tau_raw_mass;
-  float tau_fit_mass, tau_fit_pt, tau_fit_eta, tau_fit_phi;
-  float tau_relIso, tau_dimuon_mass, tau_Lxy_sign_BS;
+  float tau_fit_mass, tau_fit_mass_err;
+  float tau_fit_pt, tau_fit_eta, tau_fit_phi;
+  float tau_relIso, tau_dimuon_mass;
+  float tau_Lxy_val_BS, tau_Lxy_err_BS, tau_Lxy_sign_BS;
   float tau_fit_mt, tau_fit_vprob, tau_cosAlpha_BS;
 // * tau + MET
   float tau_met_pt, tau_met_phi;

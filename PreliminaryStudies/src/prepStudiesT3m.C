@@ -78,6 +78,7 @@ void prepStudiesT3m::Loop(){
 
             // muonsID
             tau_mu1_MediumID    = Muon_isMedium[TauTo3Mu_mu1_idx[t]];   tau_mu2_MediumID   = Muon_isMedium[TauTo3Mu_mu2_idx[t]];    tau_mu3_MediumID   = Muon_isMedium[TauTo3Mu_mu2_idx[t]];
+            tau_mu1_LooseID     = Muon_isLoose[TauTo3Mu_mu1_idx[t]];    tau_mu2_LooseID    = Muon_isLoose[TauTo3Mu_mu2_idx[t]];     tau_mu3_LooseID    = Muon_isLoose[TauTo3Mu_mu2_idx[t]];
             tau_mu1_SoftID_PV   = Muon_isSoft[TauTo3Mu_mu1_idx[t]];     tau_mu2_SoftID_PV  = Muon_isSoft[TauTo3Mu_mu2_idx[t]];      tau_mu3_SoftID_PV  = Muon_isSoft[TauTo3Mu_mu3_idx[t]];
             tau_mu1_SoftID_BS   = Muon_isSoft_BS[TauTo3Mu_mu1_idx[t]];  tau_mu2_SoftID_BS  = Muon_isSoft_BS[TauTo3Mu_mu2_idx[t]];   tau_mu3_SoftID_BS  = Muon_isSoft_BS[TauTo3Mu_mu3_idx[t]];
             tau_mu1_TightID_PV  = Muon_isTight[TauTo3Mu_mu1_idx[t]];    tau_mu2_TightID_PV = Muon_isTight[TauTo3Mu_mu2_idx[t]];     tau_mu3_TightID_PV = Muon_isTight[TauTo3Mu_mu3_idx[t]];
@@ -95,6 +96,7 @@ void prepStudiesT3m::Loop(){
             
             tau_mu1_pt  = TauTo3Mu_mu1_pt[t];   tau_mu2_pt  = TauTo3Mu_mu2_pt[t];   tau_mu3_pt  = TauTo3Mu_mu3_pt[t];
             tau_mu1_eta = TauTo3Mu_mu1_eta[t];  tau_mu2_eta = TauTo3Mu_mu2_eta[t];  tau_mu3_eta = TauTo3Mu_mu3_eta[t];
+            tau_mu1_z   = Muon_z[TauTo3Mu_mu1_idx[t]]; tau_mu2_z   = Muon_z[TauTo3Mu_mu2_idx[t]]; tau_mu3_z   = Muon_z[TauTo3Mu_mu3_idx[t]];
             tau_mu12_dZ = TauTo3Mu_dZmu12[t];   tau_mu23_dZ = TauTo3Mu_dZmu23[t];   tau_mu13_dZ = TauTo3Mu_dZmu13[t];
             //----
             h_MuLeading_pT->Fill(TauTo3Mu_mu1_pt[t]);
@@ -109,10 +111,13 @@ void prepStudiesT3m::Loop(){
 
             // Tau -> 3mu
             tau_raw_mass = (RecoMu1_P4+RecoMu2_P4+RecoMu3_P4).M(); 
-            tau_fit_mass = TauTo3Mu_fitted_mass[t]; 
+            tau_fit_mass = TauTo3Mu_fitted_mass[t];
+            tau_fit_mass_err =  sqrt(TauTo3Mu_fitted_mass_err2[t]);
             tau_fit_pt = TauTo3Mu_fitted_pt[t]; 
             tau_fit_eta = TauTo3Mu_fitted_eta[t], tau_fit_phi = TauTo3Mu_fitted_phi[t];
             tau_relIso = TauTo3Mu_absIsolation[t]/TauTo3Mu_fitted_pt[t];
+            tau_Lxy_val_BS = TauTo3Mu_Lxy_3muVtxBS[t];
+            tau_Lxy_err_BS = TauTo3Mu_errLxy_3muVtxBS[t];
             tau_Lxy_sign_BS = TauTo3Mu_sigLxy_3muVtxBS[t];
             tau_fit_mt = TauPlusMET_Tau_Puppi_mT[t];
             tau_fit_vprob = TauTo3Mu_vtx_prob[t];
@@ -236,31 +241,97 @@ bool prepStudiesT3m::TriggerMatching(const int TauIdx, const int config){
     }
     if(trigger_configuration == HLT_paths::HLT_DoubleMu){
         is_fired_trigger = HLT_DoubleMu4_3_LowMass &&
-                            TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[TauIdx]&&
-                            TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx]&&
-                            TauTo3Mu_mu3_fired_DoubleMu4_3_LowMass[TauIdx]&&
-                            HLT_DoubleMu_emulator(TauIdx);
+	  (
+	   (TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx]) ||
+	   (TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu3_fired_DoubleMu4_3_LowMass[TauIdx]) ||
+	   (TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu3_fired_DoubleMu4_3_LowMass[TauIdx])
+	   ) && 
+	  HLT_DoubleMu_emulator(TauIdx);
     }
     if(trigger_configuration == HLT_paths::HLT_overlap) is_fired_trigger = true;
     return is_fired_trigger;
-
 }// TriggerMatching()
 
 bool prepStudiesT3m::HLT_DoubleMu_emulator(const int TauIdx){
-    // single muon
-    const float minPT_mu1 = 3.0, minPT_mu2 = 4.0;
-    const float maxEta_mu = 2.5;
-    if(RecoMu1_P4.Pt() < minPT_mu1 || RecoMu3_P4.Pt() < minPT_mu2) return false;
-    if(fabs(RecoMu1_P4.Eta()) > maxEta_mu || fabs(RecoMu2_P4.Eta()) > maxEta_mu || fabs(RecoMu3_P4.Eta()) > maxEta_mu ) return false;
-    const float minPT_mumu = 4.9, minM_mumu = 0.2, maxM_mumu = 8.5;
-    if(!(( (RecoMu1_P4+RecoMu2_P4).M() > minM_mumu && (RecoMu1_P4+RecoMu2_P4).M() < maxM_mumu && (RecoMu1_P4+RecoMu2_P4).Pt() > minPT_mumu ) ||
-         ( (RecoMu2_P4+RecoMu3_P4).M() > minM_mumu && (RecoMu2_P4+RecoMu3_P4).M() < maxM_mumu && (RecoMu2_P4+RecoMu3_P4).Pt() > minPT_mumu ) ||
-         ( (RecoMu1_P4+RecoMu3_P4).M() > minM_mumu && (RecoMu1_P4+RecoMu3_P4).M() < maxM_mumu && (RecoMu1_P4+RecoMu3_P4).Pt() > minPT_mumu ) )
-    ) return false;
-    const float minVtx_prob = 0.005; // on MuMu vertex fit
-    const float maxDCA_mumu = 0.5;
+     // which pair
+  bool use12=false;
+  bool use13=false;
+  bool use23=false;
+  if (TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx]) use12=true;
+  if (TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu3_fired_DoubleMu4_3_LowMass[TauIdx]) use13=true;
+  if (TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu3_fired_DoubleMu4_3_LowMass[TauIdx]) use23=true;
 
-    return true;
+  // single muon - eta
+  const float maxEta_mu = 2.5;
+  if (use12 && ( (fabs(RecoMu1_P4.Eta()) > maxEta_mu) || (fabs(RecoMu2_P4.Eta()) > maxEta_mu) )) use12=false;
+  if (use13 && ( (fabs(RecoMu1_P4.Eta()) > maxEta_mu) || (fabs(RecoMu3_P4.Eta()) > maxEta_mu) )) use12=false;
+  if (use23 && ( (fabs(RecoMu2_P4.Eta()) > maxEta_mu) || (fabs(RecoMu3_P4.Eta()) > maxEta_mu) )) use23=false;
+  if (!use12 && !use13 && !use23) return false;
+
+  // single muon
+  // * pT
+  const float minPT_mu1 = 4.0, minPT_mu2 = 3.0;
+  float minPt=-999.;
+  float maxPt=-999.;
+  if (use12) {
+    if (RecoMu1_P4.Pt()>RecoMu2_P4.Pt()) { maxPt = RecoMu1_P4.Pt(); minPt = RecoMu2_P4.Pt(); }
+    else { maxPt = RecoMu2_P4.Pt(); minPt = RecoMu1_P4.Pt(); }
+    use12 = maxPt > minPT_mu1 && minPt > minPT_mu2;
+
+  }
+  if (use13) {
+    if (RecoMu1_P4.Pt()>RecoMu3_P4.Pt()) { maxPt = RecoMu1_P4.Pt(); minPt = RecoMu3_P4.Pt(); }
+    else { maxPt = RecoMu3_P4.Pt(); minPt = RecoMu1_P4.Pt(); }
+    use13 = maxPt > minPT_mu1 && minPt > minPT_mu2;
+  }
+  if (use23) {
+    if (RecoMu2_P4.Pt()>RecoMu3_P4.Pt()) { maxPt = RecoMu2_P4.Pt(); minPt = RecoMu3_P4.Pt(); }
+    else { maxPt = RecoMu3_P4.Pt(); minPt = RecoMu2_P4.Pt(); }
+    use23 = maxPt > minPT_mu1 && minPt > minPT_mu2;
+  }
+  if (!use12 && !use13 && !use23) return false;
+  // * compatibility with BS
+  const float maxDR_mu = 2.0;
+  if(use12 && (TauTo3Mu_mu1_dr[TauIdx]>maxDR_mu || TauTo3Mu_mu2_dr[TauIdx]>maxDR_mu )) use12 = false;
+  if(use13 && (TauTo3Mu_mu1_dr[TauIdx]>maxDR_mu || TauTo3Mu_mu3_dr[TauIdx]>maxDR_mu )) use13 = false;
+  if(use23 && (TauTo3Mu_mu2_dr[TauIdx]>maxDR_mu || TauTo3Mu_mu3_dr[TauIdx]>maxDR_mu )) use23 = false;
+  if (!use12 && !use13 && !use23) return false;
+
+  // double muon
+  float ptMM=-999.;
+  float massMM=-999.;
+  const float minPT_mumu = 4.9, minM_mumu = 0.2, maxM_mumu = 8.5;
+
+  if (use12) {
+    ptMM=(RecoMu1_P4+RecoMu2_P4).Pt();
+    massMM=(RecoMu1_P4+RecoMu2_P4).M();
+    use12 = massMM>minM_mumu && massMM< maxM_mumu && ptMM> minPT_mumu;
+  }
+  if (use13) {
+    ptMM=(RecoMu1_P4+RecoMu3_P4).Pt();
+    massMM=(RecoMu1_P4+RecoMu3_P4).M();
+    use13 = massMM>minM_mumu && massMM< maxM_mumu && ptMM> minPT_mumu;
+  }
+  if (use23) {
+    ptMM=(RecoMu2_P4+RecoMu3_P4).Pt();
+    massMM=(RecoMu2_P4+RecoMu3_P4).M();
+    use23 = massMM>minM_mumu && massMM< maxM_mumu && ptMM> minPT_mumu;
+  }
+  if (!use12 && !use13 && !use23) return false;
+
+ 
+  const float maxDCA_mumu = 0.5;
+  if(use12) use12 = TauTo3Mu_mu12_DCA[TauIdx] < maxDCA_mumu; 
+  if(use13) use13 = TauTo3Mu_mu13_DCA[TauIdx] < maxDCA_mumu; 
+  if(use23) use23 = TauTo3Mu_mu23_DCA[TauIdx] < maxDCA_mumu; 
+  if (!use12 && !use13 && !use23) return false;
+  const float minVtx_prob = 0.005; // on MuMu vertex fit
+  if(use12) use12 = TauTo3Mu_mu12_vtxFitProb[TauIdx] > minVtx_prob;
+  if(use13) use13 = TauTo3Mu_mu13_vtxFitProb[TauIdx] > minVtx_prob;
+  if(use23) use23 = TauTo3Mu_mu23_vtxFitProb[TauIdx] > minVtx_prob;
+  if (!use12 && !use13 && !use23) return false;
+
+  return true;
 }//HLT_DoubleMu_emulator()
 
 bool prepStudiesT3m::HLT_Tau3Mu_emulator(const int TauIdx){
@@ -270,6 +341,7 @@ bool prepStudiesT3m::HLT_Tau3Mu_emulator(const int TauIdx){
     const float maxEta_mu = 2.5;
     if(RecoMu1_P4.Pt() < minPT_mu1 || RecoMu2_P4.Pt() < minPT_mu2 || RecoMu3_P4.Pt() < minPT_mu3 ) return false;
     if(fabs(RecoMu1_P4.Eta()) > maxEta_mu || fabs(RecoMu2_P4.Eta()) > maxEta_mu || fabs(RecoMu3_P4.Eta()) > maxEta_mu ) return false;
+    
     //** di-muon
     const float minM_mumu = 2*Muon_MASS, maxM_mumu = 1.9;
     const float maxDR_muBS = 0.5, maxDZ_mumu = 0.7;
@@ -277,17 +349,19 @@ bool prepStudiesT3m::HLT_Tau3Mu_emulator(const int TauIdx){
          (TauTo3Mu_dZmu23[TauIdx] < maxDZ_mumu && TauTo3Mu_mu2_dr[TauIdx] < maxDR_muBS && TauTo3Mu_mu3_dr[TauIdx] < maxDR_muBS && (RecoMu2_P4+RecoMu3_P4).M() > minM_mumu && (RecoMu2_P4+RecoMu3_P4).M() < maxM_mumu ) ||  // mu_2, mu_3
          (TauTo3Mu_dZmu13[TauIdx] < maxDZ_mumu && TauTo3Mu_mu1_dr[TauIdx] < maxDR_muBS && TauTo3Mu_mu3_dr[TauIdx] < maxDR_muBS && (RecoMu1_P4+RecoMu3_P4).M() > minM_mumu && (RecoMu1_P4+RecoMu3_P4).M() < maxM_mumu) )  // mu_1, mu_3
     ) return false;
+    
     //** muon-Tau
     const float maxDZ_muTau = 0.3, maxDR_muTau = 0.3;
-    //if(0) return false; // insert the selection on DZ(tau,mu)
     if( ROOT::Math::VectorUtil::DeltaR( RecoMu1_P4 ,RecoTau_P4) > maxDR_muTau ||
         ROOT::Math::VectorUtil::DeltaR( RecoMu2_P4 ,RecoTau_P4) > maxDR_muTau || 
         ROOT::Math::VectorUtil::DeltaR( RecoMu3_P4 ,RecoTau_P4) > maxDR_muTau) return false;
+    
     //** TAU
     const float minPT_tau = 15.0, maxEta_tau = 2.5, minM_tau = 1.3, maxM_tau = 2.1;
-    const float maxIsoCh_tau = 2.0, maxRelIsoCh_tau = 0.2;
     if(RecoTau_P4.Pt() < minPT_tau || RecoTau_P4.M() < minM_tau || RecoTau_P4.M() > maxM_tau || fabs(RecoTau_P4.Eta()) > maxEta_tau) return false;
-    if(TauTo3Mu_iso_ptChargedFromPV[TauIdx] > maxIsoCh_tau || TauTo3Mu_iso_ptChargedFromPV[TauIdx]/RecoTau_P4.Pt() > maxRelIsoCh_tau) return false;
+    const float maxIsoCh_tau = 2.0, maxRelIsoCh_tau = 0.2;
+    // --> Iso @ HLT level not comparable with reco isolation offline 
+    //if(TauTo3Mu_iso_ptChargedFromPV[TauIdx] > maxIsoCh_tau || TauTo3Mu_iso_ptChargedFromPV[TauIdx]/RecoTau_P4.Pt() > maxRelIsoCh_tau) return false;
     
     return true;
 
@@ -309,6 +383,9 @@ void prepStudiesT3m::outTreeSetUp(){
     outTree_->Branch("tau_mu1_MediumID",     &tau_mu1_MediumID,   "tau_mu1_MediumID/I");
     outTree_->Branch("tau_mu2_MediumID",     &tau_mu2_MediumID,   "tau_mu2_MediumID/I");
     outTree_->Branch("tau_mu3_MediumID",     &tau_mu3_MediumID,   "tau_mu3_MediumID/I");
+    outTree_->Branch("tau_mu1_LooseID",      &tau_mu1_LooseID,    "tau_mu1_LooseID/I");
+    outTree_->Branch("tau_mu2_LooseID",      &tau_mu2_LooseID,    "tau_mu2_LooseID/I");
+    outTree_->Branch("tau_mu3_LooseID",      &tau_mu3_LooseID,    "tau_mu3_LooseID/I");
     outTree_->Branch("tau_mu1_SoftID_PV",    &tau_mu1_SoftID_PV,  "tau_mu1_SoftID_PV/I");
     outTree_->Branch("tau_mu2_SoftID_PV",    &tau_mu2_SoftID_PV,  "tau_mu2_SoftID_PV/I");
     outTree_->Branch("tau_mu3_SoftID_PV",    &tau_mu3_SoftID_PV,  "tau_mu3_SoftID_PV/I");
@@ -328,19 +405,25 @@ void prepStudiesT3m::outTreeSetUp(){
     outTree_->Branch("tau_mu1_eta",     &tau_mu1_eta,   "tau_mu1_eta/F");
     outTree_->Branch("tau_mu2_eta",     &tau_mu2_eta,   "tau_mu2_eta/F");
     outTree_->Branch("tau_mu3_eta",     &tau_mu3_eta,   "tau_mu3_eta/F");
+    outTree_->Branch("tau_mu1_z",     &tau_mu1_z,   "tau_mu1_z/F");
+    outTree_->Branch("tau_mu2_z",     &tau_mu2_z,   "tau_mu2_z/F");
+    outTree_->Branch("tau_mu3_z",     &tau_mu3_z,   "tau_mu3_z/F");
     outTree_->Branch("tau_mu12_dZ",     &tau_mu12_dZ,   "tau_mu12_dZ/F");
     outTree_->Branch("tau_mu13_dZ",     &tau_mu13_dZ,   "tau_mu13_dZ/F");
     outTree_->Branch("tau_mu23_dZ",     &tau_mu23_dZ,   "tau_mu23_dZ/F");
     // * tau canditates
-    outTree_->Branch("n_tau",           &n_tau,           "n_tau/I");
-    outTree_->Branch("tau_raw_mass",    &tau_raw_mass,    "tau_raw_mass/F");
-    outTree_->Branch("tau_fit_mass",    &tau_fit_mass,    "tau_fit_mass/F");
+    outTree_->Branch("n_tau",            &n_tau,            "n_tau/I");
+    outTree_->Branch("tau_raw_mass",     &tau_raw_mass,     "tau_raw_mass/F");
+    outTree_->Branch("tau_fit_mass",     &tau_fit_mass,     "tau_fit_mass/F");
+    outTree_->Branch("tau_fit_mass_err",&tau_fit_mass_err,"tau_fit_mass_err/F");
     outTree_->Branch("tau_fit_pt",      &tau_fit_pt,      "tau_fit_pt/F");
     outTree_->Branch("tau_fit_eta",     &tau_fit_eta,     "tau_fit_eta/F");
     outTree_->Branch("tau_fit_phi",     &tau_fit_phi,     "tau_fit_phi/F");
     outTree_->Branch("tau_relIso",      &tau_relIso,      "tau_relIso/F");
     outTree_->Branch("tau_dimuon_mass", &tau_dimuon_mass, "tau_dimuon_mass/F");
     outTree_->Branch("tau_Lxy_sign_BS", &tau_Lxy_sign_BS, "tau_Lxy_sign_BS/F");
+    outTree_->Branch("tau_Lxy_err_BS", &tau_Lxy_err_BS, "tau_Lxy_err_BS/F");
+    outTree_->Branch("tau_Lxy_val_BS", &tau_Lxy_val_BS, "tau_Lxy_val_BS/F");
     outTree_->Branch("tau_fit_mt",      &tau_fit_mt,      "tau_fit_mt/F");
     outTree_->Branch("tau_fit_vprob",   &tau_fit_vprob,   "tau_fit_vprob/F");
     outTree_->Branch("tau_cosAlpha_BS", &tau_cosAlpha_BS, "tau_cosAlpha_BS/F");
