@@ -97,6 +97,7 @@ void MCstudiesT3m::Loop(){
             // Tau -> 3mu
             h_Tau_fit_M->Fill(TauTo3Mu_fitted_mass[t]);
             h_Tau_raw_M->Fill( (RecoMu1_P4+RecoMu2_P4+RecoMu3_P4).M() );
+            h_Tau_fit_MrelErr->Fill(sqrt(TauTo3Mu_fitted_mass_err2[t])/TauTo3Mu_fitted_mass[t]);
             h_Tau_fit_pT->Fill(RecoTau_P4.Pt());
             h_Tau_fit_eta->Fill(RecoTau_P4.Eta());
             h_Tau_fit_phi->Fill(RecoTau_P4.Phi());
@@ -305,17 +306,15 @@ bool MCstudiesT3m::HLT_DoubleMu_emulator(const int TauIdx){
   if (TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu3_fired_DoubleMu4_3_LowMass[TauIdx]) use23=true;
 
   // single muon - eta
-  const float minPT_mu1 = 4.0, minPT_mu2 = 3.0;
   const float maxEta_mu = 2.5;
-  bool eta12=true;
-  bool eta13=true;
-  bool eta23=true;
   if (use12 && ( (fabs(RecoMu1_P4.Eta()) > maxEta_mu) || (fabs(RecoMu2_P4.Eta()) > maxEta_mu) )) use12=false;
   if (use13 && ( (fabs(RecoMu1_P4.Eta()) > maxEta_mu) || (fabs(RecoMu3_P4.Eta()) > maxEta_mu) )) use12=false;
   if (use23 && ( (fabs(RecoMu2_P4.Eta()) > maxEta_mu) || (fabs(RecoMu3_P4.Eta()) > maxEta_mu) )) use23=false;
   if (!use12 && !use13 && !use23) return false;
 
-  // single muon - pT
+  // single muon
+  // * pT
+  const float minPT_mu1 = 4.0, minPT_mu2 = 3.0;
   float minPt=-999.;
   float maxPt=-999.;
   if (use12) {
@@ -335,7 +334,12 @@ bool MCstudiesT3m::HLT_DoubleMu_emulator(const int TauIdx){
     use23 = maxPt > minPT_mu1 && minPt > minPT_mu2;
   }
   if (!use12 && !use13 && !use23) return false;
-
+  // * compatibility with BS
+  const float maxDR_mu = 2.0;
+  if(use12 && (TauTo3Mu_mu1_dr[TauIdx]>maxDR_mu || TauTo3Mu_mu2_dr[TauIdx]>maxDR_mu )) use12 = false;
+  if(use13 && (TauTo3Mu_mu1_dr[TauIdx]>maxDR_mu || TauTo3Mu_mu3_dr[TauIdx]>maxDR_mu )) use13 = false;
+  if(use23 && (TauTo3Mu_mu2_dr[TauIdx]>maxDR_mu || TauTo3Mu_mu3_dr[TauIdx]>maxDR_mu )) use23 = false;
+  if (!use12 && !use13 && !use23) return false;
 
   // double muon
   float ptMM=-999.;
@@ -360,9 +364,17 @@ bool MCstudiesT3m::HLT_DoubleMu_emulator(const int TauIdx){
   if (!use12 && !use13 && !use23) return false;
 
  
-  const float minVtx_prob = 0.005; // on MuMu vertex fit
   const float maxDCA_mumu = 0.5;
-  
+  if(use12) use12 = TauTo3Mu_mu12_DCA[TauIdx] < maxDCA_mumu; 
+  if(use13) use13 = TauTo3Mu_mu13_DCA[TauIdx] < maxDCA_mumu; 
+  if(use23) use23 = TauTo3Mu_mu23_DCA[TauIdx] < maxDCA_mumu; 
+  if (!use12 && !use13 && !use23) return false;
+  const float minVtx_prob = 0.005; // on MuMu vertex fit
+  if(use12) use12 = TauTo3Mu_mu12_vtxFitProb[TauIdx] > minVtx_prob;
+  if(use13) use13 = TauTo3Mu_mu13_vtxFitProb[TauIdx] > minVtx_prob;
+  if(use23) use23 = TauTo3Mu_mu23_vtxFitProb[TauIdx] > minVtx_prob;
+  if (!use12 && !use13 && !use23) return false;
+
   return true;
 
 }//HLT_DoubleMu_emulator()
@@ -402,6 +414,7 @@ void MCstudiesT3m::saveOutput(){
     h_Mu_Dz13->Write();
     h_nTau->Write();
     h_Tau_fit_M->Write();
+    h_Tau_fit_MrelErr->Write();
     h_Tau_raw_M->Write();
     h_Tau_fit_pT->Write();
     h_Tau_fit_eta->Write();
