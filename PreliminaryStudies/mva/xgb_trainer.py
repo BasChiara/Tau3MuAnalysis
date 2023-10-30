@@ -63,6 +63,7 @@ parser.add_argument('--load_model', help='load pkl instead of training')
 parser.add_argument('--plot_outdir',default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/BDTtraining/', help=' output directory for plots')
 parser.add_argument('--tag',        default= 'emulateRun2', help='tag to the training')
 parser.add_argument('--debug',      action = 'store_true' ,help='set it to have useful printout')
+parser.add_argument('--save_output',action = 'store_true' ,help='set it to save the bdt output')
 
 args = parser.parse_args()
 tag = args.tag
@@ -92,14 +93,14 @@ branches = features + [
 #    'cand_refit_charge',
 #    'tau_mu*_LooseID'
     'tau_fit_eta',
-    'tau_fit_mass',
+    'tau_fit_mass', 'tau_fit_mass_err',
     'tau_mu1_SoftID_PV', 'tau_mu1_SoftID_PV', 'tau_mu1_TightID_PV',
     'tau_mu1_SoftID_PV', 'tau_mu2_SoftID_PV', 'tau_mu2_TightID_PV',
     'tau_mu1_SoftID_PV', 'tau_mu3_SoftID_PV', 'tau_mu3_TightID_PV',
 ]
 ##########################################################################################
 
-sig_selection = 'tau_fit_mass > 1.6 & tau_fit_mass < 2.0 & event % 10 == 0'
+sig_selection = 'tau_fit_mass > 1.6 & tau_fit_mass < 2.0'
 bkg_selection = '((tau_fit_mass > 1.6 & tau_fit_mass < 1.72) || (tau_fit_mass > 1.84 & tau_fit_mass < 2.0))'
 
 ##########################################################################################
@@ -109,7 +110,9 @@ signals     = [
 ]
 
 backgrounds  = [
-    '/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/condor_data//recoKinematicsT3m_ParkingDoubleMuonLowMass_2022E.root'
+    '/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/condor_data/Run3_2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022E.root',
+    '/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/condor_data/Run3_2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022F.root',
+    '/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/condor_data/Run3_2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022G.root',
 ]
 
 tree_name = 'Tau3Mu_HLTemul_tree'
@@ -132,8 +135,8 @@ print('---------------------------------------------')
 ## DEFINE TARGETS
 ##########################################################################################
 
-sig['target'] = np.ones (sig.shape[0]).astype(int)
-bkg['target'] = np.zeros(bkg.shape[0]).astype(int)
+sig.loc[:,'target'] = np.ones (sig.shape[0]).astype(int)
+bkg.loc[:,'target'] = np.zeros(bkg.shape[0]).astype(int)
 
 ##########################################################################################
 ## REWEIGHT AND MAKE TAU MASS FLAT
@@ -150,19 +153,20 @@ if (check_for_nan):
     data = data.dropna()
     check_for_nan = data.isnull().values.any()
     print ("check again for NaN " + str(check_for_nan))
-data['id'] = np.arange(len(data))
+data.loc[:,'id'] = np.arange(len(data))
 if(args.debug):print(data)
 train, test = train_test_split(data, test_size=0.4, random_state=1986)
-kfold = 2 # DA CAMBIARE 
+kfold = 5 # DA CAMBIARE 
 skf = StratifiedKFold(n_splits=kfold, random_state=1986, shuffle=True)
 
 
-sub = pd.DataFrame()
-sub['id']     = test.id
-sub['target'] = test.target
-sub['score']  = np.zeros_like(test.id)
 
 if args.load_model is None:
+    sub = pd.DataFrame()
+    sub['id']     = test.id
+    sub['target'] = test.target
+    sub['score']  = np.zeros_like(test.id)
+
     classifier_file = open('classifiers_%s.pck' % tag, 'wb')
     classifiers = OrderedDict()
 
@@ -245,24 +249,34 @@ else :
 n_class = len(classifiers)
 print(" Number of splits %d"%n_class)
 
-train['bdt'] = np.zeros(train.shape[0]).astype(float)
-test ['bdt'] = np.zeros(test.shape[0]).astype(float)
-sig  ['bdt'] = np.zeros(sig.shape[0]).astype(float)
-bkg  ['bdt'] = np.zeros(bkg.shape[0]).astype(float)
+train.loc[:,'bdt'] = np.zeros(train.shape[0]).astype(float)
+test.loc[:,'bdt'] = np.zeros(test.shape[0]).astype(float)
+sig.loc[:,'bdt'] = np.zeros(sig.shape[0]).astype(float)
+bkg.loc[:,'bdt'] = np.zeros(bkg.shape[0]).astype(float)
 
 for i, iclas in classifiers.items():
-    print ('evaluating the %d-th classifier' %i)
+    print (' evaluating %d/%d classifier' %(i+1, n_class))
     best_iteration = iclas.get_booster().best_iteration
-    print('[Fold %d/%d] - best iteration %d' %(i+1, n_class, best_iteration))  
-    train['bdt_fold%d' %i] = iclas.predict_proba(train[features])[:, 1]
-    test ['bdt_fold%d' %i] = iclas.predict_proba(test [features])[:, 1]
-    sig  ['bdt_fold%d' %i] = iclas.predict_proba(sig[features])[:, 1]
-    bkg  ['bdt_fold%d' %i] = iclas.predict_proba(bkg[features])[:, 1]
+    print('\tbest iteration %d' %(best_iteration))  
+    train.loc[:,'bdt_fold%d' %i] = iclas.predict_proba(train[features])[:, 1]
+    test.loc[:,'bdt_fold%d' %i] = iclas.predict_proba(test [features])[:, 1]
+    sig.loc[:,'bdt_fold%d' %i] = iclas.predict_proba(sig[features])[:, 1]
+    bkg.loc[:,'bdt_fold%d' %i] = iclas.predict_proba(bkg[features])[:, 1]
 
-    train['bdt'] += iclas.predict_proba(train[features])[:, 1] / n_class
-    test ['bdt'] += iclas.predict_proba(test [features])[:, 1] / n_class
-    sig  ['bdt'] += iclas.predict_proba(sig[features])[:, 1] / n_class
-    bkg  ['bdt'] += iclas.predict_proba(bkg[features])[:, 1] / n_class
+    train.loc[:,'bdt'] += iclas.predict_proba(train[features])[:, 1] / n_class
+    test.loc[:,'bdt'] += iclas.predict_proba(test [features])[:, 1] / n_class
+    sig.loc[:,'bdt'] += iclas.predict_proba(sig[features])[:, 1] / n_class
+    bkg.loc[:,'bdt'] += iclas.predict_proba(bkg[features])[:, 1] / n_class
+
+
+if(args.save_output):
+    # convert dat ato dictionary with numpy arrays 
+    sig_out_data = {col: sig[col].values for col in sig.columns}
+    sig_out_rdf = ROOT.RDF.MakeNumpyDataFrame(sig_out_data).Filter('bdt > 0.5').Snapshot('tree_w_BDT', '/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/mva_data/XGBout_signal_%s.root'%(args.tag))
+    bkg_out_data = {col: bkg[col].values for col in bkg.columns}
+    bkg_out_rdf = ROOT.RDF.MakeNumpyDataFrame(bkg_out_data).Filter('bdt > 0.5').Snapshot('tree_w_BDT', '/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/mva_data/XGBout_data_%s.root'%args.tag)
+
+exit(-1)
 
 ##########################################################################################
 #####   ROC CURVE
@@ -346,17 +360,17 @@ hist, bins = np.histogram(
     test_sig,
     bins=bins, 
 #     range=low_high, 
-    normed=True
+#    normed=True
 )
-
+hist_norm = hist / len(test_sig)
 width  = (bins[1] - bins[0])
 center = (bins[:-1] + bins[1:]) / 2
 scale  = len(test_sig) / sum(hist)
-err    = np.sqrt(hist * scale) / scale
+err    = np.sqrt(hist)/len(test_sig) #np.sqrt(hist * scale) / scale
 
 plt.errorbar(
     center, 
-    hist, 
+    hist_norm, 
     yerr=err, 
     fmt='o', 
     c='r', 
@@ -364,24 +378,26 @@ plt.errorbar(
 )
 
 #################################################
-sns.distplot(train_sig, bins=bins, kde=False, rug=False, norm_hist=True, hist_kws={"alpha": 0.5, "color": "r"}, label='S (train)')
+#sns.distplot(train_sig, bins=bins, kde=False, rug=False, norm_hist=True, hist_kws={"alpha": 0.5, "color": "r"}, label='S (train)')
+sns.histplot(train_sig, bins=bins, kde=False, stat='probability', alpha = 0.5, color = "r", label='S (train)')
 
 #################################################
 hist, bins = np.histogram(
     test_bkg,
     bins=bins, 
 #     range=low_high, 
-    normed=True
+#    normed=True
 )
 
+hist_norm = hist / len(test_bkg)
 width  = (bins[1] - bins[0])
 center = (bins[:-1] + bins[1:]) / 2
 scale  = len(test_bkg) / sum(hist)
-err    = np.sqrt(hist * scale) / scale
+err    = np.sqrt(hist)/len(test_bkg) #np.sqrt(hist * scale) / scale
 
 plt.errorbar(
     center, 
-    hist, 
+    hist_norm, 
     yerr=err, 
     fmt='o', 
     c='b', 
@@ -389,7 +405,8 @@ plt.errorbar(
 )
 
 #################################################
-sns.distplot(train_bkg, bins=bins, kde=False, rug=False, norm_hist=True, hist_kws={"alpha": 0.5, "color": "b"}, label='B (train)')
+#sns.distplot(train_bkg, bins=bins, kde=False, rug=False, norm_hist=True, hist_kws={"alpha": 0.5, "color": "b"}, label='B (train)')
+sns.histplot(train_bkg, bins=bins, kde=False, stat='probability', alpha = 0.5, color = "b", label='B (train)')
 
 #################################################
 plt.xlabel('BDT output')
@@ -429,7 +446,6 @@ for i, iclas in classifiers.items():
         fscores[jj] += myscores[jj]
 
 totalsplits = sum(float(value) for value in fscores.values())
-print(type(totalsplits))
 for k, v in fscores.items():
     fscores[k] = float(v)/float(totalsplits) 
 
@@ -449,5 +465,6 @@ plt.yticks(y_pos, bars)
 # plot_importance(clf)
 plt.tight_layout()
 plt.savefig('%sfeat_importance_%s.pdf' %(args.plot_outdir,tag))
+plt.savefig('%sfeat_importance_%s.png' %(args.plot_outdir,tag))
 plt.clf()
 
