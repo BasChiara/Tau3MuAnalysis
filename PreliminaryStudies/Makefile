@@ -64,6 +64,7 @@ RecoLev.clean:
 clean:
 		@echo "cleaning..."
 		rm -f $(OUTLIB)*.o
+		rm -f $(OUTEXE)*
 		rm -f GenLev
 		rm -f RecoLev
 
