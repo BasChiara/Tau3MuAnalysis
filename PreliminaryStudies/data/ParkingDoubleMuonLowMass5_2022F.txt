@@ -1,4 +1,4 @@
-# 2588 files
-root://xrootd-cms.infn.it///store/user/crovelli/ParkingDoubleMuonLowMass5/crab_data_Run2022Fv1_5/230927_115619/0000/tau3muNANO_data_2023Sep27_
-root://xrootd-cms.infn.it///store/user/crovelli/ParkingDoubleMuonLowMass5/crab_data_Run2022Fv1_5/230927_115619/0001/tau3muNANO_data_2023Sep27_1
-root://xrootd-cms.infn.it///store/user/crovelli/ParkingDoubleMuonLowMass5/crab_data_Run2022Fv1_5/230927_115619/0002/tau3muNANO_data_2023Sep27_2
+# 2591 files
+root://xrootd-cms.infn.it///store/user/crovelli/ParkingDoubleMuonLowMass5/crab_data_Run2022Fv1_5/231026_131140/0000/tau3muNANO_data_2023Oct26_
+root://xrootd-cms.infn.it///store/user/crovelli/ParkingDoubleMuonLowMass5/crab_data_Run2022Fv1_5/231026_131140/0001/tau3muNANO_data_2023Oct26_1
+root://xrootd-cms.infn.it///store/user/crovelli/ParkingDoubleMuonLowMass5/crab_data_Run2022Fv1_5/231026_131140/0002/tau3muNANO_data_2023Oct26_2
