@@ -29,6 +29,7 @@
 *.obj
 
 # backup files
+*/*/archive/*
 *.swp
 *.swo
 
