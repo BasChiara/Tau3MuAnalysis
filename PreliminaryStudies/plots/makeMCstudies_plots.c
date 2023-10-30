@@ -31,6 +31,7 @@
 
     // TAU PLOTS
     draw_two_histos("Tau_raw_M", "Tau_wovc", "Tau_fit_M", "Tau_vc", "M(3#mu) (GeV)", "Tau_mass");
+    draw_one_histo("Tau_fit_MrelErr", "Tau_vc", "M(3#mu) relative resolution", "Tau_massRelErr");
     draw_two_histos("Tau_fit_pT", "Tau_vc", "gen_Tau_pT", "Tau_gen","p_{T}(3#mu) (GeV)", "Tau_pT");
     draw_two_histos("Tau_fit_eta", "Tau_vc", "gen_Tau_eta", "Tau_gen", "#eta (3#mu)", "Tau_eta");
     draw_two_histos("Tau_fit_phi", "Tau_vc", "gen_Tau_phi", "Tau_gen", "#phi (3#mu)", "Tau_phi");
