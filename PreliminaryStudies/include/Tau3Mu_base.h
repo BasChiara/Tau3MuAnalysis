@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Mon Oct  2 08:35:43 2023 by ROOT version 6.24/07
+// Sat Oct 28 17:55:57 2023 by ROOT version 6.24/07
 // from TTree Events/Events
-// found on file: data/tau3muNANO_data_2023Sep27_10.root
+// found on file: root://xrootd-cms.infn.it//store/user/crovelli/ParkingDoubleMuonLowMass0/crab_data_Run2022Ev1_0/231026_130842/0000/tau3muNANO_data_2023Oct26_10.root
 //////////////////////////////////////////////////////////
 
 #ifndef Tau3Mu_base_h
@@ -33,6 +33,7 @@ public :
    UInt_t          bunchCrossing;
    UInt_t          nTauTo3Mu;
    Float_t         TauTo3Mu_CosAlpha2D_LxyP3mu[10];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_Lxy_3muVtxBS[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_absIsolation[10];   //[nTauTo3Mu]
@@ -41,17 +42,26 @@ public :
    Float_t         TauTo3Mu_dZmu23[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_diMuVtxFit_bestMass[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_diMuVtxFit_bestProb[10];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_errLxy_3muVtxBS[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_fitted_eta[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_fitted_mass[10];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_fitted_mass_err2[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_fitted_phi[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_fitted_pt[10];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_iso_ptChargedForHLT[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_iso_ptChargedFromPU[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_iso_ptChargedFromPV[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_iso_ptPhotons[10];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_mu12_DCA[10];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_mu12_vtxFitProb[10];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_mu13_DCA[10];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_mu13_vtxFitProb[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_mu1_dr[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_mu1_eta[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_mu1_phi[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_mu1_pt[10];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_mu23_DCA[10];   //[nTauTo3Mu]
+   Float_t         TauTo3Mu_mu23_vtxFitProb[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_mu2_dr[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_mu2_eta[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_mu2_phi[10];   //[nTauTo3Mu]
@@ -141,6 +151,7 @@ public :
    Float_t         Muon_err_dZpv[20];   //[nMuon]
    Float_t         Muon_phi[20];   //[nMuon]
    Float_t         Muon_pt[20];   //[nMuon]
+   Float_t         Muon_z[20];   //[nMuon]
    Int_t           Muon_charge[20];   //[nMuon]
    Int_t           Muon_isSoft_BS[20];   //[nMuon]
    Int_t           Muon_isTight_BS[20];   //[nMuon]
@@ -226,6 +237,7 @@ public :
    TBranch        *b_bunchCrossing;   //!
    TBranch        *b_nTauTo3Mu;   //!
    TBranch        *b_TauTo3Mu_CosAlpha2D_LxyP3mu;   //!
+   TBranch        *b_TauTo3Mu_Lxy_3muVtxBS;   //!
    TBranch        *b_TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr;   //!
    TBranch        *b_TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr;   //!
    TBranch        *b_TauTo3Mu_absIsolation;   //!
@@ -234,17 +246,26 @@ public :
    TBranch        *b_TauTo3Mu_dZmu23;   //!
    TBranch        *b_TauTo3Mu_diMuVtxFit_bestMass;   //!
    TBranch        *b_TauTo3Mu_diMuVtxFit_bestProb;   //!
+   TBranch        *b_TauTo3Mu_errLxy_3muVtxBS;   //!
    TBranch        *b_TauTo3Mu_fitted_eta;   //!
    TBranch        *b_TauTo3Mu_fitted_mass;   //!
+   TBranch        *b_TauTo3Mu_fitted_mass_err2;   //!
    TBranch        *b_TauTo3Mu_fitted_phi;   //!
    TBranch        *b_TauTo3Mu_fitted_pt;   //!
+   TBranch        *b_TauTo3Mu_iso_ptChargedForHLT;   //!
    TBranch        *b_TauTo3Mu_iso_ptChargedFromPU;   //!
    TBranch        *b_TauTo3Mu_iso_ptChargedFromPV;   //!
    TBranch        *b_TauTo3Mu_iso_ptPhotons;   //!
+   TBranch        *b_TauTo3Mu_mu12_DCA;   //!
+   TBranch        *b_TauTo3Mu_mu12_vtxFitProb;   //!
+   TBranch        *b_TauTo3Mu_mu13_DCA;   //!
+   TBranch        *b_TauTo3Mu_mu13_vtxFitProb;   //!
    TBranch        *b_TauTo3Mu_mu1_dr;   //!
    TBranch        *b_TauTo3Mu_mu1_eta;   //!
    TBranch        *b_TauTo3Mu_mu1_phi;   //!
    TBranch        *b_TauTo3Mu_mu1_pt;   //!
+   TBranch        *b_TauTo3Mu_mu23_DCA;   //!
+   TBranch        *b_TauTo3Mu_mu23_vtxFitProb;   //!
    TBranch        *b_TauTo3Mu_mu2_dr;   //!
    TBranch        *b_TauTo3Mu_mu2_eta;   //!
    TBranch        *b_TauTo3Mu_mu2_phi;   //!
@@ -334,6 +355,7 @@ public :
    TBranch        *b_Muon_err_dZpv;   //!
    TBranch        *b_Muon_phi;   //!
    TBranch        *b_Muon_pt;   //!
+   TBranch        *b_Muon_z;   //!
    TBranch        *b_Muon_charge;   //!
    TBranch        *b_Muon_isSoft_BS;   //!
    TBranch        *b_Muon_isTight_BS;   //!
@@ -438,9 +460,9 @@ Tau3Mu_base::Tau3Mu_base(TTree *tree) : fChain(0)
 // if parameter tree is not specified (or zero), connect the file
 // used to generate this class and read the Tree.
    if (tree == 0) {
-      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("data/tau3muNANO_data_2023Sep27_10.root");
+      TFile *f = (TFile*)gROOT->GetListOfFiles()->FindObject("root://xrootd-cms.infn.it//store/user/crovelli/ParkingDoubleMuonLowMass0/crab_data_Run2022Ev1_0/231026_130842/0000/tau3muNANO_data_2023Oct26_10.root");
       if (!f || !f->IsOpen()) {
-         f = new TFile("data/tau3muNANO_data_2023Sep27_10.root");
+         f = new TFile("root://xrootd-cms.infn.it//store/user/crovelli/ParkingDoubleMuonLowMass0/crab_data_Run2022Ev1_0/231026_130842/0000/tau3muNANO_data_2023Oct26_10.root");
       }
       f->GetObject("Events",tree);
 
@@ -495,6 +517,7 @@ void Tau3Mu_base::Init(TTree *tree)
    fChain->SetBranchAddress("bunchCrossing", &bunchCrossing, &b_bunchCrossing);
    fChain->SetBranchAddress("nTauTo3Mu", &nTauTo3Mu, &b_nTauTo3Mu);
    fChain->SetBranchAddress("TauTo3Mu_CosAlpha2D_LxyP3mu", TauTo3Mu_CosAlpha2D_LxyP3mu, &b_TauTo3Mu_CosAlpha2D_LxyP3mu);
+   fChain->SetBranchAddress("TauTo3Mu_Lxy_3muVtxBS", TauTo3Mu_Lxy_3muVtxBS, &b_TauTo3Mu_Lxy_3muVtxBS);
    fChain->SetBranchAddress("TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr", TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr, &b_TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_dr);
    fChain->SetBranchAddress("TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr", TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr, &b_TauTo3Mu_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_dr);
    fChain->SetBranchAddress("TauTo3Mu_absIsolation", TauTo3Mu_absIsolation, &b_TauTo3Mu_absIsolation);
@@ -503,17 +526,26 @@ void Tau3Mu_base::Init(TTree *tree)
    fChain->SetBranchAddress("TauTo3Mu_dZmu23", TauTo3Mu_dZmu23, &b_TauTo3Mu_dZmu23);
    fChain->SetBranchAddress("TauTo3Mu_diMuVtxFit_bestMass", TauTo3Mu_diMuVtxFit_bestMass, &b_TauTo3Mu_diMuVtxFit_bestMass);
    fChain->SetBranchAddress("TauTo3Mu_diMuVtxFit_bestProb", TauTo3Mu_diMuVtxFit_bestProb, &b_TauTo3Mu_diMuVtxFit_bestProb);
+   fChain->SetBranchAddress("TauTo3Mu_errLxy_3muVtxBS", TauTo3Mu_errLxy_3muVtxBS, &b_TauTo3Mu_errLxy_3muVtxBS);
    fChain->SetBranchAddress("TauTo3Mu_fitted_eta", TauTo3Mu_fitted_eta, &b_TauTo3Mu_fitted_eta);
    fChain->SetBranchAddress("TauTo3Mu_fitted_mass", TauTo3Mu_fitted_mass, &b_TauTo3Mu_fitted_mass);
+   fChain->SetBranchAddress("TauTo3Mu_fitted_mass_err2", TauTo3Mu_fitted_mass_err2, &b_TauTo3Mu_fitted_mass_err2);
    fChain->SetBranchAddress("TauTo3Mu_fitted_phi", TauTo3Mu_fitted_phi, &b_TauTo3Mu_fitted_phi);
    fChain->SetBranchAddress("TauTo3Mu_fitted_pt", TauTo3Mu_fitted_pt, &b_TauTo3Mu_fitted_pt);
+   fChain->SetBranchAddress("TauTo3Mu_iso_ptChargedForHLT", TauTo3Mu_iso_ptChargedForHLT, &b_TauTo3Mu_iso_ptChargedForHLT);
    fChain->SetBranchAddress("TauTo3Mu_iso_ptChargedFromPU", TauTo3Mu_iso_ptChargedFromPU, &b_TauTo3Mu_iso_ptChargedFromPU);
    fChain->SetBranchAddress("TauTo3Mu_iso_ptChargedFromPV", TauTo3Mu_iso_ptChargedFromPV, &b_TauTo3Mu_iso_ptChargedFromPV);
    fChain->SetBranchAddress("TauTo3Mu_iso_ptPhotons", TauTo3Mu_iso_ptPhotons, &b_TauTo3Mu_iso_ptPhotons);
+   fChain->SetBranchAddress("TauTo3Mu_mu12_DCA", TauTo3Mu_mu12_DCA, &b_TauTo3Mu_mu12_DCA);
+   fChain->SetBranchAddress("TauTo3Mu_mu12_vtxFitProb", TauTo3Mu_mu12_vtxFitProb, &b_TauTo3Mu_mu12_vtxFitProb);
+   fChain->SetBranchAddress("TauTo3Mu_mu13_DCA", TauTo3Mu_mu13_DCA, &b_TauTo3Mu_mu13_DCA);
+   fChain->SetBranchAddress("TauTo3Mu_mu13_vtxFitProb", TauTo3Mu_mu13_vtxFitProb, &b_TauTo3Mu_mu13_vtxFitProb);
    fChain->SetBranchAddress("TauTo3Mu_mu1_dr", TauTo3Mu_mu1_dr, &b_TauTo3Mu_mu1_dr);
    fChain->SetBranchAddress("TauTo3Mu_mu1_eta", TauTo3Mu_mu1_eta, &b_TauTo3Mu_mu1_eta);
    fChain->SetBranchAddress("TauTo3Mu_mu1_phi", TauTo3Mu_mu1_phi, &b_TauTo3Mu_mu1_phi);
    fChain->SetBranchAddress("TauTo3Mu_mu1_pt", TauTo3Mu_mu1_pt, &b_TauTo3Mu_mu1_pt);
+   fChain->SetBranchAddress("TauTo3Mu_mu23_DCA", TauTo3Mu_mu23_DCA, &b_TauTo3Mu_mu23_DCA);
+   fChain->SetBranchAddress("TauTo3Mu_mu23_vtxFitProb", TauTo3Mu_mu23_vtxFitProb, &b_TauTo3Mu_mu23_vtxFitProb);
    fChain->SetBranchAddress("TauTo3Mu_mu2_dr", TauTo3Mu_mu2_dr, &b_TauTo3Mu_mu2_dr);
    fChain->SetBranchAddress("TauTo3Mu_mu2_eta", TauTo3Mu_mu2_eta, &b_TauTo3Mu_mu2_eta);
    fChain->SetBranchAddress("TauTo3Mu_mu2_phi", TauTo3Mu_mu2_phi, &b_TauTo3Mu_mu2_phi);
@@ -603,6 +635,7 @@ void Tau3Mu_base::Init(TTree *tree)
    fChain->SetBranchAddress("Muon_err_dZpv", Muon_err_dZpv, &b_Muon_err_dZpv);
    fChain->SetBranchAddress("Muon_phi", Muon_phi, &b_Muon_phi);
    fChain->SetBranchAddress("Muon_pt", Muon_pt, &b_Muon_pt);
+   fChain->SetBranchAddress("Muon_z", Muon_z, &b_Muon_z);
    fChain->SetBranchAddress("Muon_charge", Muon_charge, &b_Muon_charge);
    fChain->SetBranchAddress("Muon_isSoft_BS", Muon_isSoft_BS, &b_Muon_isSoft_BS);
    fChain->SetBranchAddress("Muon_isTight_BS", Muon_isTight_BS, &b_Muon_isTight_BS);
