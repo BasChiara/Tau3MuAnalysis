@@ -28,6 +28,9 @@ from itertools import product
 
 from pdb import set_trace
 
+# from my config
+from config import * 
+
 # give labels human readable names
 labels = OrderedDict()
 
@@ -64,6 +67,7 @@ parser.add_argument('--plot_outdir',default= '/eos/user/c/cbasile/www/Tau3Mu_Run
 parser.add_argument('--tag',        default= 'emulateRun2', help='tag to the training')
 parser.add_argument('--debug',      action = 'store_true' ,help='set it to have useful printout')
 parser.add_argument('--save_output',action = 'store_true' ,help='set it to save the bdt output')
+parser.add_argument('--unblind',    action = 'store_true' ,help='set it to unblind the data')
 
 args = parser.parse_args()
 tag = args.tag
@@ -101,7 +105,9 @@ branches = features + [
 ##########################################################################################
 
 sig_selection = 'tau_fit_mass > 1.6 & tau_fit_mass < 2.0'
-bkg_selection = '((tau_fit_mass > 1.6 & tau_fit_mass < 1.72) || (tau_fit_mass > 1.84 & tau_fit_mass < 2.0))'
+if not (args.unblind):
+   bkg_selection = '((tau_fit_mass > 1.6 & tau_fit_mass < 1.72) || (tau_fit_mass > 1.84 & tau_fit_mass < 2.0))'
+else: bkg_selection = sig_selection
 
 ##########################################################################################
 
@@ -110,14 +116,15 @@ signals     = [
 ]
 
 backgrounds  = [
-    '/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/condor_data/Run3_2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022E.root',
-    '/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/condor_data/Run3_2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022F.root',
-    '/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/condor_data/Run3_2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022G.root',
+    '/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/condor_data/Run3_2022/recoKinematicsT3m_open_ParkingDoubleMuonLowMass_2022E.root',
+    '/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/condor_data/Run3_2022/recoKinematicsT3m_open_ParkingDoubleMuonLowMass_2022F.root',
+    '/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/condor_data/Run3_2022/recoKinematicsT3m_open_ParkingDoubleMuonLowMass_2022G.root',
 ]
 
 tree_name = 'Tau3Mu_HLTemul_tree'
-
-sig_rdf = ROOT.RDataFrame(tree_name, signals, branches).Filter(sig_selection).Define('weight', '1')
+mc_factor = (Lumi2022_E+Lumi2022_F+Lumi2022_G)*0.214*xs_Wmunu_X*Br_WtauWnu_ratio*Br_Tau3Mu_default/169531
+print('[!] MC normalization factor = %.3e'%mc_factor)
+sig_rdf = ROOT.RDataFrame(tree_name, signals, branches).Filter(sig_selection).Define('weight', '%f'%mc_factor)
 #sig = pd.DataFrame( root_numpy.root2array(signals    , 'tree', branches  = branches + ['weight'], selection = sig_selection) )
 sig = pd.DataFrame( sig_rdf.AsNumpy() )
 if(args.debug):print(sig)
@@ -274,7 +281,7 @@ if(args.save_output):
     sig_out_data = {col: sig[col].values for col in sig.columns}
     sig_out_rdf = ROOT.RDF.MakeNumpyDataFrame(sig_out_data).Filter('bdt > 0.5').Snapshot('tree_w_BDT', '/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/mva_data/XGBout_signal_%s.root'%(args.tag))
     bkg_out_data = {col: bkg[col].values for col in bkg.columns}
-    bkg_out_rdf = ROOT.RDF.MakeNumpyDataFrame(bkg_out_data).Filter('bdt > 0.5').Snapshot('tree_w_BDT', '/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/mva_data/XGBout_data_%s.root'%args.tag)
+    bkg_out_rdf = ROOT.RDF.MakeNumpyDataFrame(bkg_out_data).Filter('bdt > 0.5').Snapshot('tree_w_BDT', '/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/mva_data/XGBout_data_%s_%s.root'%(args.tag, 'blind' if not args.unblind else 'open'))
 
 exit(-1)
 
