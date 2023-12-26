@@ -5,6 +5,7 @@
 
 TFile* open_file(TString& inRootFile_){
     TFile* input_file = new TFile(inRootFile_);
+    std::cout << "[+] opening file "<< inRootFile_ << std::endl;
 
     if ( !input_file->IsOpen() ) {
        std::cout << "ERROR IN OPENING FILE "<< inRootFile_ << std::endl;
@@ -23,15 +24,23 @@ Color_t PtlColorMap(const TString& particle){
   PtlColor["mu2"]  = kGreen + 2;
   PtlColor["mu3"]   = kOrange + 1;
 
-  PtlColor["Tau_vc"]   = kRed - 7;
-  PtlColor["Tau_gen"]  = kBlack;
-  PtlColor["Tau_wovc"] = kBlue;
+  PtlColor["tau_fit"]   = kRed - 7;
+  PtlColor["tau_gen"]  = kBlack;
+  PtlColor["tau_raw"] = kBlue;
 
   PtlColor["PuppiMET"] = kViolet + 2;
+  PtlColor["rawPuppiMET"] = kOrange +2;
   PtlColor["DeepMET"] = kCyan +2;
 
   PtlColor["W"] = kOrange;
   PtlColor["W_gen"] = kBlack;
+  
+  PtlColor["Run2"] = kBlue;
+  PtlColor["Run3_prompt"] = kOrange;
+  PtlColor["Run3_reMini"] = kGreen +2;
+
+  PtlColor["data22"] = kBlue;
+  PtlColor["mc"] = kRed;
 
   return PtlColor[particle];
 }
@@ -48,12 +57,18 @@ TString CategoryLegend(const TString& category){
   Leg_entry["tau_gen"] = "#tau gen-level";
   Leg_entry["tau_raw"] = "3 #mu raw";
 
-  Leg_entry["PuppiMET"] = "PuppiMET";
-  Leg_entry["DeepMET"] = "DeepMET";
+  Leg_entry["PuppiMET"] = "PuppiMET (Run3)";
+  Leg_entry["rawPuppiMET"] = "raw PuppiMET (Run3)";
+  Leg_entry["DeepMET"] = "DeepMET (Run2)";
   Leg_entry["W"] = "W reco-level";
   Leg_entry["W_gen"] = "W gen-level";
 
+  Leg_entry["Run2"] = "Run2";
+  Leg_entry["Run3_prompt"] = "Run3 prompt";
+  Leg_entry["Run3_reMini"] = "Run3 reMini";
 
+  Leg_entry["data22"] = "data 2022";
+  Leg_entry["mc"] = "signal";
   return Leg_entry[category];
 }
 
@@ -61,7 +76,8 @@ void histoSetUp(TH1* histo, const TString& category, const TString& x_name, bool
 
   //AXIS LABEL 
   histo->GetXaxis()->SetTitle(x_name);
-  histo->GetXaxis()->SetTitleSize(0.04);
+  histo->GetYaxis()->SetTitleOffset(2.0);
+  histo->GetXaxis()->SetTitleSize(0.045);
   histo->GetXaxis()->SetLabelSize(0.035);
   histo->GetYaxis()->SetTitle(Form("Events/ %.3f", histo->GetXaxis()->GetBinWidth(1)));
   histo->GetYaxis()->SetTitleOffset(1.6);
