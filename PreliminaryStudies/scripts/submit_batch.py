@@ -23,7 +23,7 @@ import os
 import sys
 import re
 import time
-import commands
+#import commands
 import optparse
 import datetime
 
@@ -81,11 +81,11 @@ def main():
     parser.add_option('--eos',               action='store',     dest='eos',          help='copy the output in the specified EOS path'                 , default='')
     parser.add_option('--scheduler',         action='store',     dest='scheduler',    help='select the batch scheduler (lsf,condor). Default=condor'   , default='condor')
     (opt, args) = parser.parse_args()
-    print args
+    print(args)
     
     if len(args) != 1:
         print('[ERROR] no arguments were provided') 
-        print usage
+        print(usage)
         sys.exit(1)
 
     ##### INPUT/OUTPUT #####
@@ -122,7 +122,7 @@ def main():
             if ntpfile != '':
                 L.append(ntpfile+"\n")
         if not L : continue
-        print L 
+        print(L)
     
     # Njobs = len(L)
     # for ijob, file_dat in enumerate(L):
@@ -146,7 +146,7 @@ def main():
         #rootoutputfile += blind_tag 
         #if opt.scheduler=='condor':
         #    rootoutputfile = '/tmp/'+rootoutputfile
-        print ' output saved as: ' + rootoutputfile
+        print(' output saved as: ' + rootoutputfile)
 
         srcfilename = jobdir+"/src/submit_"+str(ijob)+".src"
         srcfile = open(srcfilename,'w')
@@ -163,7 +163,7 @@ def main():
             if not (os.path.isdir(outdireos)): os.system('mkdir -p '+outdireos)
             srcfile.write('cp '+rootoutputfile+' '+ outdireos +'\n')
             srcfile.write('rm '+rootoutputfile)
-            print " output saved in final destination : " + outdireos
+            print(" output saved in final destination : " + outdireos)
         srcfile.close()
 
         logfile = jobdir+"/log/"+dataset+"_"+str(ijob)+".log"
@@ -171,7 +171,7 @@ def main():
         if opt.scheduler=='condor':
             srcfiles.append(srcfilename)
         else:
-            print "ERROR. Only Condor scheduler available"
+            print("ERROR. Only Condor scheduler available")
             sys.exit(1)
 
         ijob = ijob+1
@@ -182,10 +182,10 @@ def main():
         cf = makeCondorFile(jobdir,srcfiles,opt)
         subcmd = 'condor_submit {rf} '.format(rf = cf) #lunch jobs
         if opt.create:
-            print 'running dry, printing the commands...'
-            print subcmd
+            print('running dry, printing the commands...')
+            print(subcmd)
         else:
-            print 'submitting for real...'
+            print('submitting for real...')
             os.system(subcmd)
 
 if __name__ == "__main__":
