@@ -7,8 +7,8 @@
     gStyle->SetPadTickX(1);
     gStyle->SetPadTickY(1);
 
-    SetInputFile("../outRoot/MCstudiesT3m_MC_2022.root");
-    SetOutputFile("/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2022/");
+    //SetInputFile("../outRoot/MCstudiesT3m_MC_2022.root");
+    //SetOutputFile("/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2022/");
 
     draw_binary_histo("Mu_MediumID", "mu", "#mu mediumID", "Mu_MediumID");
     draw_binary_histo("Mu_SoftID", "mu", "#mu softID", "Mu_SoftID");

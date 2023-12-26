@@ -1,7 +1,8 @@
 {
    gSystem->Load("./plotter_fromTTree_C.so");
 
-   SetIO("../outRoot/recoKinematicsT3m_MC_2022_HLT_Tau3Mu.root", "Tau3Mu_HLTemul_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2022/RecoLevel/");
+   //SetIO("../outRoot/recoKinematicsT3m_MC_2022_HLT_Tau3Mu.root", "Tau3Mu_HLTemul_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2022/RecoLevel/");
+   SetIO("../outRoot/recoKinematicsT3m_MC_2022EEreReco_HLT_Tau3Mu.root", "Tau3Mu_HLTemul_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2022/RecoLevel_reReco/");
 
    // muons ID
    draw_many_histos({"tau_mu1_MediumID", "tau_mu2_MediumID", "tau_mu3_MediumID"}, {"mu1", "mu2", "mu3"},"#mu medium ID", 2, -0.5,1.5, "Muons_MediumID", true);
@@ -16,17 +17,18 @@
    draw_one_histo("tau_mu13_dZ", "mu","#Delta z(#mu_{1}, #mu_{3}) (cm)", 40, 0., 5., "tau_mu13_dZ", true);
 
    // Tau
-   draw_one_histo("n_tau", "Tau_vc", "#(#tau -> 3 #mu) candidates", 10, 0., 10., "Ntau_cand", true);
-   draw_one_histo("tau_fit_mass", "Tau_vc", "M(3 #mu) (GeV)", 50, 1.6, 2.0, "Tau_fit_M");
-   draw_one_histo("tau_fit_pt", "Tau_vc", "p_{T}(3 #mu) (GeV)", 40, 10, 100, "Tau_fit_pT");
-   draw_one_histo("tau_fit_eta", "Tau_vc", "#eta (3 #mu)", 70, -3.5, 3.5, "Tau_fit_eta");
-   draw_one_histo("tau_fit_phi", "Tau_vc", "#phi (3 #mu)", 62, -3.1, 3.1, "Tau_fit_phi");
-   draw_one_histo("tau_relIso", "Tau_vc", "rel. isolation (3 #mu)", 50, 0, 2., "Tau_relIso", true);
-   draw_one_histo("tau_dimuon_mass", "Tau_vc", "di-muon fit mass", 100, 0, 95., "Tau_dimuon_mass");
-   draw_one_histo("tau_Lxy_sign_BS", "Tau_vc", "L_{xy}(BS;3#mu-vtx)/#sigma", 40, 0, 30, "Tau_Lxysign");
-   draw_one_histo("tau_fit_mt", "Tau_vc", "M_{T}(3 #mu)", 50, 0., 200., "Tau_Mt");
-   draw_one_histo("tau_fit_vprob", "Tau_vc", "vtx-probability(3 #mu)", 20, 0., 1., "Tau_Vprob");
-   draw_one_histo("tau_cosAlpha_BS", "Tau_vc", "cos_{#alpha}(3#mu vtx, BS)", 100, -1., 1., "Tau_cosAlpha_BS", true);
+   draw_one_histo("n_tau", "tau_fit", "#(#tau -> 3 #mu) candidates", 10, 0., 10., "Ntau_cand", true);
+   draw_one_histo("tau_fit_mass", "tau_fit", "M(3 #mu) (GeV)", 50, 1.6, 2.0, "Tau_fit_M");
+   draw_many_histos({"tau_fit_mass","tau_raw_mass"}, {"tau_fit","tau_raw"}, "M(3 #mu) (GeV)", 50, 1.6, 2.0, "Tau_prepostfit_M");
+   draw_one_histo("tau_fit_pt", "tau_fit", "p_{T}(3 #mu) (GeV)", 40, 10, 100, "Tau_fit_pT");
+   draw_one_histo("tau_fit_eta", "tau_fit", "#eta (3 #mu)", 70, -3.5, 3.5, "Tau_fit_eta");
+   draw_one_histo("tau_fit_phi", "tau_fit", "#phi (3 #mu)", 62, -3.1, 3.1, "Tau_fit_phi");
+   draw_one_histo("tau_relIso", "tau_fit", "rel. isolation (3 #mu)", 50, 0, 0.5, "Tau_relIso", true);
+   draw_one_histo("tau_dimuon_mass", "tau_fit", "di-muon fit mass", 100, 0, 95., "Tau_dimuon_mass");
+   draw_one_histo("tau_Lxy_sign_BS", "tau_fit", "L_{xy}(BS;3#mu-vtx)/#sigma", 40, 0, 30, "Tau_Lxysign");
+   draw_one_histo("tau_fit_mt", "tau_fit", "M_{T}(3 #mu)", 50, 0., 200., "Tau_Mt");
+   draw_one_histo("tau_fit_vprob", "tau_fit", "vtx-probability(3 #mu)", 20, 0., 1., "Tau_Vprob");
+   draw_one_histo("tau_cosAlpha_BS", "tau_fit", "cos_{#alpha}(3#mu vtx, BS)", 100, -1., 1., "Tau_cosAlpha_BS", true);
 
    // Tau + MET
    draw_one_histo("tau_met_Dphi", "PuppiMET", "#Delta #phi (3 #mu, MET)", 30, 0., 6., "Dphi_PuppiMET");
