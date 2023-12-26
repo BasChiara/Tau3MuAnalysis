@@ -36,18 +36,19 @@ int main(int argc, char* argv[]) {
     dataset = argv[3];
     if (argc > 4) Nfiles = std::stoi(argv[4]);
 
-	TChain* chain = new TChain();
-    FileReader file_loader = FileReader(inputFileName);
+	TChain* chain = new TChain("Events");
+   FileReader file_loader = FileReader(inputFileName);
 	if(dataset.Contains("data",TString::kIgnoreCase) || dataset.Contains("ParkingDoubleMuonLowMass",TString::kIgnoreCase) )
         chain = file_loader.xrootdTChain_loader(Nfiles);
 	else if (dataset.Contains("mc",TString::kIgnoreCase )) 
 		chain = file_loader.lxplusTChain_loader();
 	else{
 		std::cout << " [ERROR] dataset must be specified as MC or DATA (no case sensitive)" << std::endl;
-		exit(-1);
+		//exit(-1);
+		chain->Add(TString(inputFileName));
 	}
 	//cout<<" Number of events: " << theChain->GetEntries()<<std::endl;
-    prepStudiesT3m* recoAnalyzer = new prepStudiesT3m(chain,outputDir,dataset);
+   prepStudiesT3m* recoAnalyzer = new prepStudiesT3m(chain,outputDir,dataset);
 	recoAnalyzer->Loop();
 
     delete recoAnalyzer;

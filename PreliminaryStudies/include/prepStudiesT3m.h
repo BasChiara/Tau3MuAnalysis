@@ -38,6 +38,7 @@ private:
  // TTree branches
   UInt_t LumiBlock, Run;
   ULong64_t Event;
+  int nGoodPV;
   // HLT_bit
   int HLT_isfired_Tau3Mu, HLT_isfired_DoubleMu;
  // * muons
@@ -51,21 +52,26 @@ private:
   float tau_mu1_eta, tau_mu2_eta, tau_mu3_eta;
   float tau_mu1_z, tau_mu2_z, tau_mu3_z;
   float tau_mu12_dZ, tau_mu23_dZ, tau_mu13_dZ;
+  float tau_mu12_M, tau_mu23_M, tau_mu13_M;
+  float tau_mu12_fitM, tau_mu23_fitM, tau_mu13_fitM;
  // * tau candidates
   int n_tau;
   float tau_raw_mass;
   float tau_fit_mass, tau_fit_mass_err;
-  float tau_fit_pt, tau_fit_eta, tau_fit_phi;
-  float tau_relIso, tau_dimuon_mass;
+  float tau_fit_pt, tau_fit_eta, tau_fit_phi, tau_fit_charge;
+  float tau_relIso, tau_relIso_pT05; 
+  float tau_dimuon_mass;
   float tau_Lxy_val_BS, tau_Lxy_err_BS, tau_Lxy_sign_BS;
   float tau_fit_mt, tau_fit_vprob, tau_cosAlpha_BS;
 // * tau + MET
-  float tau_met_pt, tau_met_phi;
+  float tau_met_pt, tau_met_phi; //PuppiMET
+  float tau_rawMet_pt, tau_rawMet_phi; // rawPuppiMET
+  float tau_DeepMet_pt, tau_DeepMet_phi;
   float tau_met_Dphi, tau_met_ratio_pt;
   float miss_pz_min, miss_pz_max;
-  float W_pt;
-  
-
+  float W_pt, W_eta_min, W_eta_max, W_phi;
+  float W_Deep_pt, W_Deep_eta_min, W_Deep_eta_max, W_Deep_phi;
+  float W_mass_nominal, W_mass_min, W_mass_max;
 
   // TH1
   // muond ID
