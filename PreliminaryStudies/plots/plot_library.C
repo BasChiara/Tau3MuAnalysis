@@ -454,7 +454,73 @@ void makeROCcurve(std::vector<TString> SGNhistos, std::vector<TString> BKGhistos
 
 }
 
+void EffCurve(){
 
+  float sig1_integral = 0, sig2_integral = 0;
+  int Nbins = 100;
+  float x_low = 0.0, x_high = 0.5;
+  TString treeName_ = "Tau3Mu_HLTemul_tree"; 
+  TFile* input_file_1= new TFile("../outRoot/recoKinematicsT3m_MC_2022EE_HLT_Tau3Mu.root"); 
+  TTree* tree_1 = (TTree*)input_file_1->Get(treeName_); 
+  TH1F*  h1 = new TH1F("h1", "", Nbins, x_low, x_high);
+  tree_1->Draw("tau_relIso>>h1");
+  std::cout << " h1 " << h1->GetEntries() << std::endl;
+  TFile* input_file_2= new TFile("../outRoot//recoKinematicsT3m_MC_2022EE_pTiso00_HLT_Tau3Mu.root");
+  TTree* tree_2 = (TTree*)input_file_2->Get(treeName_); 
+  TH1F*  h2 = new TH1F("h2", "", Nbins, x_low, x_high);
+  tree_2->Draw("tau_relIso>>h2");
+  std::cout << " h2 " << h2->GetEntries() << std::endl;
+  
+  TCanvas* c1 = new TCanvas("c1","canvas", 1024, 1024);
+  TGraph* vec_graph[2]; 
+  TMultiGraph *mg = new TMultiGraph();
+
+  //LEGEND
+  auto legend = new TLegend(0.50,0.15,.80,.30);
+  legend->SetBorderSize(0);
+  legend->SetTextSize(0.03);
+
+
+  sig1_integral = h1->Integral(1,Nbins);
+  sig2_integral = h2->Integral(1,Nbins);
+  std::vector<float> varPoints(Nbins);
+  std::vector<float> sig1Points(Nbins);
+  std::vector<float> sig2Points(Nbins);
+
+  for ( int i = 1; i < Nbins+1; i++ ) {
+     float h1_slice_integral = h1->Integral(1,i);
+     float h2_slice_integral = h2->Integral(1,i);
+     varPoints.push_back(h1->GetBinLowEdge(i));
+     sig1Points.push_back(h1_slice_integral/sig1_integral);
+     sig2Points.push_back(h2_slice_integral/sig2_integral);
+     std::cout << Form(" - Iso < %.3f  Eff-pT05 %.3f   Eff-pT00 %.3f", h1->GetBinLowEdge(i), h1_slice_integral/sig1_integral, h2_slice_integral/sig2_integral) << std::endl;
+
+  }
+
+  vec_graph[0] = new TGraph(sig1Points.size(),&varPoints[0], &sig1Points[0]);
+  vec_graph[1] = new TGraph(sig2Points.size(),&varPoints[0], &sig2Points[0]);
+  vec_graph[0]->SetLineWidth(4); vec_graph[1]->SetLineWidth(4);
+  vec_graph[0]->SetLineColor(kRed); vec_graph[1]->SetLineColor(kBlue);
+  legend->AddEntry(vec_graph[0], "Iso pT > 0.5 GeV", "l");
+  legend->AddEntry(vec_graph[1], "Iso pT > 0.0 GeV", "l");
+  mg->Add(vec_graph[0]);
+  mg->Add(vec_graph[1]);
+
+  std::cout <<"\n -------------------------\n" << std::endl;
+
+  c1->cd();
+  mg->Draw("AL");
+  mg->SetTitle("; rel-ISO cut; signal efficiency");
+  legend->Draw();
+  c1->SaveAs("/eos/user/c/cbasile/www/Tau3Mu_Run3/DataVsMC/relIso_compareMC.png");
+  c1->SaveAs("/eos/user/c/cbasile/www/Tau3Mu_Run3/DataVsMC/relIso_compareMC.pdf");
+
+  input_file_1->Close();
+  input_file_2->Close();
+   
+
+
+}//EffCurve
 
 
 void compare_years(const TString& tree_name, const TString branch_name, const TString& selection, const int Nbins = 100, const float xlow = 0., const float xhigh = 100, TString x_name = " ", TString out_name = " "){

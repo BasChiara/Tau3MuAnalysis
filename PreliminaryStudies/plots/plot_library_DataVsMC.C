@@ -18,9 +18,10 @@
 
 using namespace std;
 
-TString inRootFileMC_  = "../outRoot/MCstudiesT3m_MC_2022.root"; 
-TString inRootFileDATA_  = "/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/condor_data/ParkingDoubleMuonLowMass_2022E.root"; 
+TString inRootFileMC_  = "../outRoot/recoKinematicsT3m_MC_2022EE_HLT_Tau3Mu.root";
+TString inRootFileDATA_  = "/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/condor_data/Run3_2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022E.root";
 TString outPath_     = "/eos/user/c/cbasile/www/Tau3Mu_Run3/DataVsMC/";
+TString treeName_    = "Tau3Mu_HLTemul_tree";
 
 
 void SetInputFile_DataMC(const TString& inFileDATA = "", const TString& inFileMC = ""){
@@ -355,15 +356,21 @@ int draw_binary_histo(const TString h_MCmatch, const TString MC_category, const 
 }
 
 
-void makeROCcurve(std::vector<TString> SGNhistos, std::vector<TString> BKGhistos, const TString out_name){
+void makeROCcurve(std::vector<TString> observable,std::vector<TString> SGN_files, std::vector<TString> BKG_files, const int Nbins, const float x_low, const float x_high, const TString out_name){
 
-  TFile* input_file = open_file();
-  TH1F* sigHist = new TH1F();
-  TH1F* bkgHist = new TH1F();
-  
-  int Nobservables = SGNhistos.size();
-  int nbins;  
+  int Nobservables = observable.size();
   float sig_integral = 0, bkg_integral = 0;
+
+  TFile* input_file_mc = open_file("MC");
+  TTree* mc_tree = (TTree*)input_file_mc->Get(treeName_); 
+  TH1F*  h_mc = new TH1F("h_mc", "", Nbins, x_low, x_high);
+  mc_tree->Draw(observable[0]+">>h_mc");
+  std::cout << " mc " << h_mc->GetEntries() << std::endl;
+  TFile* input_file_data = open_file("Data");
+  TTree* data_tree = (TTree*)input_file_data->Get(treeName_); 
+  TH1F*  h_data  = new TH1F("h_data", "", Nbins, x_low, x_high);
+  data_tree->Draw(observable[0]+">>h_data");
+  std::cout << " data " << h_data->GetEntries() << std::endl;
   
   TCanvas* c1 = new TCanvas("c1","canvas", 1024, 1024);
   TGraph* vec_graph[Nobservables]; 
@@ -376,43 +383,41 @@ void makeROCcurve(std::vector<TString> SGNhistos, std::vector<TString> BKGhistos
 
   for (int j = 0; j < Nobservables; j++){
 
-    sigHist = (TH1F*)input_file->Get(SGNhistos[j]);
-    bkgHist = (TH1F*)input_file->Get(BKGhistos[j]);
 
-    nbins = sigHist->GetNbinsX();
-    sig_integral = sigHist->Integral(1,nbins);
-    bkg_integral = bkgHist->Integral(1,nbins);
-    std::cout << "Histo number " << j << std::endl;
+    sig_integral = h_mc->Integral(1,Nbins);
+    bkg_integral = h_data->Integral(1,Nbins);
     std::cout<<" total int  sig: "<<sig_integral<<" bkg: "<<bkg_integral<<std::endl;
-    std::vector<float> sigPoints(nbins);
-    std::vector<float> bkgPoints(nbins);
-    for ( int i = nbins; i > 0; i-- ) {
-      float sig_slice_integral = sigHist->Integral(i,nbins);
-      float bkg_slice_integral = bkgHist->Integral(i,nbins);
+    std::vector<float> sigPoints(Nbins);
+    std::vector<float> bkgPoints(Nbins);
+    for ( int i = 1; i < Nbins+1; i++ ) {
+      float sig_slice_integral = h_mc->Integral(1,i);
+      float bkg_slice_integral = h_data->Integral(1,i);
       sigPoints.push_back(sig_slice_integral/sig_integral);
       bkgPoints.push_back(bkg_slice_integral/bkg_integral);
 
-      std::cout<<i<<" "<<sig_slice_integral<<" "<<sig_slice_integral/sig_integral<<" "<<bkg_slice_integral<<" "<<bkg_slice_integral/bkg_integral<<std::endl;
+      std::cout << Form(" - Iso < %.3f  eff S %.3f   eff B %.3f", h_mc->GetBinLowEdge(i), sig_slice_integral/sig_integral,bkg_slice_integral/bkg_integral ) << std::endl;
     }
     
-    vec_graph[j] = new TGraph(sigPoints.size(),&bkgPoints[0], &sigPoints[0]);
+    vec_graph[j] = new TGraph(sigPoints.size(),&sigPoints[0], &bkgPoints[0]);
     vec_graph[j]->SetLineWidth(4);
     vec_graph[j]->SetLineColor(2+j);
-    legend->AddEntry(vec_graph[j], SGNhistos[j], "l");
+    legend->AddEntry(vec_graph[j], observable[j], "l");
     mg->Add(vec_graph[j]);
     
     std::cout <<"\n -------------------------\n" << std::endl;
   } // on observables
   //g->GetXaxis()->SetTitle("signal efficiency"); g->GetYaxis()->SetTitle("background efficiency");
 
-    c1->cd();
-    mg->Draw("AL");
-    mg->SetTitle("; background efficiency; signal efficiency");
-    legend->Draw();
-    c1->SaveAs(pngName(out_name));
-    c1->SaveAs(pdfName(out_name));
-  
-  input_file->Close();
+  c1->cd();
+
+  mg->Draw("AL");
+  mg->SetTitle("; background efficiency; signal efficiency");
+  legend->Draw();
+  c1->SaveAs(pngName(out_name));
+  c1->SaveAs(pdfName(out_name));
+
+  input_file_mc->Close();
+  input_file_data->Close();
 
 }
 
