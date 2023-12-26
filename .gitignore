@@ -11,7 +11,7 @@
 
 # py cache
 */__init__.py
-*/__pycache__/*
+*__pycache__
 
 # condor
 */cbasile.cc
