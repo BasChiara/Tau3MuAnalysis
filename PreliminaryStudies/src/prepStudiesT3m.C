@@ -131,7 +131,13 @@ void prepStudiesT3m::Loop(){
             tau_fit_pt = TauTo3Mu_fitted_pt[t]; 
             tau_fit_eta = TauTo3Mu_fitted_eta[t], tau_fit_phi = TauTo3Mu_fitted_phi[t];
             tau_relIso = TauTo3Mu_absIsolation[t]/TauTo3Mu_fitted_pt[t];
+            tau_Iso_chargedDR04 = TauTo3Mu_iso_ptChargedFromPV[t];
+            tau_Iso_photonDR04 = TauTo3Mu_iso_ptPhotons[t]; 
+            tau_Iso_puDR08 = TauTo3Mu_iso_ptChargedFromPU[t]; 
             tau_relIso_pT05 = TauTo3Mu_absIsolation_pT05[t]/TauTo3Mu_fitted_pt[t];
+            tau_Iso_chargedDR04_pT05 = TauTo3Mu_iso_ptChargedFromPV_pT05[t]; 
+            tau_Iso_photonDR04_pT05 = TauTo3Mu_iso_ptPhotons_pT05[t]; 
+            tau_Iso_puDR08_pT05 = TauTo3Mu_iso_ptChargedFromPU_pT05[t];
             tau_Lxy_val_BS = TauTo3Mu_Lxy_3muVtxBS[t];
             tau_Lxy_err_BS = TauTo3Mu_errLxy_3muVtxBS[t];
             tau_Lxy_sign_BS = TauTo3Mu_sigLxy_3muVtxBS[t];
@@ -456,7 +462,13 @@ void prepStudiesT3m::outTreeSetUp(){
     outTree_->Branch("tau_fit_eta",      &tau_fit_eta,     "tau_fit_eta/F");
     outTree_->Branch("tau_fit_phi",      &tau_fit_phi,     "tau_fit_phi/F");
     outTree_->Branch("tau_relIso",       &tau_relIso,      "tau_relIso/F");
+    outTree_->Branch("tau_Iso_chargedDR04",       &tau_Iso_chargedDR04,      "tau_Iso_chargedDR04/F");
+    outTree_->Branch("tau_Iso_photonDR04",       &tau_Iso_photonDR04,      "tau_Iso_photonDR04/F");
+    outTree_->Branch("tau_Iso_puDR08",       &tau_Iso_puDR08,      "tau_Iso_puDR08/F");
     outTree_->Branch("tau_relIso_pT05",  &tau_relIso_pT05, "tau_relIso_pT05/F");
+    outTree_->Branch("tau_Iso_chargedDR04_pT05",  &tau_Iso_chargedDR04_pT05, "tau_Iso_chargedDR04_pT05/F");
+    outTree_->Branch("tau_Iso_photonDR04_pT05",  &tau_Iso_photonDR04_pT05, "tau_Iso_photonDR04_pT05/F");
+    outTree_->Branch("tau_Iso_puDR08_pT05",  &tau_Iso_puDR08_pT05, "tau_Iso_puDR08_pT05/F");
     outTree_->Branch("tau_dimuon_mass",  &tau_dimuon_mass, "tau_dimuon_mass/F");
     outTree_->Branch("tau_Lxy_sign_BS",  &tau_Lxy_sign_BS, "tau_Lxy_sign_BS/F");
     outTree_->Branch("tau_Lxy_err_BS",   &tau_Lxy_err_BS, "tau_Lxy_err_BS/F");

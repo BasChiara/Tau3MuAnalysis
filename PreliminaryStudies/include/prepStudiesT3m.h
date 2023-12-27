@@ -60,6 +60,8 @@ private:
   float tau_fit_mass, tau_fit_mass_err;
   float tau_fit_pt, tau_fit_eta, tau_fit_phi, tau_fit_charge;
   float tau_relIso, tau_relIso_pT05; 
+  float tau_Iso_chargedDR04, tau_Iso_photonDR04, tau_Iso_puDR08; 
+  float tau_Iso_chargedDR04_pT05, tau_Iso_photonDR04_pT05, tau_Iso_puDR08_pT05; 
   float tau_dimuon_mass;
   float tau_Lxy_val_BS, tau_Lxy_err_BS, tau_Lxy_sign_BS;
   float tau_fit_mt, tau_fit_vprob, tau_cosAlpha_BS;
