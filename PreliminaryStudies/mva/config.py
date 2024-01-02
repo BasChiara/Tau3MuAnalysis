@@ -12,21 +12,21 @@ import pandas as pd
 # Nexp = Lumi2022 * xs_Wmunu_X *Br(W->tau nu)/Br(W->mu nu) * r(POI) * Br(tau ->3mu)
 # factor = Lumi2022/LumiMC
 
-xs_Wmunu_X = 19870*1000 #[fb]
-xs_Wmunu_X_err = xs_Wmunu_X*0.056 #[fb]
+xs_Wmunu_X = 63199.9 /3.*1000 #[fb] [MADGRAPH] - from AN2022_153 [SMP-20-004]
+xs_Wmunu_X_err = 0.0 #[fb] don't know Madgraph unc.
 
 Br_WtauWnu_ratio = 1.008
 Br_WtauWnu_ratio_err = 0.031 
 
 Br_Tau3Mu_default = 1e-7
 
-Lumi2022_D = 3.0063 
+Lumi2022_D = 3.0063
 Lumi2022_E = 5.075 # 5.8783
 Lumi2022_F = 15.05 # 18.0070
 Lumi2022_G =  3.10 # 3.1219
 
-Lumi2022_preEE = Lumi2022_D
-Lumi2022_EE    = Lumi2022_E+Lumi2022_F+Lumi2022_G
+Lumi2022_preEE  = Lumi2022_D
+Lumi2022_EE     = Lumi2022_E+Lumi2022_F+Lumi2022_G
 Lumi2022_reMini = Lumi2022_F+Lumi2022_G
 
 Lumi2022_Serr = 0.022 
@@ -36,7 +36,7 @@ Nev_MC_2022preEE = 10
 Nev_MC_2022EE    = 792640 
 Filter_eff       = 1.0
 
-Lumi_MC_2022EE  = Nev_MC_2022EE/(Filter_eff * xs_Wmunu_X * Br_WtauWnu_ratio * Br_Tau3Mu_default)
+Lumi_MC_2022EE  = Nev_MC_2022EE/(Filter_eff * xs_Wmunu_X * Br_Tau3Mu_default)
 
 
 # --- NORM FACTOR TO USE 
@@ -117,7 +117,7 @@ features = [
 ]
 
 branches = features + [
-#    'cand_refit_charge',
+    'tau_fit_charge',
     'tau_fit_mass', 'tau_fit_mass_err',
     'tau_fit_eta',
     'tau_mu12_M',
