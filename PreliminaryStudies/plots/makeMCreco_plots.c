@@ -1,8 +1,10 @@
 {
    gSystem->Load("./plotter_fromTTree_C.so");
-
+   gStyle->SetPadTickX(1);
+   gStyle->SetPadTickY(1);
+   gStyle->SetLineWidth(2);
    //SetIO("../outRoot/recoKinematicsT3m_MC_2022_HLT_Tau3Mu.root", "Tau3Mu_HLTemul_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2022/RecoLevel/");
-   SetIO("../outRoot/recoKinematicsT3m_MC_2022EEreReco_HLT_Tau3Mu.root", "Tau3Mu_HLTemul_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2022/RecoLevel_reReco/");
+   SetIO("../outRoot/recoKinematicsT3m_MC_2022EE_reMini_HLT_Tau3Mu.root", "Tau3Mu_HLTemul_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2022/RecoLevel_reMini/");
 
    // muons ID
    draw_many_histos({"tau_mu1_MediumID", "tau_mu2_MediumID", "tau_mu3_MediumID"}, {"mu1", "mu2", "mu3"},"#mu medium ID", 2, -0.5,1.5, "Muons_MediumID", true);
@@ -39,6 +41,9 @@
 
    // W
    draw_one_histo("W_pt", "W", "p_{T}(W) (GeV)", 100, 0., 200., "W_pt");
-
+   
+   // versus PU
+   ProfileVsPU({"tau_relIso*tau_fit_pt","tau_Iso_chargedDR04", "tau_Iso_photonDR04", "tau_Iso_puDR08"}, {"Isolation", "#sum pT^{ch}(dz<0.2 cm)", "#sum pT^{#gamma}", "#sum pT^{ch}(dz>0.2 cm)"}, "# good PV","", 35, 0, 70, 0, 50, "TauIsoVsPU");
+   ProfileVsPU({"tau_met_pt"},{"PuppiMET"}, "# good PV", "", 35, 0, 70, 0, 100, "PuppiMETvsPU");
 
 }
