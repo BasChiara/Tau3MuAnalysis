@@ -1,8 +1,9 @@
-    # import pandas
+# import pandas
 # import root_numpy #(available until ROOT 6.09)
 import ROOT 
 ROOT.EnableImplicitMT()
 import argparse
+from datetime import datetime 
 import pickle
 import numpy  as np
 import pandas as pd
@@ -46,7 +47,7 @@ parser.add_argument('--save_output',action = 'store_true' ,help='set it to save 
 parser.add_argument('--unblind',    action = 'store_true' ,help='set it to unblind the data')
 
 args = parser.parse_args()
-tag = args.tag
+tag = args.tag + '_' + datetime.date.today().strftime('%Y%b%d')
 
  # ------------ APPLY SELECTIONS ------------ # 
 base_selection = '(tau_fit_mass > %.2f & tau_fit_mass < %.2f )'%(mass_range_lo,mass_range_hi) 
@@ -121,7 +122,6 @@ if(args.debug):print(data)
 train, test = train_test_split(data, test_size=0.4, random_state= args.seed)
 kfold = 5 # DA CAMBIARE 
 skf = StratifiedKFold(n_splits=kfold, random_state=args.seed, shuffle=True)
-
 
 if args.load_model is None:
     sub = pd.DataFrame()
