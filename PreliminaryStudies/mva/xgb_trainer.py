@@ -3,7 +3,7 @@
 import ROOT 
 ROOT.EnableImplicitMT()
 import argparse
-from datetime import datetime 
+import datetime 
 import pickle
 import numpy  as np
 import pandas as pd
@@ -78,10 +78,8 @@ print('[!] MC normalization factor = %.3e'%mc_factor)
 sig_rdf = ROOT.RDataFrame(tree_name, signals, branches).Filter(sig_selection).Define('weight', '%f'%mc_factor)
 #sig = pd.DataFrame( root_numpy.root2array(signals    , 'tree', branches  = branches + ['weight'], selection = sig_selection) )
 sig = pd.DataFrame( sig_rdf.AsNumpy() )
-if(args.debug):print(sig)
 bkg_rdf = ROOT.RDataFrame(tree_name, backgrounds, branches).Filter(bkg_selection).Define('weight', '1')
 bkg = pd.DataFrame( bkg_rdf.AsNumpy() )
-if(args.debug):print(bkg)
 #bkg = pd.DataFrame( root_numpy.root2array(backgrounds, 'tree', branches  = branches + ['weight'], selection = bkg_selection) )
 
 print('... processing input ...')
@@ -102,6 +100,9 @@ if(args.debug): print(bdt_inputs)
 sig.loc[:,'tauEta'] = tauEta(sig['tau_fit_eta'])
 bkg.loc[:,'tauEta'] = tauEta(bkg['tau_fit_eta'])
 
+if(args.debug):print(sig)
+if(args.debug):print(bkg)
+
 ##########################################################################################
 ## REWEIGHT AND MAKE TAU MASS FLAT
 ########################################################################################## 
@@ -110,18 +111,19 @@ bkg.loc[:,'tauEta'] = tauEta(bkg['tau_fit_eta'])
 ########################################################################################## 
 
 data = pd.concat([sig, bkg])
+if(args.debug):print(data)
 data = data.sample(frac = 1, random_state = args.seed).reset_index(drop=True)
 check_for_nan = data.isnull().values.any()
-print ("check for NaN " + str(check_for_nan))
-if (check_for_nan):
-    data = data.dropna()
-    check_for_nan = data.isnull().values.any()
-    print ("check again for NaN " + str(check_for_nan))
+#print ("check for NaN " + str(check_for_nan))
+#if (check_for_nan):
+#    data = data.dropna()
+#    check_for_nan = data.isnull().values.any()
+#    print ("check again for NaN " + str(check_for_nan))
 data.loc[:,'id'] = np.arange(len(data))
-if(args.debug):print(data)
 train, test = train_test_split(data, test_size=0.4, random_state= args.seed)
 kfold = 5 # DA CAMBIARE 
 skf = StratifiedKFold(n_splits=kfold, random_state=args.seed, shuffle=True)
+#exit(-1)
 
 if args.load_model is None:
     sub = pd.DataFrame()
@@ -215,7 +217,6 @@ train.loc[:,'bdt'] = np.zeros(train.shape[0]).astype(float)
 test.loc[:,'bdt'] = np.zeros(test.shape[0]).astype(float)
 sig.loc[:,'bdt'] = np.zeros(sig.shape[0]).astype(float)
 bkg.loc[:,'bdt'] = np.zeros(bkg.shape[0]).astype(float)
-
 for i, iclas in classifiers.items():
     print (' evaluating %d/%d classifier' %(i+1, n_class))
     best_iteration = iclas.get_booster().best_iteration
@@ -235,9 +236,9 @@ if(args.save_output):
     # convert dat ato dictionary with numpy arrays 
     print(sig.columns)
     sig_out_data = {col: sig[col].values for col in sig.columns}
-    sig_out_rdf = ROOT.RDF.MakeNumpyDataFrame(sig_out_data).Filter('bdt > 0.0').Snapshot('tree_w_BDT', '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_signal_%s.root'%(args.tag))
+    sig_out_rdf = ROOT.RDF.MakeNumpyDataFrame(sig_out_data).Filter('bdt > 0.0').Snapshot('tree_w_BDT', '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_signal_%s.root'%(tag))
     bkg_out_data = {col: bkg[col].values for col in bkg.columns}
-    bkg_out_rdf = ROOT.RDF.MakeNumpyDataFrame(bkg_out_data).Filter('bdt > 0.0').Snapshot('tree_w_BDT', '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_data_%s_%s.root'%(args.tag, 'blind' if not args.unblind else 'open'))
+    bkg_out_rdf = ROOT.RDF.MakeNumpyDataFrame(bkg_out_data).Filter('bdt > 0.0').Snapshot('tree_w_BDT', '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_data_%s_%s.root'%(tag, 'blind' if not args.unblind else 'open'))
 
 if(args.load_model): exit(-1) 
 ##########################################################################################
@@ -269,7 +270,7 @@ for icut in cuts_to_display:
     
 plt.scatter(wp_x, wp_y)
 for i, note in enumerate(cuts_to_display):
-    plt.annotate(note, (wp_x[i], wp_y[i]))
+    #plt.annotate(note, (wp_x[i], wp_y[i]))
 
 fpr, tpr, wps = roc_curve(train.target, train.bdt, sample_weight=train.weight)
 plt.plot(fpr, tpr, label='train sample', color='r')
