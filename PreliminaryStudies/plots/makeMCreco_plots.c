@@ -45,5 +45,8 @@
    // versus PU
    ProfileVsPU({"tau_relIso*tau_fit_pt","tau_Iso_chargedDR04", "tau_Iso_photonDR04", "tau_Iso_puDR08"}, {"Isolation", "#sum pT^{ch}(dz<0.2 cm)", "#sum pT^{#gamma}", "#sum pT^{ch}(dz>0.2 cm)"}, "# good PV","", 35, 0, 70, 0, 50, "TauIsoVsPU");
    ProfileVsPU({"tau_met_pt"},{"PuppiMET"}, "# good PV", "", 35, 0, 70, 0, 100, "PuppiMETvsPU");
+   efficiencyVsPU({"tau_relIso < 0.2", "tau_relIso_pT05 < 0.2"}, {"I_{rel}", "I_{rel}(pT>0.5 GeV)"},"# PV", "efficiency", 7, 0, 70, "effTauIso02_VS_PU")
+   // check on Dbeta isolation
+   drawProfile2D({"tau_Iso_photonDR04"}, {"pT>0.0"}, "tau_Iso_puDR08", "tau_Iso_photonDR04>0","PU iso component", "#gamma iso component", 100, 0, 50, 0, 10, "ProfilePhotonVsPU_iso")
 
 }

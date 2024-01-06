@@ -309,3 +309,62 @@ int drawTGraph(std::vector<TString> branches, TString description, const TString
    return 0;
 
 }//drawTGrap()
+
+int efficiencyVsPU( std::vector<TString> selections, std::vector<TString> description, const TString x_name,const TString& y_name, const int Nbins, const float x_low, const float x_high, TString out_name ="", bool logY = false){
+
+   
+   TFile* input_file = open_file(inRootFile_);
+   TTree* inTree = (TTree*)input_file->Get(treeName_);
+   if ( !inTree ){
+      std::cout<< "null pointer to the TTree " << treeName_ << std::endl;
+      exit(-1);
+   }
+   
+   // TCanvas
+   TCanvas* c = new TCanvas("c","canvas", 800,800);
+   c->DrawFrame(0,0,1,1);
+   gPad->SetLeftMargin(0.13);
+   gPad->SetBottomMargin(0.13);
+
+   gStyle->SetPalette(kCMYK);
+   // TLegend
+   float leg_entry_dy = 0.05;
+   auto legend = new TLegend(0.60,0.99-selections.size()*leg_entry_dy,0.85,0.80);
+   legend->SetBorderSize(0);
+   legend->SetTextSize(0.03);
+
+   THStack* stk = new THStack("profStack",";" + x_name + ";" + y_name);
+   const float y_low  = 0.; 
+   const float y_high = 1.2; 
+   TString sel_PUbin = "";
+   for(unsigned int i = 0; i < selections.size(); i++){
+      TH1F* h_eff = new TH1F(Form("h_eff_%d",i), "", Nbins, x_low, x_high);
+      std::cout << "> selection " << selections[i] << std::endl;  
+      for (int b = 1; b <= Nbins; b++){
+         sel_PUbin = Form("(nGoodPV >= %.2f) && (nGoodPV < %.2f)", h_eff->GetXaxis()->GetBinLowEdge(b), h_eff->GetXaxis()->GetBinUpEdge(b));
+         float Nsel = (float)inTree->GetEntries(selections[i] + " && " + sel_PUbin);
+         float Ntot = (float) inTree->GetEntries(sel_PUbin);
+         float eff = Nsel/Ntot;//(float)inTree->GetEntries(selections[i] + " && " + sel_PUbin)/inTree->GetEntries(sel_PUbin);
+         std::cout << " [...] PU bin " << sel_PUbin << " --> eff = " << eff << std::endl; 
+         h_eff->SetBinContent(b, eff);
+         h_eff->SetBinError(b, sqrt(Nsel)/Ntot);
+      } 
+      
+      h_eff->SetLineWidth(2);
+      h_eff->SetMarkerStyle(20);
+      legend->AddEntry(h_eff, description[i], "lep" );
+      stk->Add(h_eff);
+   }
+   c->cd();
+   stk->SetMaximum(y_high);
+   stk->Draw("nostack pe plc pmc");
+   legend->Draw();
+   // save
+   gPad->Update();
+   gPad->RedrawAxis();
+   TString outName = outPath_ + out_name;
+   c->SaveAs(outName+".png");
+
+   return 0;
+
+}// efficiencyVsPU
