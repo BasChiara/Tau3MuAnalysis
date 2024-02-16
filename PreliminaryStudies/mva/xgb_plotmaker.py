@@ -5,9 +5,7 @@ import numpy  as np
 import pandas as pd
 import seaborn as sns
 from sklearn.metrics import accuracy_score
-# import matplotlib as mpl ; mpl.use('Agg')
 import matplotlib.pyplot as plt
-# sns.set(style="whitegrid", font_scale=2)
 sns.set(style="white")
 
 import xgboost
@@ -16,7 +14,6 @@ from sklearn.preprocessing import LabelEncoder
 
 from sklearn.metrics         import roc_curve, roc_auc_score
 from sklearn.model_selection import train_test_split, StratifiedKFold
-#from sklearn.externals       import joblib
 
 from scipy.stats import ks_2samp
 
@@ -66,7 +63,6 @@ tree_name = 'tree_w_BDT'
 
 branches_to_read = branches + ['bdt','weight']
 sig_rdf = ROOT.RDataFrame(tree_name, signals, branches_to_read).Filter(sig_selection)
-#sig = pd.DataFrame( root_numpy.root2array(signals    , 'tree', branches  = branches + ['weight'], selection = sig_selection) )
 sig = pd.DataFrame( sig_rdf.AsNumpy() )
 if(args.debug):print(sig)
 bkg_rdf = ROOT.RDataFrame(tree_name, backgrounds, branches).Filter(bkg_selection)

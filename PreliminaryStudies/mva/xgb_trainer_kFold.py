@@ -44,7 +44,7 @@ parser.add_argument('--save_output',action = 'store_true' ,help='set it to save 
 parser.add_argument('--unblind',    action = 'store_true' ,help='set it to unblind the data')
 
 args = parser.parse_args()
-tag = args.tag + '_' + datetime.date.today().strftime('%Y%b%d')
+tag = args.tag + '_kFold_' + datetime.date.today().strftime('%Y%b%d')
 removeNaN = False 
 
  # ------------ DEFINE SELECTIONS ------------ # 
@@ -60,18 +60,32 @@ print('---------------------------------------------')
  # ------------ INPUT DATASET ------------ # 
 
 signals     = [
-    '/afs/cern.ch/user/c/cbasile/CMSSW_12_4_11_patch3-Tau3Mu/src/Tau3MuAnalysis/PreliminaryStudies/outRoot/recoKinematicsT3m_MC_2022EE_reMini_HLT_Tau3Mu.root',
+    '../outRoot/recoKinematicsT3m_MC_2022_reMini_HLT_Tau3Mu.root',
+    '../outRoot/recoKinematicsT3m_MC_2022EE_reMini_HLT_Tau3Mu.root',
 ]
 
 backgrounds  = [
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022F.root',
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022G.root',
+    #2022
+    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022Cv1.root',
+    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022Dv1.root',
+    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022Dv2.root',
+    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022Ev1.root',
+    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022Fv1.root',
+    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022Gv1.root',
+    #2023
+    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023B.root', 
+    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023Cv1.root', 
+    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023Cv2.root', 
+    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023Cv3.root', 
+    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023C.root', 
+    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023Dv1.root', 
+    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023D.root', 
 ]
 
 tree_name = 'Tau3Mu_HLTemul_tree'
 mc_factor = MC_norm_factor_dict['2022reMini']  
 print('[!] MC normalization factor = %.3e'%mc_factor)
-sig_rdf = ROOT.RDataFrame(tree_name, signals, branches).Filter(sig_selection).Define('weight', '%f'%mc_factor)
+sig_rdf = ROOT.RDataFrame(tree_name, signals, branches).Filter(sig_selection).Define('weight', 'lumi_factor')
 sig = pd.DataFrame( sig_rdf.AsNumpy() )
 bkg_rdf = ROOT.RDataFrame(tree_name, backgrounds, branches).Filter(bkg_selection).Define('weight', '1')
 bkg = pd.DataFrame( bkg_rdf.AsNumpy() )
@@ -109,7 +123,7 @@ if(args.debug) : print(data)
 data = data.sample(frac = 1, random_state = args.seed).reset_index(drop=True)
 
 ## REMOVE NaN
-if(removeNaN)
+if(removeNaN):
     check_for_nan = data.isnull().values.any()
     print ("[!] check for NaN " + str(check_for_nan))
     if (check_for_nan):
@@ -131,10 +145,9 @@ data.loc[:,'bdt_score']     = -1 * np.ones(data.shape[0]).astype(int)
 data.loc[:,'bdt_training']  = np.zeros(data.shape[0]).astype(int)
 
 # keep only the input features in train set
-train = data[bdt_inputs+['tau_fit_mass','target','id']]
+train = data[bdt_inputs+['tau_fit_mass','weight','target','id']]
 if(args.debug) : print(train)
 skf = StratifiedKFold(n_splits=kfold, random_state=args.seed, shuffle=True)
-
 if args.load_model is None:
     
     # .pkl file to save BDT weights
@@ -173,7 +186,7 @@ if args.load_model is None:
             booster          = 'gbtree',
             max_depth        = 5,
             learning_rate    = 0.01, 
-            n_estimators     = 1000, #10000,
+            n_estimators     = 10000, #10000,
             verbosity        = 1,
             subsample        = 0.7,
             colsample_bytree = 0.7,
@@ -191,10 +204,10 @@ if args.load_model is None:
             X_train, 
             y_train,
             eval_set              = [(X_train, y_train),(X_valid, y_valid)],
-            early_stopping_rounds = 50, #100
+            early_stopping_rounds = 10, #100
             eval_metric           = 'auc',
             verbose               = True,
-            #sample_weight         = train['weight'],
+            #sample_weight         = ktrain['weight'],
         )
         
         best_iteration = clf.get_booster().best_iteration
@@ -274,16 +287,19 @@ plt.clf()
 cuts_to_display = [0.500, 0.990, 0.995, 0.999]
 
 xy = [i*j for i,j in product([10.**i for i in range(-8, 0)], [1,2,4,8])]+[1]
+fig = plt.figure(figsize = (8,6))
 plt.plot(xy, xy, color='grey', linestyle='--')
 plt.xlim([10**-5, 1.0])
 plt.ylim([0.0, 1.0])
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
+plt.xlabel('background efficiency $\\epsilon_{B}$', fontsize = 18)
+plt.xticks(fontsize=16)
+plt.ylabel('signal efficiency $\\epsilon_{S}$', fontsize = 18)
+plt.yticks(fontsize=16)
 
 plt.xscale('log')
 
 fpr, tpr, wps = roc_curve(plot_data.target, plot_data.bdt_score, sample_weight=plot_data.weight)
-plt.plot(fpr, tpr, label='analysis set', color='b')
+plt.plot(fpr, tpr, label='analysis set', color='b', linewidth=2)
 
 wp_x = []
 wp_y = []
@@ -298,7 +314,7 @@ plt.scatter(wp_x, wp_y)
     #plt.annotate(note, (wp_x[i], wp_y[i]))
 
 fpr, tpr, wps = roc_curve(plot_data.target, plot_data.bdt_training, sample_weight=plot_data.weight)
-plt.plot(fpr, tpr, label='train set', color='r')
+plt.plot(fpr, tpr, label='train set', color='r', linewidth=2)
 
 wp_x = []
 wp_y = []
@@ -318,7 +334,6 @@ print ('ROC AUC test  ', roc_auc_score(plot_data.target , plot_data.bdt_score , 
 
 plt.legend(loc='best')
 plt.grid()
-plt.title('ROC')
 plt.tight_layout()
 plt.savefig('%sroc_%s.png' %(args.plot_outdir,tag))
 plt.savefig('%sroc_%s.pdf' %(args.plot_outdir,tag))
