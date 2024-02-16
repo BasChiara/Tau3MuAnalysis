@@ -1,0 +1,3 @@
+# 29 Jan production reMini MiniAOD-v4
+# process : Ds->Phi(MuMu) Pi with both Tau3Mu & Ds reconstruction
+/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano2022_2024Jan29/DstoPhiPi_Phito2Mu_MuFilter_TuneCP5_13p6TeV_pythia8-evtgen/crab_DstoPhiPi_2022/240129_175648/0000/
