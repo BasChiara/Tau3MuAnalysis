@@ -19,24 +19,41 @@ Br_WtauWnu_ratio = 1.008
 Br_WtauWnu_ratio_err = 0.031 
 
 Br_Tau3Mu_default = 1e-7
-
-Lumi2022_D = 3.0063
-Lumi2022_E = 5.075 # 5.8783
-Lumi2022_F = 15.05 # 18.0070
-Lumi2022_G =  3.10 # 3.1219
+# Lumi 2022
+Lumi2022_C =  4.979
+Lumi2022_D =  2.952
+Lumi2022_E =  5.80
+Lumi2022_F = 17.778
+Lumi2022_G =  3.071 
 
 Lumi2022_preEE  = Lumi2022_D
 Lumi2022_EE     = Lumi2022_E+Lumi2022_F+Lumi2022_G
 Lumi2022_reMini = Lumi2022_F+Lumi2022_G
 
-Lumi2022_Serr = 0.022 
+Lumi2022_Serr = 0.022
+
+# Lumi 2023
+Lumi2023_B = 0.600 
+Lumi2023_C = 9.909
+Lumi2023_D = 1.669
+
+Lumi2023_preBPix = Lumi2023_B + Lumi2023_C
+Lumi2023_BPix = Lumi2023_D
+
+Lumi2023_Serr = 0.0
 
 # --- MC
-Nev_MC_2022preEE = 10
+Nev_MC_2022preEE = 197789
 Nev_MC_2022EE    = 792640 
+Nev_MC_2023preBPix = 0 
+Nev_MC_2023BPix    = 0 
 Filter_eff       = 1.0
 
+# --- MC Luminosity
+Lumi_MC_2022preEE  = Nev_MC_2022preEE/(Filter_eff * xs_Wmunu_X * Br_Tau3Mu_default)
 Lumi_MC_2022EE  = Nev_MC_2022EE/(Filter_eff * xs_Wmunu_X * Br_Tau3Mu_default)
+Lumi_MC_2023preBPix  = Nev_MC_2023preBPix/(Filter_eff * xs_Wmunu_X * Br_Tau3Mu_default)
+Lumi_MC_2023BPix  = Nev_MC_2023BPix/(Filter_eff * xs_Wmunu_X * Br_Tau3Mu_default)
 
 
 # --- NORM FACTOR TO USE 
@@ -92,7 +109,8 @@ labels['tau_mu2_TightID_PV' ] = '$\mu_2$ ID'
 labels['tau_mu3_TightID_PV' ] = '$\mu_3$ ID'
 ##labels['tau_fit_eta'        ] = '$\eta_{\\tau}$'
 labels['tauEta'             ] = '$|\eta_{\\tau}|$'
-labels['bdt'                ] = 'BDT score'
+##labels['bdt'                ] = 'BDT score'
+labels['bdt_score'          ] = 'BDT score'
 labels['tau_fit_mass'       ] = '$\\tau$ mass'
 
 features = [
@@ -141,6 +159,62 @@ def tauEta(eta):
    elif abs(eta) > 0.5 : return 2
    elif abs(eta) > 0.2 : return 1
    else                : return 0
+
+### ----- features Nbins xlow xhigh ---- ###
+
+features_NbinsXloXhiLabel = {
+    'tau_fit_pt'        : [ 40, 0, 80,  'p_{T}(3 #mu) (GeV)'],
+    'tau_fit_mt'        : [ 90, 0, 180, 'M_{T}(3 #mu)'],
+    'tau_relIso'        : [ 50, 0, 0.5, 'rel. Isolation (3 #mu)'],
+    'tau_met_Dphi'      : [ 63, 0, 6.3, '#Delta #phi (3 #mu, MET)'],
+    'tau_met_pt'        : [ 75, 0, 150.,'MET (GeV)'],
+    'tau_met_ratio_pt'  : [ 60, 0., 6., 'MET/p_{T}(3 #mu)'],
+    'W_pt'              : [ 80, 0, 150, 'p_{T}(W) (GeV)'],
+    'miss_pz_min'       : [100, -300, 300, 'min p_{z}^{#nu} (GeV)'],
+    'miss_pz_max'       : [100,-1500, 1500,'max p_{z}^{#nu} (GeV)'],
+    'tau_mu12_dZ'       : [ 30, 0, 0.3, '#Delta z (#mu_1, #mu_2)'],
+    'tau_mu13_dZ'       : [ 30, 0, 0.3, '#Delta z (#mu_1, #mu_3)'],
+    'tau_mu23_dZ'       : [ 30, 0, 0.3, '#Delta z (#mu_2, #mu_3)'],
+    'tau_Lxy_sign_BS'   : [ 40, 0, 30,  'SV L_{xy}/#sigma'],
+    'tau_fit_vprob'     : [ 20, 0,  1,  'SV probability'],
+    'tau_cosAlpha_BS'   : [ 50,-1,  1,  'cos_{#alpha}(SV, BS)'],
+    'tau_mu1_TightID_PV': [  2,-0.5,1.5, '#mu_1 ID'],
+    'tau_mu2_TightID_PV': [  2,-0.5,1.5, '#mu_2 ID'],
+    'tau_mu3_TightID_PV': [  2,-0.5,1.5, '#mu_3 ID'],
+    'tauEta'            : [  8,-0.5,7.5, '3#mu #eta bins'],
+    'tau_fit_eta'       : [ 70, -3.5, 3.5,'#eta (3 #mu)'],
+    'tau_fit_mass'      : [ 40,1.6, 2.0, 'M(3 #mu)'],
+    'bdt_score'         : [ 50, 0, 1,    'BDT score'],
+}
+
+###                ###
+#  Ds->Phi(MuMu) Pi  #
+###                ###
+Ds_mass_range_lo  = 1.70 # GeV
+Ds_mass_range_hi  = 2.10 # GeV
+
+# -- translate features -- #
+features_DsPhiPi = [
+    'Ds_fit_pt',
+    'Ds_fit_mt',
+    'Ds_relIso',
+    'tau_met_Dphi',
+    'tau_met_pt',
+    'tau_met_ratio_pt',
+    'W_pt',
+    'miss_pz_min',
+    'miss_pz_max',
+    'phi_mu12_dZ',
+    'Ds_mu1pi_dZ',
+    'Ds_mu2pi_dZ',
+    'Ds_Lxy_sign_BS',
+    'Ds_fit_vprob',
+    'Ds_cosAlpha_BS',
+    'phi_mu1_TightID_PV',
+    'phi_mu2_TightID_PV',
+    'pi_TightID',
+]
+features_DsPhiPi_to_Tau3Mu = dict(zip(features_DsPhiPi,features))
 
 
 ###                                   ###
