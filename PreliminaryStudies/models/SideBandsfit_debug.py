@@ -34,7 +34,7 @@ blinded = True # don't show (nor fit!) data in the signal mass window
 blind_region_lo, blind_region_hi = 1.72, 1.84
 
 input_tree_name = 'tree_w_BDT'
-data_file = '/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/mva_data/XGBout_data_emulateRun2_open.root'
+data_file = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_data_reMini_2024Jan04_open.root'
 
 # ** RooFit Variables
 # tau mass

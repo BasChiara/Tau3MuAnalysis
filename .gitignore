@@ -9,6 +9,7 @@
 *.png
 *.root
 
+*/archive
 # py cache
 */__init__.py
 *__pycache__
