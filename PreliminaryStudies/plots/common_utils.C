@@ -23,10 +23,13 @@ Color_t PtlColorMap(const TString& particle){
   PtlColor["mu1"]   = kBlue + 2;
   PtlColor["mu2"]  = kGreen + 2;
   PtlColor["mu3"]   = kOrange + 1;
+  PtlColor["pi"]   = kOrange + 1;
 
   PtlColor["tau_fit"]   = kRed - 7;
+  PtlColor["phi_fit"]   = kViolet;
   PtlColor["tau_gen"]  = kBlack;
   PtlColor["tau_raw"] = kBlue;
+  PtlColor["Ds_fit"]   = kRed - 7;
 
   PtlColor["PuppiMET"] = kViolet + 2;
   PtlColor["rawPuppiMET"] = kOrange +2;
@@ -52,8 +55,11 @@ TString CategoryLegend(const TString& category){
   Leg_entry["mu1"] = "leading #mu";
   Leg_entry["mu2"] = "sub-leading #mu";
   Leg_entry["mu3"] = "trailing #mu";
+  Leg_entry["pi"] = "track";
 
   Leg_entry["tau_fit"] = "3 #mu refit";
+  Leg_entry["Ds_fit"] = "#mu #mu #pi refit";
+  Leg_entry["tau_fit"] = "#phi #to #mu #mu refit";
   Leg_entry["tau_gen"] = "#tau gen-level";
   Leg_entry["tau_raw"] = "3 #mu raw";
 

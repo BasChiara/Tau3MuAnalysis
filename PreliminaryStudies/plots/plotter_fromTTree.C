@@ -178,9 +178,11 @@ int ProfileVsPU( std::vector<TString> branches, std::vector<TString> description
    legend->SetTextSize(0.03);
 
    THStack* stk = new THStack("profStack",";" + x_name + ";" + y_name);
-   
+   const float expansion_factor = 10;
+   const float yP_low  = (y_high+y_low)/2 - expansion_factor*(y_high-y_low)/2; 
+   const float yP_high = (y_high+y_low)/2 + expansion_factor*(y_high-y_low)/2; 
    for(unsigned int i = 0; i < branches.size(); i++){
-      TProfile* prof = new TProfile(Form("prof_%d",i), "", Nbins, x_low, x_high, y_low, y_high);
+      TProfile* prof = new TProfile(Form("prof_%d",i), "", Nbins, x_low, x_high, yP_low, yP_high);
       inTree->Draw(branches[i]+Form(":nGoodPV>>prof_%d",i));
       prof->SetLineWidth(2);
       prof->SetMarkerStyle(20);
@@ -191,7 +193,8 @@ int ProfileVsPU( std::vector<TString> branches, std::vector<TString> description
    }
    c->cd();
    stk->SetMaximum(y_high);
-   stk->Draw("nostack plc pmc");
+   stk->SetMinimum(y_low);
+   stk->Draw("nostack  plc pmc");
    legend->Draw();
    // save
    gPad->Update();
@@ -205,7 +208,7 @@ int ProfileVsPU( std::vector<TString> branches, std::vector<TString> description
 
 }//ProfileVsPU()
 
-int drawProfile2D( std::vector<TString> branches, std::vector<TString> description, const TString& x_branch , const TString selection = "", const TString x_name = "", const TString& y_name = "", const int Nbins = 100, const float x_low = 0, const float x_high = 100, const float y_low = 0, const float y_high = 1000, TString out_name ="", bool logY = false){
+int drawProfile2D( std::vector<TString> branches, std::vector<TString> description, std::vector<TString> x_branch , const TString selection = "", const TString x_name = "", const TString& y_name = "", const int Nbins = 100, const float x_low = 0, const float x_high = 100, const float y_low = 0, const float y_high = 1000, TString out_name ="", bool logY = false){
 
    TFile* input_file = open_file(inRootFile_);
    TTree* inTree = (TTree*)input_file->Get(treeName_);
@@ -228,10 +231,12 @@ int drawProfile2D( std::vector<TString> branches, std::vector<TString> descripti
    legend->SetTextSize(0.03);
 
    THStack* stk = new THStack("profStack",";" + x_name + ";" + y_name);
-   
+   const float expansion_factor = 10;
+   const float yP_low  = (y_high+y_low)/2 - expansion_factor*(y_high-y_low)/2; 
+   const float yP_high = (y_high+y_low)/2 + expansion_factor*(y_high-y_low)/2; 
    for(unsigned int i = 0; i < branches.size(); i++){
-      TProfile* prof = new TProfile(Form("prof_%d",i), "", Nbins, x_low, x_high, y_low, y_high);
-      inTree->Draw(Form(branches[i]+":"+x_branch+">>prof_%d",i), selection);
+      TProfile* prof = new TProfile(Form("prof_%d",i), "", Nbins, x_low, x_high, yP_low, yP_high);
+      inTree->Draw(Form(branches[i]+":"+x_branch[i]+">>prof_%d",i), selection);
       prof->SetLineWidth(2);
       prof->SetMarkerStyle(20);
       //prof->SetLineColor(i+2);
@@ -241,6 +246,7 @@ int drawProfile2D( std::vector<TString> branches, std::vector<TString> descripti
    }
    c->cd();
    stk->SetMaximum(y_high);
+   stk->SetMinimum(y_low);
    stk->Draw("nostack plc pmc");
    legend->Draw();
    // save

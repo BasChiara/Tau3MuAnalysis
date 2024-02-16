@@ -5,10 +5,10 @@
    gStyle->SetPadTickX(1);
    gStyle->SetPadTickY(1);
   
-   SetInputFile( {"/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/Run2_ntuples/WTau3Mu_MC2017.root","../outRoot/recoKinematicsT3m_MC_2022EE_HLT_Tau3Mu_new.root", "../outRoot/recoKinematicsT3m_MC_2022EE_reMini_HLT_Tau3Mu.root"}); 
+   SetInputFile( {"/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/Run2_ntuples/WTau3Mu_MC2017.root","/afs/cern.ch/user/c/cbasile/CMSSW_12_4_11_patch3-Tau3Mu/src/Tau3MuAnalysis/PreliminaryStudies/outRoot/recoKinematicsT3m_MC_2022EE_HLT_Tau3Mu_new.root", "../outRoot/recoKinematicsT3m_MC_2022EE_reMini_HLT_Tau3Mu.root"}); 
    SetInputTree({"tree","Tau3Mu_HLTemul_tree", "Tau3Mu_HLTemul_tree"});
    SetSelection({" (mu1_refit_muonid_medium==1 && mu2_refit_muonid_medium==1 && mu3_refit_muonid_medium==1) && (HLT_Tau3Mu_Mu5_Mu1_TkMu1_IsoTau10_Charge1_matched || HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1_matched) && (abs(cand_refit_charge) == 1) && ((mu1_refit_pt>3.5 && abs(mu1_refit_eta)<1.2) || (mu1_refit_pt>2.0 && abs(mu1_refit_eta)<2.5 && abs(mu1_refit_eta)>1.2)) && ((mu2_refit_pt>3.5 && abs(mu2_refit_eta)<1.2) || (mu2_refit_pt>2.0 && abs(mu2_refit_eta)<2.5 && abs(mu2_refit_eta)>1.2))&&((mu3_refit_pt>3.5 && abs(mu3_refit_eta)<1.2) || (mu3_refit_pt>2.0 && abs(mu3_refit_eta)<2.5 && abs(mu3_refit_eta)>1.2)) && (mu1_refit_pt > 7 & mu2_refit_pt > 1 & mu3_refit_pt > 1) && (cand_refit_dR12 < 0.5 || cand_refit_dR13 < 0.5 || cand_refit_dR23 < 0.5)&& (cand_refit_mass12 < 1.9 || cand_refit_mass13 < 1.9 || cand_refit_mass23 < 1.9) && (cand_refit_tau_pt > 15) && (abs(cand_refit_tau_eta) < 2.5)","",""});
-   SetOutputFile("/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/Run2vsRun3prompt_reMini/");
+   SetOutputFile("/eos/user/c/cbasile/www/Tau3Mu_Run3/Run2/MCRun2vsRun3prompt_reMini/");
    
    //Tau
    draw_branches({"cand_refit_tau_mass","tau_fit_mass","tau_fit_mass"},  {"Run2","Run3_prompt","Run3_reMini"}, "M(3 #mu) (GeV)", 80, 1.6, 2.0, "Run2vsRun3_fitTauMass");
@@ -17,6 +17,7 @@
    draw_branches({"cand_refit_tau_eta","tau_fit_eta","tau_fit_eta"},    {"Run2","Run3_prompt","Run3_reMini"}, "#eta (3 #mu)", 70, -3.5, 3.5, "Run2vsRun3_Tau_fit_eta");
    draw_branches({"cand_refit_tau_phi","tau_fit_phi","tau_fit_phi"},    {"Run2","Run3_prompt","Run3_reMini"}, "#phi (3 #mu)", 62, -3.1, 3.1, "Run2vsRun3_Tau_fit_phi");
    draw_branches({"cand_refit_tau_dBetaIsoCone0p8strength0p2_rel","tau_relIso", "tau_relIso"},     {"Run2","Run3_prompt","Run3_reMini"}, "rel. isolation (3 #mu)", 50, 0, 0.5, "Run2vsRun3_Tau_relIso", true);
+   draw_branches({"cand_refit_tau_dBetaIsoCone0p8strength0p2_abs","tau_relIso*tau_fit_pt", "tau_relIso*tau_fit_pt"},     {"Run2","Run3_prompt","Run3_reMini"}, "abs. isolation (3 #mu)", 30, 0, 30, "Run2vsRun3_Tau_absIso", true);
    draw_branches({"tau_sv_ls","tau_Lxy_sign_BS","tau_Lxy_sign_BS"},{"Run2","Run3_prompt","Run3_reMini"}, "L_{xy}(BS;3#mu-vtx)/#sigma", 40, 0, 30, "Run2vsRun3_Tau_Lxysign");
    draw_branches({"cand_refit_mttau","tau_fit_mt", "tau_fit_mt"},         {"Run2","Run3_prompt","Run3_reMini"}, "M_{T}(3 #mu)", 50, 0., 200., "Run2vsRun3_Tau_Mt");
    draw_branches({"tau_sv_prob","tau_fit_vprob","tau_fit_vprob"},    {"Run2","Run3_prompt","Run3_reMini"}, "vtx-probability(3 #mu)", 20, 0., 1., "Run2vsRun3_Tau_Vprob");
@@ -42,6 +43,8 @@
    SetInputFile( {"/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/Run2_ntuples/WTau3Mu_MC2017.root","../outRoot/recoKinematicsT3m_MC_2022EE_reMini_HLT_Tau3Mu.root"}); 
    SetInputTree({"tree","Tau3Mu_HLTemul_tree"});
    draw_branches({"n_vtx","nGoodPV"}, {"Run2","Run3_reMini"}, "number vertices", 100, 0., 100., "Run2vsRun3_nPVs");
+   draw_branches({"cand_refit_tau_absPhotonRaw", "tau_Iso_photonDR04"},     {"Run2","Run3_reMini"}, "#sum pT #gamma ",  40, 0, 10, "Run2vsRun3_Tau_absIsoPhoton");
+   draw_branches({"cand_refit_tau_absChargedFromPV", "tau_Iso_chargedDR04"},     {"Run2","Run3_reMini"}, "#sum pT #pm", 50, 0, 5, "Run2vsRun3_Tau_absIsoChargedDR0p4", true);
    
    
 }
