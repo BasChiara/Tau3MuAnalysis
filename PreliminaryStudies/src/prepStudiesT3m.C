@@ -48,6 +48,7 @@ void prepStudiesT3m::Loop(){
         Run = run;
         Event = event;
         nGoodPV = PV_npvsGood;
+        lumi_factor = LumiRun3::LumiFactor["2022EE"]; 
 
         // --- loop on TAU candidates
         flag_HLT_Tau3mu = false; flag_HLT_DoubleMu = false;
@@ -410,6 +411,7 @@ void prepStudiesT3m::outTreeSetUp(){
     outTree_->Branch("LumiBlock", &LumiBlock, "LumiBlock/i");
     outTree_->Branch("event", &Event, "Event/l");
     outTree_->Branch("nGoodPV", &nGoodPV, "nGoodPV/i");
+    outTree_->Branch("lumi_factor",      &lumi_factor,   "lumi_factor/F");
     // * HLT
     outTree_->Branch("HLT_isfired_Tau3Mu",     &HLT_isfired_Tau3Mu,   "HLT_isfired_Tau3Mu/I");
     outTree_->Branch("HLT_isfired_DoubleMu",   &HLT_isfired_DoubleMu, "HLT_isfired_DoubleMu/I");

@@ -20,13 +20,13 @@ public:
  bool    HLT_DoubleMu_emulator(const int TauIdx);
 
 private:
-  // HLT paths
-  HLT_paths HLTconf_ = HLT_Tau3Mu;  // HLT_DoubleMu, HLT_Tau3Mu, HLT_overlap
+ // HLT paths
+ HLT_paths HLTconf_ = HLT_Tau3Mu;  // HLT_DoubleMu, HLT_Tau3Mu, HLT_overlap
 
-  // blinding parameters
-  bool isBlind_;
-  const float blindTauMass_low = 1.74;
-  const float blindTauMass_high = 1.82;
+ // blinding parameters
+ bool isBlind_;
+ const float blindTauMass_low = 1.74;
+ const float blindTauMass_high = 1.82;
 
  TString tags_;
 
@@ -39,9 +39,11 @@ private:
   UInt_t LumiBlock, Run;
   ULong64_t Event;
   int nGoodPV;
+  // Lumi facor
+  float lumi_factor;
   // HLT_bit
   int HLT_isfired_Tau3Mu, HLT_isfired_DoubleMu;
- // * muons
+  // * muons
   int   tau_mu1_MediumID,  tau_mu2_MediumID,  tau_mu3_MediumID;
   int   tau_mu1_LooseID,  tau_mu2_LooseID,  tau_mu3_LooseID;
   int   tau_mu1_SoftID_PV, tau_mu2_SoftID_PV, tau_mu3_SoftID_PV;
@@ -54,7 +56,7 @@ private:
   float tau_mu12_dZ, tau_mu23_dZ, tau_mu13_dZ;
   float tau_mu12_M, tau_mu23_M, tau_mu13_M;
   float tau_mu12_fitM, tau_mu23_fitM, tau_mu13_fitM;
- // * tau candidates
+  // * tau candidates
   int n_tau;
   float tau_raw_mass;
   float tau_fit_mass, tau_fit_mass_err;

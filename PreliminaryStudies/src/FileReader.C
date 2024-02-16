@@ -48,12 +48,12 @@ TChain* FileReader::lxplusTChain_loader(){
             exit(-1);
          }
 
-         if (strcmp(file->d_name, "tau3muNANO_") < 0) continue; // skip "." and ".." and "log" 
+         if (strcmp(file->d_name, "tau3muNANO_") < 0 ) continue; // skip "." and ".." and "log" 
          std::string file_path = DirPath + std::string(file->d_name);   
          stat(file_path.c_str(), &file_stats); 
-         if(file_stats.st_size/1000. < 2378 ) continue;
+         //if(file_stats.st_size/1000. < 2378 ) continue;
+         if(debug) std::cout << file->d_name << std::endl;
          Nfiles ++;
-         //std::cout << file->d_name << std::endl;
          tree_path = DirPath + "/" + file->d_name + treeName; 
          outChain_->Add(tree_path);
       }
@@ -86,12 +86,12 @@ TChain* FileReader::xrootdTChain_loader(const int& Nfiles){
         if (!strstr(Buffer,"#") && !(strspn(Buffer," ") == strlen(Buffer)))
         {
             sscanf(Buffer,"%s",MyRootFile);
-            //std::cout << " [+] start adding "<< filesToAdd << " files from " << MyRootFile << std::endl;
+            if (debug) std::cout << " [+] start adding "<< filesToAdd << " files from " << MyRootFile << std::endl;
             for(int i = 0; i < filesToAdd; i++){
                 ChainPath = TString(MyRootFile);
                 if(ChainPath.EndsWith("_")) ChainPath.Append(Form("%d.root", i+1));
                 else ChainPath.Append(Form("%.3d.root", i));
-                //std::cout << " + chaining " << ChainPath << std::endl; 
+                if (debug) std::cout << " + chaining " << ChainPath << std::endl; 
                 int status = outChain_->Add(TString(ChainPath));
                 Nfile++;
                 if(Nfile > 1000 || Nfile == Nfiles) filesToAdd -= 1000;

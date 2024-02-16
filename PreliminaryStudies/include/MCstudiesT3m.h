@@ -23,6 +23,7 @@ class MCstudiesT3m : public MCTau3Mu_base{
    bool    HLT_Tau3Mu_emulator(const int TauIdx);
    bool    HLT_DoubleMu_emulator(const int TauIdx);
 
+   void    outTreeSetUp();
    void    saveOutput();
   
    private:
@@ -40,8 +41,57 @@ class MCstudiesT3m : public MCTau3Mu_base{
    // [OUTPUT]
    TString outFilePath_;
    TFile*  outFile_;
+   TTree*  outTree_;
+   const TString outTree_name_ = "MCmatching_tree";
+ 
+   // TTree branches
+   UInt_t LumiBlock, Run;
+   ULong64_t Event;
+   int nGoodPV;
+   // HLT_bit
+   int HLT_isfired_Tau3Mu, HLT_isfired_DoubleMu;
+   // * muons
+   int   tau_mu1_MediumID,  tau_mu2_MediumID,  tau_mu3_MediumID;
+   int   tau_mu1_LooseID,  tau_mu2_LooseID,  tau_mu3_LooseID;
+   int   tau_mu1_SoftID_PV, tau_mu2_SoftID_PV, tau_mu3_SoftID_PV;
+   int   tau_mu1_SoftID_BS, tau_mu2_SoftID_BS, tau_mu3_SoftID_BS;
+   int   tau_mu1_TightID_PV,tau_mu2_TightID_PV,tau_mu3_TightID_PV;
+   int   tau_mu1_TightID_BS,tau_mu2_TightID_BS,tau_mu3_TightID_BS;
+   float tau_mu1_pt, tau_mu2_pt, tau_mu3_pt;
+   float tau_mu1_gen_pt, tau_mu2_gen_pt, tau_mu3_gen_pt;
+   float tau_mu1_eta, tau_mu2_eta, tau_mu3_eta;
+   float tau_mu1_gen_eta, tau_mu2_gen_eta, tau_mu3_gen_eta;
+   // * tau candidates
+   int n_tau;
+   float tau_fit_mass, tau_fit_mass_err;
+   float tau_gen_mass;
+   float tau_fit_pt, tau_fit_eta, tau_fit_phi, tau_fit_charge;
+   float tau_gen_pt, tau_gen_eta, tau_gen_phi;
+   float tau_relIso, tau_relIso_pT05; 
+   float tau_Iso_chargedDR04, tau_Iso_photonDR04, tau_Iso_puDR08; 
+   float tau_Iso_chargedDR04_pT05, tau_Iso_photonDR04_pT05, tau_Iso_puDR08_pT05; 
+   float tau_Lxy_val_BS, tau_Lxy_err_BS, tau_Lxy_sign_BS;
+   float tau_fit_mt, tau_fit_vprob, tau_cosAlpha_BS;
+   // * tau + MET
+   float tau_met_pt, tau_met_phi; //PuppiMET
+   float gen_met_pt, gen_met_phi;
+   float tau_rawMet_pt, tau_rawMet_phi; // rawPuppiMET
+   float tau_DeepMet_pt, tau_DeepMet_phi;
+   float tau_met_Dphi, tau_met_ratio_pt;
+   float miss_pz_min, miss_pz_max;
+   float Nu_gen_pt, Nu_gen_eta, Nu_gen_phi;
+   float METlongNu, METperpNu;
+   float W_gen_pt, W_gen_eta, W_gen_phi;
+   float W_pt, W_eta_min, W_eta_max, W_phi;
+   float W_Deep_pt, W_Deep_eta_min, W_Deep_eta_max, W_Deep_phi;
+   float W_mass_nominal, W_mass_min, W_mass_max;
+
+
+
+
    // trigger
    TH2F* h_HLT_T3MvsDM4 = new TH2F("HLT_T3MvsDM4", "", 2, -0.5, 1.5, 2, -0.5, 1.5);
+   
    // muond ID
    TH1F* h_Mu_MediumID = new TH1F("Mu_MediumID", "", 2, -0.5, 1.5);
    TH1F* h_Mu_SoftID   = new TH1F("Mu_SoftID", "", 2, -0.5, 1.5);

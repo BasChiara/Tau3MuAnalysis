@@ -12,26 +12,27 @@
 
 class FileReader{
 
-    public:
-    FileReader(const std::string& in_file);
-    ~FileReader(){ }
+   public:
+      FileReader(const std::string& in_file);
+      ~FileReader(){ }
 
-    TChain* lxplusTChain_loader();
-    TChain* xrootdTChain_loader(const int& Nfiles);
-
-
+      TChain* lxplusTChain_loader();
+      TChain* xrootdTChain_loader(const int& Nfiles);
 
 
-    private:
 
-    const TString NtuplesName_ = "Events";
 
-    TChain* outChain_;
-    std::string inputFileName_;
+   private:
 
-    char Buffer[5000];
-	std::string NtupleDir;
-	char MyRootFile[10000];
+      const TString NtuplesName_ = "Events";
+
+      TChain* outChain_;
+      std::string inputFileName_;
+
+      char Buffer[5000];
+      std::string NtupleDir;
+      char MyRootFile[10000];
+      const bool debug = false;
 
 
 };
