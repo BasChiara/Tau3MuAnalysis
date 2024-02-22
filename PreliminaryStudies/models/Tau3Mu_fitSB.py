@@ -48,8 +48,8 @@ omega_mass = 0.783 #GeV
 
 
 input_tree_name = 'tree_w_BDT'
-mc_file = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_signal_reMini2022_kFold_2024Feb22.root'
-data_file = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_data_reMini2022_kFold_2024Feb22_open.root'
+mc_file     = '/eos/cms/store/group/phys_bphys/cbasile/XGBout_signal_reMini2022_kFold_2024Feb22.root'
+data_file   = '/eos/cms/store/group/phys_bphys/cbasile/XGBout_data_reMini2022_kFold_2024Feb22_open.root'
 
 
 # ** RooFit Variables

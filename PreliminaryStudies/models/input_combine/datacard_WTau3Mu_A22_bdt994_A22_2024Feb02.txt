@@ -13,7 +13,7 @@ observation        -1
 bin                                     WTau3Mu_A22              WTau3Mu_A22
 process                                 sig                 bkg
 process                                 0                   1
-rate                                    1.7423        11.4963
+rate                                    1.7605        12.9479
 --------------------------------------------------------------------------------
-bkg_norm rateParam                   WTau3Mu_A22      bkg     1. [0.5,1.5] 
-slope    param  -1.3077 2.5779
+bkg_norm rateParam                   WTau3Mu_A22      bkg     1. 
+slope    param  -1.8655 2.4494
