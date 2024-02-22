@@ -8,7 +8,7 @@ void DsPhiMuMuPi_analyzer::Loop(){
    const Long64_t Nprint = (int)(nentries/20.);
    
    unsigned int Nevents =0;
-   unsigned int nTriggerBit = 0, nEvTriggerFired_Tau3Mu = 0, nEvTriggerFired_DoubleMu = 0, nTriggerFired3Mu = 0, nEvMETfilters =0;
+   unsigned int nEvDsPhiPi =0, nEvTriggerBit = 0, nEvTriggerFired_Tau3Mu = 0, nEvTriggerFired_DoubleMu = 0, nTriggerFired3Mu = 0, nEvMETfilters =0;
    unsigned int nDsDiMuonVeto = 0, nDsMCmatched = 0;
    bool flag_HLT_Tau3mu = false, flag_HLT_DoubleMu = false;
 
@@ -23,6 +23,7 @@ void DsPhiMuMuPi_analyzer::Loop(){
       
       // analyze only Ds->Phi Pi
       if (nDsPhiPi == 0) continue;
+      nEvDsPhiPi++;
       // --- MET FILTERS
       if (!( 
             DsPlusMET_Flag_BadPFMuonDzFilter &&
@@ -43,7 +44,7 @@ void DsPhiMuMuPi_analyzer::Loop(){
       if((HLTconf_ == HLT_paths::HLT_overlap) &&
             !(HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 || HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15 || HLT_DoubleMu4_3_LowMass)) continue;
 
-      nTriggerBit++;
+      nEvTriggerBit++;
 
       LumiBlock = luminosityBlock;
       Run = run;
@@ -79,6 +80,8 @@ void DsPhiMuMuPi_analyzer::Loop(){
             if(!flag_HLT_DoubleMu) flag_HLT_DoubleMu = TriggerMatching(t,HLT_paths::HLT_DoubleMu);
          }
          nTriggerFired3Mu++;
+         HLT_isfired_DoubleMu= (int)flag_HLT_DoubleMu; HLT_isfired_Tau3Mu = (int)flag_HLT_Tau3mu; 
+         
          n_Ds = nDsPhiPi;
 
          nDsDiMuonVeto++;
@@ -169,9 +172,10 @@ void DsPhiMuMuPi_analyzer::Loop(){
     saveOutput();
 
     std::cout << " == summary == " << std::endl;
-    std::cout << " Events " << nentries << std::endl;
+    std::cout << " Events processed " << Nevents << std::endl;
+    std::cout << " Events whith DsPhiPi candidates " << nEvDsPhiPi << std::endl;
     std::cout << " Events passing MET-filters " << nEvMETfilters << std::endl;
-    std::cout << " Events with HLT-bit ON " << nTriggerBit << std::endl;
+    std::cout << " Events with HLT-bit ON " << nEvTriggerBit << std::endl;
     std::cout << " Events which fully fired HLT_Tau3Mu " << nEvTriggerFired_Tau3Mu << std::endl;
     std::cout << " Events which fully fired HLT_DoubleMu " << nEvTriggerFired_DoubleMu << std::endl;
     std::cout << " Ds candidates with 3 fired muons " << nTriggerFired3Mu << std::endl;

@@ -166,8 +166,8 @@ void WTau3Mu_analyzer::Loop(){
    }// loop on events
 
    saveOutput();
-   std::cout << "...processed " << Nevents << " events" << std::endl;
    std::cout << " == summary == " << std::endl;
+   std::cout << " Events processed " << Nevents << std::endl;
    std::cout << " Events whith Tau3Mu candidates " << nEvTau3Mu << std::endl;
    std::cout << " Events whith HLT-bit ON " << nTriggerBit << std::endl;
    std::cout << " Events which fully fired HLT_Tau3Mu " << nEvTriggerFired_Tau3Mu << std::endl;
