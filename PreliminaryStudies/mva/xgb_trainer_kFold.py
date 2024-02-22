@@ -73,13 +73,13 @@ backgrounds  = [
     '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022Fv1.root',
     '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022Gv1.root',
     #2023
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023B.root', 
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023Cv1.root', 
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023Cv2.root', 
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023Cv3.root', 
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023C.root', 
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023Dv1.root', 
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023D.root', 
+    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023B.root', 
+    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023Cv1.root', 
+    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023Cv2.root', 
+    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023Cv3.root', 
+    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023C.root', 
+    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023Dv1.root', 
+    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023D.root', 
 ]
 
 tree_name = 'Tau3Mu_HLTemul_tree'
@@ -239,6 +239,7 @@ else :
         classifiers = pickle.load(f)
 
     for i, (train_index, apply_index) in enumerate(skf.split(train[bdt_inputs].values, train['target'].values)):
+        data.loc[train.id.isin(train_index)&((data.target == 1) | ((data.target == 0) & ((data.tau_fit_mass < blind_range_lo) | (data.tau_fit_mass > blind_range_hi)))), 'bdt_fold%d_isTrainSet' %i] = 1
         data.loc[train.id.isin(apply_index), 'bdt_to_apply'] = i
 
 # ------------ FINALLY SAVE BDT SCORES ------------ # 
