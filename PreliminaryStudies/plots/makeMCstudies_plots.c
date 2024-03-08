@@ -5,11 +5,11 @@
    // root[1] .x makeMCstudies_plots.c 
    gSystem->Load("plot_library_C.so");
     
-    gStyle->SetPadTickX(1);
-    gStyle->SetPadTickY(1);
+   gStyle->SetPadTickX(1);
+   gStyle->SetPadTickY(1);
 
-    SetInputFile("../outRoot/MCstudiesT3m_MC_2022EE_reMini_HLT_Tau3Mu.root");
-    SetOutputFile("/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2022reMini/");
+   SetInputFile("../outRoot/MCstudiesT3m_MC_2022EE_reMini_HLT_Tau3Mu.root");
+   SetOutputFile("/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2022reMini/");
 
     draw_binary_histo("Mu_MediumID", "mu", "#mu mediumID", "Mu_MediumID");
     draw_binary_histo("Mu_SoftID", "mu", "#mu softID", "Mu_SoftID");

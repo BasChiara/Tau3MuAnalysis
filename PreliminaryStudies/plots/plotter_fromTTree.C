@@ -19,6 +19,8 @@
 #include <TLatex.h>
 
 #include "common_utils.C"
+#include "tdrstyle.C"
+#include "CMS_lumi.C"
 
 TString inRootFile_  = "../outRoot/MCstudiesT3m_MC_2022preEE.root"; 
 TString outPath_     = "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/";
@@ -30,6 +32,8 @@ TString treeName_    = "Tau3Mu_HLTemul_tree";
 void SetInputFile(const TString& inFile = ""){
 
    inRootFile_ = inFile;
+   setTDRStyle();
+   extraText = "Simulation Preliminary"; 
 
 }//SetInputFile()
 void SetOutputFile(const TString& outPath = ""){
@@ -42,6 +46,8 @@ void SetIO(const TString& inFile = "", const TString& tree_name = "", const TStr
    inRootFile_ = inFile;
    treeName_ = tree_name;
    outPath_ = outPath;
+   setTDRStyle();
+   extraText = "Simulation Preliminary"; 
 
 }//SetOutputFile()
 
@@ -69,15 +75,14 @@ int draw_one_histo(const TString& branch_name, const TString& category, const TS
 
    h->Draw("HIST");
 
-   c1->Update();
-   gPad->Update();
-   gPad->RedrawAxis();
 
    // semi log scale
    if (logY) c1->SetLogy();
    else c1->SetLogy(0);
 
    // save
+   CMS_lumi( c1, 0 );
+   c1->Update();
    gPad->Update();
    gPad->RedrawAxis();
    if (out_name == "") out_name = branch_name;
@@ -93,6 +98,8 @@ int draw_one_histo(const TString& branch_name, const TString& category, const TS
 
 int draw_many_histos(std::vector<TString> branches, std::vector<TString> categories,const TString& x_name, const int Nbins, const float x_low, const float x_high, TString out_name, bool logY = false, bool norm = true, bool fill = true)
 {
+   //setTDRStyle();
+   //extraText = "Simulation Preliminary"; 
 
    TFile* input_file = open_file(inRootFile_);
    TTree* inTree = (TTree*)input_file->Get(treeName_);
@@ -142,8 +149,11 @@ int draw_many_histos(std::vector<TString> branches, std::vector<TString> categor
    else c->SetLogy(0);
 
    // save
+   CMS_lumi( c, 0 );
+   c->Update();
    gPad->Update();
    gPad->RedrawAxis();
+
    if (out_name == "") out_name = branches[0];
    TString outName = outPath_ + out_name;
    c->SaveAs(outName+".png");
@@ -197,6 +207,8 @@ int ProfileVsPU( std::vector<TString> branches, std::vector<TString> description
    stk->Draw("nostack  plc pmc");
    legend->Draw();
    // save
+   CMS_lumi( c, 0 );
+   c->Update();
    gPad->Update();
    gPad->RedrawAxis();
    if (out_name == "") out_name = branches[0];
@@ -250,6 +262,7 @@ int drawProfile2D( std::vector<TString> branches, std::vector<TString> descripti
    stk->Draw("nostack plc pmc");
    legend->Draw();
    // save
+   CMS_lumi( c, 0 );
    gPad->Update();
    gPad->RedrawAxis();
    if (out_name == "") out_name = branches[0];
@@ -305,6 +318,8 @@ int drawTGraph(std::vector<TString> branches, TString description, const TString
    legend->Draw();
 
    // save
+   CMS_lumi( c, 0 );
+   c->Update();
    gPad->Update();
    gPad->RedrawAxis();
    if (out_name == "") out_name = branches[0];
@@ -366,6 +381,8 @@ int efficiencyVsPU( std::vector<TString> selections, std::vector<TString> descri
    stk->Draw("nostack pe plc pmc");
    legend->Draw();
    // save
+   CMS_lumi( c, 0 );
+   c->Update();
    gPad->Update();
    gPad->RedrawAxis();
    TString outName = outPath_ + out_name;

@@ -18,6 +18,8 @@
 #include <TLatex.h>
 
 #include "common_utils.C"
+#include "tdrstyle.C"
+#include "CMS_lumi.C"
 
 std::vector<TString> inRootFile_;//  = {"/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/Run2_ntuples/WTau3Mu_MC2017.root","../outRoot/recoKinematicsT3m_MC_2022EE_HLT_Tau3Mu.root", "../outRoot/recoKinematicsT3m_MC_2022EEreReco_HLT_Tau3Mu.root"}; 
 std::vector<TString> treeName_;//    = {"tree","Tau3Mu_HLTemul_tree","Tau3Mu_HLTemul_tree"};
@@ -29,6 +31,8 @@ void SetInputFile(const std::vector<TString>& inFile){
   for(auto it = inFile.begin(); it != inFile.end(); it++){
      inRootFile_.push_back(*it);
   }
+  setTDRStyle();
+  extraText = "Preliminary";
 
 }//SetInputFile()
 void SetInputTree(const std::vector<TString>& inTree){
@@ -89,6 +93,10 @@ int draw_one_histo(const TString& branch_name, const TString& category, const TS
   else c1->SetLogy(0);
 
   // save
+  CMS_lumi( c1, 0 );
+  c1->Update();
+  gPad->Update();
+  gPad->RedrawAxis();
   if (out_name == "") out_name = branch_name;
   TString outName = outPath_ + out_name;
   c1->SaveAs(outName+".png");
@@ -114,6 +122,7 @@ int draw_branches(std::vector<TString> branches, std::vector<TString> categories
 
    for (int i = 0; i < Nfiles; i++){
       input_files[i] = open_file(inRootFile_[i]);
+      std::cout<< "[+] get TTree from file(s) : " << treeName_[i] << std::endl;
       input_trees[i] = (TTree*)input_files[i]->Get(treeName_[i]);
       if ( !input_trees[i]){
          std::cout<< "null pointer to the TTree " << treeName_[i] << std::endl;
@@ -161,6 +170,10 @@ int draw_branches(std::vector<TString> branches, std::vector<TString> categories
   else c->SetLogy(0);
 
   // save
+  CMS_lumi( c, 0 );
+  c->Update();
+  gPad->Update();
+  gPad->RedrawAxis();
   if (out_name == "") out_name = branches[0];
   TString outName = outPath_ + out_name;
   c->Update();
@@ -222,6 +235,10 @@ int draw_histos(std::vector<TString> histo_names, std::vector<TString> categorie
   else c->SetLogy(0);
 
   // save
+  CMS_lumi( c, 0 );
+  c->Update();
+  gPad->Update();
+  gPad->RedrawAxis();
   if (out_name == "") out_name = histo_names[0];
   TString outName = outPath_ + out_name;
   c->Update();
