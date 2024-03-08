@@ -80,13 +80,15 @@ def main():
     parser.add_option('--eos',               action='store',     dest='eos',          help='copy the output in the specified EOS path'                 , default='')
     parser.add_option('-F', '--nfiles',      action='store',     dest='Nfiles',       help='number of files in a remote directory', default = 1000, type ='int')
     parser.add_option('--DsPhiPi',           action='store_true',dest='isDsPhiPi',    help='wether to run on the control channel Ds->Phi(MuMu)Pi', default = False)
+    parser.add_option('--HLT_path',          choices=['HLT_DoubleMu', 'HLT_Tau3Mu'], dest='HLT_path', help='HLT path to use', default = 'HLT_Tau3Mu')
     (opt, args) = parser.parse_args()
-    print(args)
     
     if len(args) != 1:
         print('[ERROR] no arguments were provided') 
         print(usage)
         sys.exit(1)
+    print('[+] reading input from')
+    [print('   > '+a) for a in args]
 
     ##### INPUT/OUTPUT #####
     # --> .txt files containg the ntuples path
@@ -101,7 +103,7 @@ def main():
     os.system("mkdir -p "+jobdir+"/out/")
     os.system("mkdir -p "+jobdir+"/src/")
     os.system("mkdir -p "+jobdir+"/cfg/")
-    print(' report will be saved in '+ jobdir)
+    print('[LOG] report will be saved in '+ jobdir)
 
     #look for the current directory
     #######################################
@@ -122,7 +124,7 @@ def main():
             if ntpfile != '':
                 L.append(ntpfile+"\n")
         if not L : continue
-        print(L)
+        #print(L)
     
     # Njobs = len(L)
     # for ijob, file_dat in enumerate(L):
@@ -137,10 +139,10 @@ def main():
         #rootoutputfile = dataset+'_'+str(ijob)+'.root'
         outdirtmp = '/tmp/'
         job_tag = dataset+'_'+str(ijob)
-        rootoutputfile =  outdirtmp + ("WTau3Mu" if not opt.isDsPhiPi else "DsPhiMuMuPi")+ "_DATAanalyzer_" + job_tag + "_HLT_Tau3Mu.root"  
+        rootoutputfile =  outdirtmp + ("WTau3Mu" if not opt.isDsPhiPi else "DsPhiMuMuPi")+ "_DATAanalyzer_" + job_tag + "_" + opt.HLT_path + ".root"  
         #if opt.scheduler=='condor':
         #    rootoutputfile = '/tmp/'+rootoutputfile
-        print(' output saved as: ' + rootoutputfile)
+        print('[OUT] output saved as: ' + rootoutputfile)
 
         srcfilename = jobdir+"/src/submit_"+str(ijob)+".src"
         srcfile = open(srcfilename,'w')
@@ -150,14 +152,14 @@ def main():
         Nf = 1000
         if (opt.Nfiles >= 1000) : opt.Nfiles = opt.Nfiles - 1000
         else : Nf = opt.Nfiles 
-        print(opt.Nfiles)
+        print(' # %d job processing %d files '%(ijob, Nf))
         srcfile.write(opt.application+' '+icfgfilename+' '+outdirtmp+' DATA '+ job_tag +' '+ ("Tau3Mu" if not opt.isDsPhiPi else "DsPhiPi") + ' ' + str(Nf)+' \n')
         if(opt.eos!=''):    
             outdireos = opt.eos+dataset+'/'
             if not (os.path.isdir(outdireos)): os.system('mkdir -p '+outdireos)
             srcfile.write('cp '+rootoutputfile+' '+ outdireos +'\n')
             srcfile.write('rm '+rootoutputfile)
-            print(" output saved in final destination : " + outdireos)
+            print("[OUT] output saved in final destination : " + outdireos)
         srcfile.close()
 
         logfile = jobdir+"/log/"+dataset+"_"+str(ijob)+".log"
