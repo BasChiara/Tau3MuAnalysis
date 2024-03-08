@@ -41,6 +41,8 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       void    saveOutput();
 
    private:
+      bool debug = false;
+
       // MC related vars
       bool isMC_;
       int TauTo3Mu_MCmatch_idx;
@@ -48,7 +50,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       HLT_paths HLTconf_ = HLT_Tau3Mu;  // HLT_DoubleMu, HLT_Tau3Mu, HLT_overlap
 
       // blinding parameters
-      bool isBlind_;
+      bool isBlind_ = false;
       const float blindTauMass_low = 1.74;
       const float blindTauMass_high = 1.82;
 

@@ -3,6 +3,9 @@
 
 #include "../include/WTau3Mu_base.h"
 #include "include/constants.h"
+#include <vector>
+#include <numeric>
+#include <algorithm>
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include "Math/Vector4D.h"
@@ -22,6 +25,8 @@ class WTau3Mu_tools : public WTau3Mu_base{
    bool    RecoPartFillP4(const int idx);
    bool    HLT_Tau3Mu_emulator(const int TauIdx);
    bool    HLT_DoubleMu_emulator(const int TauIdx);
+   bool    HLT_DoubleMu_reinforcement(const int TauIdx);
+   std::vector<unsigned int> sorted_cand_mT();
 
 
    // gen particle P4 
@@ -34,7 +39,7 @@ class WTau3Mu_tools : public WTau3Mu_base{
    ROOT::Math::PtEtaPhiMVector RecoMu1_P4, RecoMu2_P4, RecoMu3_P4;
    
    private:
-   
+   bool debug = false; 
 
 };//WTau3Mu_tools
 

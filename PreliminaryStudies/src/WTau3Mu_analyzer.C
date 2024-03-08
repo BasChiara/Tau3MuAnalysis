@@ -10,9 +10,9 @@ void WTau3Mu_analyzer::Loop(){
    const Long64_t Nbreak = nentries + 10; 
    const Long64_t Nprint = (int)(nentries/20.);
 
-   unsigned int nEvTau3Mu =0, nTriggerBit = 0, nEvTriggerFired_Tau3Mu = 0, nEvTriggerFired_DoubleMu = 0, nEvDiMuResVeto = 0;
-   unsigned int nTauFired3Mu = 0, nTauDiMuonVeto = 0, nTauMCmatched = 0;
-   bool flag_HLT_Tau3mu = false, flag_HLT_DoubleMu = false, flag_diMuResVeto =true;
+   unsigned int nEvTau3Mu =0, nTriggerBit = 0, nEvTriggerFired_Tau3Mu = 0, nEvTriggerFired_DoubleMu = 0, nEvReinforcedHLT = 0, nEvDiMuResVeto = 0;
+   unsigned int nTauFired3Mu = 0, nTauReinforcedHLT = 0, nTauDiMuonVeto = 0, nTauMCmatched = 0;
+   bool flag_HLT_Tau3mu = false, flag_HLT_DoubleMu = false, flag_reinfHLT = true, flag_diMuResVeto =true;
 
    Long64_t nbytes = 0, nb = 0;
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
@@ -25,9 +25,10 @@ void WTau3Mu_analyzer::Loop(){
 
       // analyze only W Tau -> 3 Mu
       if(nTauTo3Mu == 0) continue;
+      if(debug && nTauTo3Mu > 1) std::cout << "++ new event with multiple cands" << std::endl;
       nEvTau3Mu++;
 
-      // --- TRIGGER BIT
+      // --- HL TRIGGER BIT
       if((HLTconf_ == HLT_paths::HLT_Tau3Mu) &&
             !(HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 || HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15)) continue;
       if((HLTconf_ == HLT_paths::HLT_DoubleMu) &&
@@ -55,9 +56,14 @@ void WTau3Mu_analyzer::Loop(){
       }
       // --- loop on TAU candidates
       flag_HLT_Tau3mu = false; flag_HLT_DoubleMu = false;
-      flag_diMuResVeto = true;
+      flag_reinfHLT = true; flag_diMuResVeto = true;
       tau_mu12_M = -1.0; tau_mu23_M = -1.0; tau_mu13_M = -1.0;
-      for(unsigned int t = 0; t < nTauTo3Mu; t++){
+      // sort candidates by transverse mass
+      std::vector<unsigned int> tau_idxs = sorted_cand_mT(); 
+      //for(unsigned int t = 0; t < nTauTo3Mu; t++){
+      for(unsigned int t: tau_idxs){ 
+
+         if(debug && nTauTo3Mu > 1) std::cout << " + tau cand with mT " << TauPlusMET_Tau_Puppi_mT[t] << std::endl; 
          // check muons MediumID
          if(!RecoPartFillP4(t)) continue;
 
@@ -70,23 +76,25 @@ void WTau3Mu_analyzer::Loop(){
             flag_HLT_DoubleMu = TriggerMatching(t,HLT_paths::HLT_DoubleMu);
          }
          nTauFired3Mu++;
-         HLT_isfired_DoubleMu= (int)flag_HLT_DoubleMu; HLT_isfired_Tau3Mu = (int)flag_HLT_Tau3mu; 
+         HLT_isfired_DoubleMu = (int)flag_HLT_DoubleMu; HLT_isfired_Tau3Mu = (int)flag_HLT_Tau3mu; 
 
          n_tau = nTauTo3Mu;
-         if(isMC_){
-           isMCmatching = (t == TauTo3Mu_MCmatch_idx);
-           if(isMCmatching) nTauMCmatched++;
-         }
 
          // blind if needed
          if(isBlind_ && RecoTau_P4.M() > blindTauMass_low && RecoTau_P4.M() < blindTauMass_high ) continue;
+
          // veto diMuonResonances
-         if (TauTo3Mu_diMuVtxFit_bestProb[t] > 0){
-            tau_dimuon_mass = TauTo3Mu_diMuVtxFit_bestMass[t];
-         }
          if (TauTo3Mu_diMuVtxFit_toVeto[t]) continue;
-         if (flag_diMuResVeto) { nEvDiMuResVeto++; flag_diMuResVeto = false;}
+         if (flag_diMuResVeto) nEvDiMuResVeto++;
+         flag_diMuResVeto = false;
          nTauDiMuonVeto++;
+         tau_dimuon_mass = ( TauTo3Mu_diMuVtxFit_bestProb[t] > 0 ? TauTo3Mu_diMuVtxFit_bestMass[t] : -1 );
+
+         // HLT_DoubleMuon reinforcement
+         if (HLTconf_ == HLT_paths::HLT_DoubleMu && !HLT_DoubleMu_reinforcement(t)) continue;
+         if (flag_reinfHLT) nEvReinforcedHLT++;
+         nTauReinforcedHLT++;
+         
 
          // muonsID
          tau_mu1_MediumID   = Muon_isMedium[TauTo3Mu_mu1_idx[t]];   tau_mu2_MediumID   = Muon_isMedium[TauTo3Mu_mu2_idx[t]];   tau_mu3_MediumID   = Muon_isMedium[TauTo3Mu_mu2_idx[t]];
@@ -156,7 +164,14 @@ void WTau3Mu_analyzer::Loop(){
          W_Deep_pt = TauPlusMET_Deep_pt[t]; W_Deep_phi = TauPlusMET_Deep_phi[t]; 
          W_Deep_eta_min =  TauPlusMET_Deep_eta_min[t];  W_Deep_eta_max =  TauPlusMET_Deep_eta_max[t]; 
 
+         // MC maching
+         if(isMC_){
+           isMCmatching = (t == TauTo3Mu_MCmatch_idx);
+           if(isMCmatching) nTauMCmatched++;
+         }
+
          outTree_->Fill();
+         break;
       }// loop on tau cands
 
       // HLT summary
@@ -173,8 +188,10 @@ void WTau3Mu_analyzer::Loop(){
    std::cout << " Events which fully fired HLT_Tau3Mu " << nEvTriggerFired_Tau3Mu << std::endl;
    std::cout << " Events which fully fired HLT_DoubleMu " << nEvTriggerFired_DoubleMu << std::endl;
    std::cout << " Events after di-muon resonance veto " << nEvDiMuResVeto << std::endl;
+   std::cout << " Events after HLT_DoubleMu reinforcement " << nEvReinforcedHLT << std::endl;
    std::cout << " Tau candidates with 3 fired muons " << nTauFired3Mu << std::endl;
    std::cout << " Tau candidates after diMu veto " << nTauDiMuonVeto << std::endl;
+   std::cout << " Tau candidates after HLT_DoubleMu reinforcement " << nTauReinforcedHLT << std::endl;
    if(isMC_){
       std::cout << " Tau candidates MC-matching " << nTauMCmatched << std::endl;
    }

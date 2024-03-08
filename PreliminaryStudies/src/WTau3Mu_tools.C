@@ -45,6 +45,30 @@ int   WTau3Mu_tools::MCtruthMatching(const bool verbose){
 
 }// MCtruthMatching
 
+
+std::vector<unsigned int> WTau3Mu_tools::sorted_cand_mT(){
+
+   if (debug) std::cout << " #cand " << nTauTo3Mu << std::endl;
+   // initialize cand-idx vector 
+   std::vector<unsigned int> cand_idx(nTauTo3Mu, 0);
+   iota(cand_idx.begin(), cand_idx.end(), 0);
+   // if more than one sort by mT
+   if (cand_idx.size() > 1){
+   
+      if(debug) std::cout << " sort by mT..." << std::endl;
+      std::vector<float> mT_v(TauPlusMET_Tau_Puppi_mT, TauPlusMET_Tau_Puppi_mT + nTauTo3Mu); 
+      stable_sort(cand_idx.begin(), cand_idx.end(), [&mT_v](size_t i1, size_t i2) {return mT_v[i1] >  mT_v[i2];});
+      if(debug){
+         std::cout << " unsorted mT "<< std::endl;
+         for(float m : mT_v) std::cout << "\t" << m << std::endl;
+         std::cout << " sorted mT "<< std::endl;
+         for(float i : cand_idx) std::cout << "\t" << i << "\t" << mT_v[i] << std::endl;
+      }
+   }
+   return cand_idx;
+
+}//sorted_cand_mT()
+
 bool WTau3Mu_tools::TriggerMatching(const int TauIdx, const int config){
     //int trigger_configuration = (config == -1 ? HLTconf_ : config);
     int trigger_configuration = config;
@@ -194,6 +218,24 @@ bool WTau3Mu_tools::HLT_DoubleMu_emulator(const int TauIdx){
   return true;
 
 }//HLT_DoubleMu_emulator()
+
+bool WTau3Mu_tools::HLT_DoubleMu_reinforcement(const int TauIdx){
+    
+
+   const float minPT_mu1 = 7.0, minPT_mu3 = 1.0;
+   if(RecoMu1_P4.Pt() < minPT_mu1 || RecoMu3_P4.Pt() < minPT_mu3 ) return false;
+   const float minPT_tau = 10.0;
+   if(RecoTau_P4.Pt() < minPT_tau) return false;
+   const float maxM_mumu = 1.9;
+   const float maxDZ_mumu = 0.7;
+   if(!( (TauTo3Mu_dZmu12[TauIdx] < maxDZ_mumu && (RecoMu1_P4+RecoMu2_P4).M() < maxM_mumu ) ||  // mu_1, mu_2
+         (TauTo3Mu_dZmu23[TauIdx] < maxDZ_mumu && (RecoMu2_P4+RecoMu3_P4).M() < maxM_mumu ) ||  // mu_2, mu_3
+         (TauTo3Mu_dZmu13[TauIdx] < maxDZ_mumu && (RecoMu1_P4+RecoMu3_P4).M() < maxM_mumu) )  // mu_1, mu_3
+    ) return false;
+
+   return true;
+
+}//HLT_DoubleMu_reinforcement()
 
 void  WTau3Mu_tools::GenPartFillP4(){
     
