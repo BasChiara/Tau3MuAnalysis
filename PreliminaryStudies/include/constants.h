@@ -41,11 +41,11 @@ enum HLT_paths {
 namespace LumiRun3
 {
 inline std::map<TString, float> LumiFactor{
-   {"DEFAULT"  , 1.0}, 
-   {"2022preEE", 0.00014393}, 
-   {"2022EE"   , 0.00005541}, 
-   {"2023"     , 0.0}, 
-   {"2023BPix" , 0.0}, 
+   {"DEFAULT"        , 1.0}, 
+   {"2022preEE"      , 0.00014111}, 
+   {"2022EE"         , 0.00005537}, 
+   {"2023preBPix"    , 0.00004177}, 
+   {"2023BPix"       , 0.00004821}, 
 };
 }
 

@@ -33,6 +33,8 @@ void WTau3Mu_analyzer::Loop(){
             !(HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 || HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15)) continue;
       if((HLTconf_ == HLT_paths::HLT_DoubleMu) &&
             !HLT_DoubleMu4_3_LowMass) continue;
+      if((HLTconf_ == HLT_paths::HLT_overlap) &&
+            !(HLT_DoubleMu4_3_LowMass|| HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 || HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15)) continue;
       nTriggerBit++;
 
       LumiBlock = luminosityBlock;
@@ -45,7 +47,6 @@ void WTau3Mu_analyzer::Loop(){
          GenPartFillP4();
          TauTo3Mu_MCmatch_idx = MCtruthMatching();
          // - lumi factor in MC
-         lumi_factor = LumiRun3::LumiFactor[year_]; 
 
          tau_mu1_gen_pt  = GenMu1_P4.Pt();  tau_mu2_gen_pt  = GenMu2_P4.Pt();  tau_mu3_gen_pt  = GenMu3_P4.Pt();
          tau_mu1_gen_eta = GenMu1_P4.Eta(); tau_mu2_gen_eta = GenMu2_P4.Eta(); tau_mu3_gen_eta = GenMu3_P4.Eta();
@@ -91,7 +92,8 @@ void WTau3Mu_analyzer::Loop(){
          tau_dimuon_mass = ( TauTo3Mu_diMuVtxFit_bestProb[t] > 0 ? TauTo3Mu_diMuVtxFit_bestMass[t] : -1 );
 
          // HLT_DoubleMuon reinforcement
-         if (HLTconf_ == HLT_paths::HLT_DoubleMu && !HLT_DoubleMu_reinforcement(t)) continue;
+         //if (HLTconf_ == HLT_paths::HLT_DoubleMu && !HLT_DoubleMu_reinforcement(t)) continue;
+         if (flag_HLT_DoubleMu && !HLT_DoubleMu_reinforcement(t)) continue;
          if (flag_reinfHLT) nEvReinforcedHLT++;
          nTauReinforcedHLT++;
          
@@ -122,6 +124,7 @@ void WTau3Mu_analyzer::Loop(){
          tau_raw_mass = (RecoMu1_P4+RecoMu2_P4+RecoMu3_P4).M(); 
          tau_fit_mass = TauTo3Mu_fitted_mass[t];
          tau_fit_mass_err =  sqrt(TauTo3Mu_fitted_mass_err2[t]);
+         tau_fit_mass_resol =  sqrt(TauTo3Mu_fitted_mass_err2[t])/TauTo3Mu_fitted_mass[t];
          tau_fit_pt = TauTo3Mu_fitted_pt[t]; 
          tau_fit_eta = TauTo3Mu_fitted_eta[t], tau_fit_phi = TauTo3Mu_fitted_phi[t];
          tau_relIso = TauTo3Mu_absIsolation[t]/TauTo3Mu_fitted_pt[t];
@@ -280,6 +283,7 @@ void WTau3Mu_analyzer::outTreeSetUp(){
     outTree_->Branch("tau_raw_mass",     &tau_raw_mass,     "tau_raw_mass/F");
     outTree_->Branch("tau_fit_mass",     &tau_fit_mass,     "tau_fit_mass/F");
     outTree_->Branch("tau_fit_mass_err", &tau_fit_mass_err,"tau_fit_mass_err/F");
+    outTree_->Branch("tau_fit_mass_resol", &tau_fit_mass_resol,"tau_fit_mass_resol/F");
     outTree_->Branch("tau_fit_charge",   &tau_fit_charge,   "tau_fit_charge/F");
     outTree_->Branch("tau_fit_pt",       &tau_fit_pt,      "tau_fit_pt/F");
     outTree_->Branch("tau_fit_eta",      &tau_fit_eta,     "tau_fit_eta/F");

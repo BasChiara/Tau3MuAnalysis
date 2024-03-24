@@ -13,8 +13,11 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
          TString DATA_MC_tag = "DATA";
          if (isMC_) DATA_MC_tag = "MC";
          // set the year tag
-         if(isMC_) year_ = (tag.Contains("2022preEE") || tag.Contains("2022") ? tag : "DEFAULT");
-         else year_ = "DEFAULT";
+         year_ = tag;
+         if (auto search = LumiRun3::LumiFactor.find(year_); isMC_ && search != LumiRun3::LumiFactor.end()){
+            std::cout << "> found year tag " << search->first << std::endl;
+            lumi_factor = search->second;
+         }else lumi_factor =LumiRun3::LumiFactor["DEFAULT"];
          // set the HLT tag
          TString HLT_tag = "";
          if(HLTconf_ == HLT_paths::HLT_Tau3Mu)   HLT_tag = "HLT_Tau3Mu"; 
@@ -29,7 +32,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
 
          std::cout << "-------------------------------------------" << std::endl;
          std::cout << "[ Tau 3 Mu analyzer ]"<< std::endl;
-         std::cout << "> Lumi weight for " << year_ << " = " << LumiRun3::LumiFactor[year_] << std::endl;
+         std::cout << "> Lumi weight for " << year_ << " = " << lumi_factor << std::endl;
          std::cout << "> HLT path : " << HLT_tag << std::endl;
          std::cout << "> running on " << DATA_MC_tag << std::endl;
          std::cout << "-------------------------------------------" << std::endl;
@@ -91,7 +94,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       float tau_gen_mass;
       float tau_gen_pt, tau_gen_eta, tau_gen_phi;
       float tau_raw_mass;
-      float tau_fit_mass, tau_fit_mass_err;
+      float tau_fit_mass, tau_fit_mass_err, tau_fit_mass_resol;
       float tau_fit_pt, tau_fit_eta, tau_fit_phi, tau_fit_charge;
       float tau_relIso, tau_relIso_pT05; 
       float tau_Iso_chargedDR04, tau_Iso_photonDR04, tau_Iso_puDR08; 

@@ -73,7 +73,8 @@ bool WTau3Mu_tools::TriggerMatching(const int TauIdx, const int config){
     //int trigger_configuration = (config == -1 ? HLTconf_ : config);
     int trigger_configuration = config;
     bool is_fired_trigger = false;
-    if(trigger_configuration == HLT_paths::HLT_Tau3Mu){
+    bool is_fired_Tau3Mu = false, is_fired_DoubleMu = false;
+    if(trigger_configuration == HLT_paths::HLT_Tau3Mu || trigger_configuration == HLT_paths::HLT_overlap){
         // check if the 3 muons + tau fired the trigger
         bool is_fired_1 = HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 &&
                             TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[TauIdx] &&
@@ -85,18 +86,19 @@ bool WTau3Mu_tools::TriggerMatching(const int TauIdx, const int config){
                             TauTo3Mu_mu2_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[TauIdx] &&
                             TauTo3Mu_mu3_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[TauIdx]&&
                             TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[TauIdx];
-        is_fired_trigger = (is_fired_1 || is_fired_2) && HLT_Tau3Mu_emulator(TauIdx);
+        is_fired_Tau3Mu = (is_fired_1 || is_fired_2) && HLT_Tau3Mu_emulator(TauIdx);
     }
-    if(trigger_configuration == HLT_paths::HLT_DoubleMu){
-        is_fired_trigger = HLT_DoubleMu4_3_LowMass &&
+    if(trigger_configuration == HLT_paths::HLT_DoubleMu || trigger_configuration == HLT_paths::HLT_overlap){
+        is_fired_DoubleMu = HLT_DoubleMu4_3_LowMass &&
 	  (
 	   (TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx]) ||
 	   (TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu3_fired_DoubleMu4_3_LowMass[TauIdx]) ||
 	   (TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu3_fired_DoubleMu4_3_LowMass[TauIdx])
 	   ) && 
-	  HLT_DoubleMu_emulator(TauIdx);
+     HLT_DoubleMu_emulator(TauIdx);
     }
-    if(trigger_configuration == HLT_paths::HLT_overlap) is_fired_trigger = true;
+    //if(trigger_configuration == HLT_paths::HLT_overlap) is_fired_trigger = true;
+    is_fired_trigger = is_fired_Tau3Mu || is_fired_DoubleMu;
     return is_fired_trigger;
 }//TriggerMatching()
 
@@ -224,7 +226,7 @@ bool WTau3Mu_tools::HLT_DoubleMu_reinforcement(const int TauIdx){
 
    const float minPT_mu1 = 7.0, minPT_mu3 = 1.0;
    if(RecoMu1_P4.Pt() < minPT_mu1 || RecoMu3_P4.Pt() < minPT_mu3 ) return false;
-   const float minPT_tau = 10.0;
+   const float minPT_tau = 15.0;
    if(RecoTau_P4.Pt() < minPT_tau) return false;
    const float maxM_mumu = 1.9;
    const float maxDZ_mumu = 0.7;
