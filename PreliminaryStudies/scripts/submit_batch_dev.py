@@ -80,7 +80,7 @@ def main():
     parser.add_option('--eos',               action='store',     dest='eos',          help='copy the output in the specified EOS path'                 , default='')
     parser.add_option('-F', '--nfiles',      action='store',     dest='Nfiles',       help='number of files in a remote directory', default = 1000, type ='int')
     parser.add_option('--DsPhiPi',           action='store_true',dest='isDsPhiPi',    help='wether to run on the control channel Ds->Phi(MuMu)Pi', default = False)
-    parser.add_option('--HLT_path',          choices=['HLT_DoubleMu', 'HLT_Tau3Mu'], dest='HLT_path', help='HLT path to use', default = 'HLT_Tau3Mu')
+    parser.add_option('--HLT_path',          choices=['HLT_DoubleMu', 'HLT_Tau3Mu', 'HLT_overlap'], dest='HLT_path', help='HLT path to use', default = 'HLT_Tau3Mu')
     (opt, args) = parser.parse_args()
     
     if len(args) != 1:
