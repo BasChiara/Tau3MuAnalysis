@@ -1,5 +1,12 @@
 #include "../include/WTau3Mu_tools.h"
 
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS
+#include <boost/bind/bind.hpp>
+#include "boost/property_tree/ptree.hpp"
+#include "boost/property_tree/json_parser.hpp"
+using namespace boost::placeholders;
+namespace pt = boost::property_tree;
+
 int   WTau3Mu_tools::MCtruthMatching(const bool verbose){
     
     int MCmatchTau_idx = -1;
@@ -74,7 +81,7 @@ bool WTau3Mu_tools::TriggerMatching(const int TauIdx, const int config){
     int trigger_configuration = config;
     bool is_fired_trigger = false;
     bool is_fired_Tau3Mu = false, is_fired_DoubleMu = false;
-    if(trigger_configuration == HLT_paths::HLT_Tau3Mu || trigger_configuration == HLT_paths::HLT_overlap){
+    if(trigger_configuration == HLT_paths::HLT_Tau3Mu){ //|| trigger_configuration == HLT_paths::HLT_overlap){
         // check if the 3 muons + tau fired the trigger
         bool is_fired_1 = HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 &&
                             TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[TauIdx] &&
@@ -87,8 +94,9 @@ bool WTau3Mu_tools::TriggerMatching(const int TauIdx, const int config){
                             TauTo3Mu_mu3_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[TauIdx]&&
                             TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[TauIdx];
         is_fired_Tau3Mu = (is_fired_1 || is_fired_2) && HLT_Tau3Mu_emulator(TauIdx);
+        is_fired_trigger = is_fired_Tau3Mu;
     }
-    if(trigger_configuration == HLT_paths::HLT_DoubleMu || trigger_configuration == HLT_paths::HLT_overlap){
+    if(trigger_configuration == HLT_paths::HLT_DoubleMu ){ //|| trigger_configuration == HLT_paths::HLT_overlap){
         is_fired_DoubleMu = HLT_DoubleMu4_3_LowMass &&
 	  (
 	   (TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx]) ||
@@ -96,9 +104,10 @@ bool WTau3Mu_tools::TriggerMatching(const int TauIdx, const int config){
 	   (TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu3_fired_DoubleMu4_3_LowMass[TauIdx])
 	   ) && 
      HLT_DoubleMu_emulator(TauIdx);
+     is_fired_trigger = is_fired_DoubleMu;
     }
-    //if(trigger_configuration == HLT_paths::HLT_overlap) is_fired_trigger = true;
-    is_fired_trigger = is_fired_Tau3Mu || is_fired_DoubleMu;
+    if(trigger_configuration == HLT_paths::HLT_overlap) is_fired_trigger = true;
+    //is_fired_trigger = is_fired_Tau3Mu || is_fired_DoubleMu;
     return is_fired_trigger;
 }//TriggerMatching()
 
@@ -370,3 +379,113 @@ bool  WTau3Mu_tools::RecoPartFillP4(const int TauIdx){
 
     return muonsTrksQualityCheck;
 }// RecoPartFillP4
+
+bool WTau3Mu_tools::applyMETfilters(const int& TauIdx){
+   
+   bool passed_filter =  TauPlusMET_Flag_BadPFMuonDzFilter[TauIdx] &&
+                        TauPlusMET_Flag_BadPFMuonFilter[TauIdx] &&
+                        TauPlusMET_Flag_EcalDeadCellTriggerPrimitiveFilter[TauIdx] &&
+                        TauPlusMET_Flag_eeBadScFilter[TauIdx] &&
+                        TauPlusMET_Flag_globalSuperTightHalo2016Filter[TauIdx] &&
+                        TauPlusMET_Flag_goodVertices[TauIdx] &&
+                        TauPlusMET_Flag_hfNoisyHitsFilter[TauIdx];
+
+   return passed_filter;
+
+}//applyMETfilters()
+
+int WTau3Mu_tools::parseMuonSF(const TString & era, const TString & pTrange){
+   
+   // retrive json file from constants.h
+   std::string sf_json_name;
+   if (pTrange == "low") sf_json_name = scale_factor_src::IDsf_jsonfile_Jpsi[era]; 
+   if (pTrange == "medium") sf_json_name = scale_factor_src::IDsf_jsonfile_Z[era]; 
+   std::cout << "[+] parse Muon SF from \n " << sf_json_name << std::endl; 
+
+   // Load the JSON file
+   pt::ptree sf_json;
+   try {
+      pt::read_json(sf_json_name, sf_json);
+   } catch (pt::json_parser_error &e) {
+        std::cerr << " JSON parsing error: " << e.what() << std::endl;
+        return 1;
+   } catch (std::exception &e) {
+        std::cerr << " Error reading JSON file: " << e.what() << std::endl;
+        return 1;
+   }
+
+   // Accessing data
+   pt::ptree data_content; 
+   for (const auto& corr : sf_json.get_child("corrections")){
+      // look for the needed corrections-set
+      std::string current_sf_set = corr.second.get_child("name").data(); 
+      if(debug) std::cout <<  current_sf_set << std::endl;
+      if (current_sf_set != muons_IDsf_set_) continue;
+      // pick the desired SF set
+      data_content = corr.second.get_child("data");
+   }
+   // define eta-bins
+   std::vector<float> eta_edges;
+   for (const auto& edge : data_content.get_child("edges")) {
+      eta_edges.push_back(edge.second.get_value<float>());
+   }
+   int N_eta_bins = eta_edges.size() - 1;
+   if(debug) std::cout<< "> found " << N_eta_bins << " bins for eta " << std::endl; 
+   //define pT bins in each eta-bin
+   int ieta = 0;
+   // ** TH2F with SF
+   TH2Poly* h_muonSF_ = new TH2Poly();
+   TString h_muonSF_name = "h_" + TString(muons_IDsf_set_) + "_" + era +"_" +pTrange;
+   h_muonSF_->SetNameTitle(h_muonSF_name + "_val", "offline muon SFs");
+   float deta = 0.01, dpt = 0.01;
+   for (const auto& pT_binning : data_content.get_child("content")){
+      std::vector<float> pt_edges;
+      for(const auto& edge : pT_binning.second.get_child("edges")) pt_edges.push_back(edge.second.get_value<float>());
+      // if low-pT lower pT bin has edge at 0 GeV
+      if (pTrange == "low") pt_edges.front() = 0.0; 
+      int N_pt_bins = pt_edges.size() - 1;
+      if(debug) std::cout<< Form("> eta [%.1f, %.1f] with %d pT bins", eta_edges.at(ieta), eta_edges.at(ieta+1), N_pt_bins ) << std::endl; 
+      int ipT = 0;
+      // retrive SF in each bin
+      for (const auto& category : pT_binning.second.get_child("content")){
+         for (const auto& sf_val : category.second.get_child("content")){
+            if (sf_val.second.get_child("key").data()!= "nominal") continue;
+            if(debug) std::cout<< Form("> eta [%.1f, %.1f] pT [%.1f, %.1f] -> SF : %.3f", eta_edges.at(ieta), eta_edges.at(ieta+1),pt_edges.at(ipT), pt_edges.at(ipT + 1), sf_val.second.get<double>("value") ) << std::endl; 
+            h_muonSF_->AddBin(eta_edges.at(ieta), pt_edges.at(ipT), eta_edges.at(ieta+1), pt_edges.at(ipT + 1)); 
+            h_muonSF_->Fill(eta_edges.at(ieta) + deta, pt_edges.at(ipT) + dpt, sf_val.second.get<double>("value")); 
+            ipT++;
+         }
+      }
+      // [!!] per ora metto a mano lo SF per pT < 3.0 GeV
+      //h_muonSF_->AddBin(eta_edges.at(ieta), 0.0 , eta_edges.at(ieta+1), pt_edges.front()); 
+      //h_muonSF_->Fill(eta_edges.at(ieta) + deta, 0.0 + dpt, 1.0);  
+      ieta++;
+   }
+
+   // save histogram in the correct pointer
+   if (pTrange == "low") h_muonSF_lowpT = h_muonSF_;
+   else if (pTrange == "medium") h_muonSF_medpT = h_muonSF_;
+   
+   return 0;
+
+}// parseMuonSF()
+
+int WTau3Mu_tools::applyMuonSF(const int& TauIdx){
+   
+   float cand_SF = 1.0;
+   int bin = -5;
+   // mu1
+   bin = h_muonSF_lowpT->FindBin(fabs(TauTo3Mu_mu1_eta[TauIdx]), TauTo3Mu_mu1_pt[TauIdx]);
+   tau_mu1_offlineSF = (bin > 0 ? h_muonSF_lowpT->GetBinContent(bin) : 1.0);
+   if(debug) std::cout << Form("> mu1 (pT, eta) = (%.2f,%.2f ) \t SF = %.3f", TauTo3Mu_mu1_pt[TauIdx], TauTo3Mu_mu1_eta[TauIdx], tau_mu1_offlineSF ) << std::endl;
+   // mu2
+   bin = h_muonSF_lowpT->FindBin(fabs(TauTo3Mu_mu2_eta[TauIdx]), TauTo3Mu_mu2_pt[TauIdx]);
+   tau_mu2_offlineSF = (bin > 0 ? h_muonSF_lowpT->GetBinContent(bin) : 1.0);
+   if(debug) std::cout << Form("> mu2 (pT, eta) = (%.2f,%.2f ) \t SF = %.3f", TauTo3Mu_mu2_pt[TauIdx], TauTo3Mu_mu2_eta[TauIdx], tau_mu2_offlineSF ) << std::endl;
+   // mu3
+   bin = h_muonSF_lowpT->FindBin(fabs(TauTo3Mu_mu3_eta[TauIdx]), TauTo3Mu_mu3_pt[TauIdx]);
+   tau_mu3_offlineSF = (bin > 0 ? h_muonSF_lowpT->GetBinContent(bin) : 1.0);
+   if(debug) std::cout << Form("> mu3 (pT, eta) = (%.2f,%.2f ) \t SF = %.3f", TauTo3Mu_mu3_pt[TauIdx], TauTo3Mu_mu3_eta[TauIdx], tau_mu3_offlineSF ) << std::endl;
+
+   return 0;
+}//applyMuonSF

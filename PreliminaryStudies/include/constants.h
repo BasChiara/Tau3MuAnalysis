@@ -48,5 +48,20 @@ inline std::map<TString, float> LumiFactor{
    {"2023BPix"       , 0.00004821}, 
 };
 }
-
+namespace scale_factor_src
+{
+    inline std::string base_dir = "/afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/PreliminaryStudies/";
+    inline std::map<TString, std::string> IDsf_jsonfile_Jpsi{
+        {"2022preEE"      , base_dir + "/include/scale_factors/ScaleFactors_Muon_Jpsi_ID_2022_schemaV2.json"}, 
+        {"2022EE"         , base_dir + "/include/scale_factors/ScaleFactors_Muon_Jpsi_ID_2022_EE_schemaV2.json"}, 
+        {"2023preBPix"    , base_dir + "/include/scale_factors/ScaleFactors_Muon_Jpsi_ID_2023_schemaV2.json"}, 
+        {"2023BPix"       , base_dir + "/include/scale_factors/ScaleFactors_Muon_Jpsi_ID_2023_schemaV2.json"}, 
+    };
+    inline std::map<TString, std::string> IDsf_jsonfile_Z{
+        {"2022preEE"      , base_dir + "/include/scale_factors/ScaleFactors_Muon_Z_ID_ISO_2022_schemaV2.json"}, 
+        {"2022EE"         , base_dir + "/include/scale_factors/"}, 
+        {"2023preBPix"    , base_dir + "/include/scale_factors/ScaleFactors_Muon_Z_ID_ISO_2023_schemaV2.json"}, 
+        {"2023BPix"       , base_dir + "/include/scale_factors/"}, 
+    };
+}
 #endif

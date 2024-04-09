@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
    // usage : ./bin/Analyzer_app data/file.txt outputdir/ DATA 2022A Tau3Mu Nfiles
    if ( argc < 2 ){
 		std::cout << " [ERROR] missing arguments : insert the file and the dataset you want to use :-)" << std::endl; 
-		std::cout <<  argv[0] <<" [inputFile] [outpudir] [DATA/MC] [year] [Tau3Mu/DsPhiPi] [Nfiles] " << std::endl;
+		std::cout <<  argv[0] <<" [inputFile] [outpudir] [DATA/MC] [year] [Tau3Mu/DsPhiPi] [Nfiles] [opt-tag]" << std::endl;
 		return 1;
 	}
 
@@ -41,6 +41,8 @@ int main(int argc, char* argv[]) {
    }
    int Nfiles = 1000;
    if (argc > 6) Nfiles = std::stoi(argv[6]);
+   TString tag = "";
+   if (argc > 7) tag = argv[7];
 
    // read inputs
 	TChain* chain = new TChain("Events");
@@ -64,7 +66,7 @@ int main(int argc, char* argv[]) {
 
    // lounch analyzer
 	if (channel == "Tau3Mu"){
-      WTau3Mu_analyzer* recoAnalyzer = new WTau3Mu_analyzer(chain, outputDir, year, isMC);
+      WTau3Mu_analyzer* recoAnalyzer = new WTau3Mu_analyzer(chain, outputDir, year, tag, isMC);
       recoAnalyzer->Loop();
 
       delete recoAnalyzer;

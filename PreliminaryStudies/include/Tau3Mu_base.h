@@ -115,6 +115,13 @@ public :
    Float_t         TauTo3Mu_vtx_chi2[10];   //[nTauTo3Mu]
    Float_t         TauTo3Mu_vtx_prob[10];   //[nTauTo3Mu]
    Int_t           nTauPlusMET;
+   Int_t           TauPlusMET_Flag_BadPFMuonDzFilter[10];   //[nTauTo3Mu]
+   Int_t           TauPlusMET_Flag_BadPFMuonFilter[10];   //[nTauTo3Mu]
+   Int_t           TauPlusMET_Flag_EcalDeadCellTriggerPrimitiveFilter[10];   //[nTauTo3Mu]
+   Int_t           TauPlusMET_Flag_eeBadScFilter[10];   //[nTauTo3Mu]
+   Int_t           TauPlusMET_Flag_globalSuperTightHalo2016Filter[10];   //[nTauTo3Mu]
+   Int_t           TauPlusMET_Flag_goodVertices[10];   //[nTauTo3Mu]
+   Int_t           TauPlusMET_Flag_hfNoisyHitsFilter[10];   //[nTauTo3Mu]
    Int_t           TauPlusMET_charge[10];   //[nTauPlusMET]
    Float_t         TauPlusMET_DeepMET_pt[10];   //[nTauPlusMET]
    Float_t         TauPlusMET_DeepMETmaxPz[10];   //[nTauPlusMET]
@@ -345,6 +352,13 @@ public :
    TBranch        *b_TauTo3Mu_vtx_chi2;   //!
    TBranch        *b_TauTo3Mu_vtx_prob;   //!
    TBranch        *b_nTauPlusMET;   //!
+   TBranch        *b_TauPlusMET_Flag_BadPFMuonDzFilter
+   TBranch        *b_TauPlusMET_Flag_BadPFMuonFilter
+   TBranch        *b_TauPlusMET_Flag_EcalDeadCellTriggerPrimitiveFilter
+   TBranch        *b_TauPlusMET_Flag_eeBadScFilter
+   TBranch        *b_TauPlusMET_Flag_globalSuperTightHalo2016Filter
+   TBranch        *b_TauPlusMET_Flag_goodVertices
+   TBranch        *b_TauPlusMET_Flag_hfNoisyHitsFilter
    TBranch        *b_TauPlusMET_charge;   //!
    TBranch        *b_TauPlusMET_DeepMET_pt;   //!
    TBranch        *b_TauPlusMET_DeepMETmaxPz;   //!
@@ -651,6 +665,13 @@ void Tau3Mu_base::Init(TTree *tree)
    fChain->SetBranchAddress("TauTo3Mu_vtx_chi2", TauTo3Mu_vtx_chi2, &b_TauTo3Mu_vtx_chi2);
    fChain->SetBranchAddress("TauTo3Mu_vtx_prob", TauTo3Mu_vtx_prob, &b_TauTo3Mu_vtx_prob);
    fChain->SetBranchAddress("nTauPlusMET", &nTauPlusMET, &b_nTauPlusMET);
+   fChain->SetBranchAddress("TauPlusMET_Flag_BadPFMuonDzFilter", &TauPlusMET_Flag_goodVertices, &b_TauPlusMET_Flag_goodVertices);
+   fChain->SetBranchAddress("TauPlusMET_Flag_BadPFMuonFilter", &TauPlusMET_Flag_BadPFMuonFilter, &TauPlusMET_Flag_BadPFMuonFilter);
+   fChain->SetBranchAddress("TauPlusMET_Flag_EcalDeadCellTriggerPrimitiveFilter", &TauPlusMET_Flag_EcalDeadCellTriggerPrimitiveFilter, &TauPlusMET_Flag_EcalDeadCellTriggerPrimitiveFilter);
+   fChain->SetBranchAddress("TauPlusMET_Flag_eeBadScFilter",&TauPlusMET_Flag_eeBadScFilter, &TauPlusMET_Flag_eeBadScFilter);
+   fChain->SetBranchAddress("TauPlusMET_Flag_globalSuperTightHalo2016Filter",&TauPlusMET_Flag_globalSuperTightHalo2016Filter, &TauPlusMET_Flag_globalSuperTightHalo2016Filter);
+   fChain->SetBranchAddress("TauPlusMET_Flag_goodVertices", &TauPlusMET_Flag_goodVertices, &b_TauPlusMET_Flag_goodVertices);
+   fChain->SetBranchAddress("TauPlusMET_Flag_hfNoisyHitsFilter" &TauPlusMET_Flag_hfNoisyHitsFilter, b_TauPlusMET_Flag_hfNoisyHitsFilter);
    fChain->SetBranchAddress("TauPlusMET_charge", TauPlusMET_charge, &b_TauPlusMET_charge);
    fChain->SetBranchAddress("TauPlusMET_DeepMET_pt", TauPlusMET_DeepMET_pt, &b_TauPlusMET_DeepMET_pt);
    fChain->SetBranchAddress("TauPlusMET_DeepMETmaxPz", TauPlusMET_DeepMETmaxPz, &b_TauPlusMET_DeepMETmaxPz);

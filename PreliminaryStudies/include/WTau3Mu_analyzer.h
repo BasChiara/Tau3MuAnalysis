@@ -7,15 +7,16 @@
 class WTau3Mu_analyzer : public WTau3Mu_tools{
 
    public:
-      WTau3Mu_analyzer(TTree *tree=0, const TString & outdir = "./outRoot", const TString & tag="2022", const bool isMC = false) : WTau3Mu_tools(tree, isMC){
+      WTau3Mu_analyzer(TTree *tree=0, const TString & outdir = "./outRoot", const TString& year = "2022preEE", const TString & tag="", const bool isMC = false) : WTau3Mu_tools(tree, isMC){
          // running on DATA or MC ?
          isMC_ = isMC;
          TString DATA_MC_tag = "DATA";
          if (isMC_) DATA_MC_tag = "MC";
-         // set the year tag
-         year_ = tag;
+         // set the year
+         year_ = year;
+
          if (auto search = LumiRun3::LumiFactor.find(year_); isMC_ && search != LumiRun3::LumiFactor.end()){
-            std::cout << "> found year tag " << search->first << std::endl;
+            if(debug) std::cout << "> found year tag " << search->first << std::endl;
             lumi_factor = search->second;
          }else lumi_factor =LumiRun3::LumiFactor["DEFAULT"];
          // set the HLT tag
@@ -24,10 +25,18 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
          if(HLTconf_ == HLT_paths::HLT_DoubleMu) HLT_tag = "HLT_DoubleMu"; 
          if(HLTconf_ == HLT_paths::HLT_overlap)  HLT_tag = "HLT_overlap"; 
          // final tag
-         tag_ = tag + "_" + HLT_tag;
+         tag_ = DATA_MC_tag +"analyzer_"+ year_ + "_" + HLT_tag;
+         if (!tag.IsNull()) tag_ = tag_ + "_" + tag;     
+
+         // parse the SF file
+         if (isMC_){
+            parseMuonSF(year_, "low");         
+            parseMuonSF(year_, "medium");         
+         }
 
          // name and setup the output
-         outFilePath_ = outdir + "/WTau3Mu_"+ DATA_MC_tag +"analyzer_"+ tag_ + ".root";
+         outFilePath_ = outdir + "/WTau3Mu_"+ tag_ + ".root";
+         std::cout << "[o] output file is " << outFilePath_ << std::endl; 
          outTreeSetUp();
 
          std::cout << "-------------------------------------------" << std::endl;
@@ -40,6 +49,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       virtual ~WTau3Mu_analyzer(){}
 
       virtual void Loop();
+      void   fakeDs_mass(const int& cand_idx);
       void    outTreeSetUp();
       void    saveOutput();
 
@@ -50,7 +60,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       bool isMC_;
       int TauTo3Mu_MCmatch_idx;
       // HLT paths
-      HLT_paths HLTconf_ = HLT_Tau3Mu;  // HLT_DoubleMu, HLT_Tau3Mu, HLT_overlap
+      HLT_paths HLTconf_ = HLT_overlap;  // HLT_DoubleMu, HLT_Tau3Mu, HLT_overlap
 
       // blinding parameters
       bool isBlind_ = false;
@@ -70,7 +80,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       ULong64_t Event;
       int nGoodPV;
       int isMCmatching;
-      // Lumi facor
+      // lumi and scale facors
       float lumi_factor;
       // HLT_bit
       int HLT_isfired_Tau3Mu, HLT_isfired_DoubleMu;
@@ -115,6 +125,8 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       float W_pt, W_eta_min, W_eta_max, W_phi;
       float W_Deep_pt, W_Deep_eta_min, W_Deep_eta_max, W_Deep_phi;
       float W_mass_nominal, W_mass_min, W_mass_max;
+      // * fake rate *
+      float tau_phiMuMu_mass, tau_MuMuPi_mass;
 
 };
 
