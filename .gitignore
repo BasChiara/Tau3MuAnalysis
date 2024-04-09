@@ -1,5 +1,6 @@
 # Job support files
 */job_report/*
+job_report/Analyzer_*
 
 # Text files
 #*.txt
@@ -54,6 +55,7 @@
 *.lib
 
 # Executables
+bin/*
 */bin/*
 *.exe
 *.out
