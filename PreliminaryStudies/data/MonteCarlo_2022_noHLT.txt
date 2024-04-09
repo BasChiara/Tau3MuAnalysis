@@ -1,5 +1,0 @@
-# samples unbiased wrt HLT path
-# + variables for DoubleMu emulation & tau mass resol
-/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano2022_2023Oct22/WtoTauNu_Tauto3Mu_TuneCP5_13p6TeV_pythia8/crab_WnuTau3Mu_2022/231022_165914/0000/
-/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano2022_2023Oct22/WtoTauNu_Tauto3Mu_TuneCP5_13p6TeV_pythia8/crab_WnuTau3Mu_2022EE/231022_165917/0000/
-

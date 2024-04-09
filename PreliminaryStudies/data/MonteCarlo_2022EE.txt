@@ -1,5 +1,0 @@
-#######  4th version of MC for Tau3Mu analysisi (September 26) #######  
-## fix to missing Pz
-## removal of double fit
-## fix on trigger matching (3muons and tau candidates)
-/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano2022_2023Sep26/WtoTauNu_Tauto3Mu_TuneCP5_13p6TeV_pythia8/crab_WnuTau3Mu_2022EE/230926_151559/0000/

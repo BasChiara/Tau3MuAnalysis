@@ -1,3 +1,0 @@
-# reMini MiniAOD-v4
-# process : Ds->Phi(MuMu) Pi with Ds reconstruction
-/eos/cms/store/group/phys_bphys/cbasile/DsPhiMuMuPiNano_2024Jan21/DstoPhiPi_Phito2Mu_MuFilter_TuneCP5_13p6TeV_pythia8-evtgen/crab_DstoPhiPi_2022EE/240121_082540/0000/

@@ -1,1 +1,0 @@
-/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano2017_retry_2023Nov19/W_ToTau_ToMuMuMu_TuneCP5_13TeV-pythia8/crab_WnuTau3Mu_2017/231119_174852/0000/
