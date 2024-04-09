@@ -1,0 +1,3 @@
+# 1104 files
+root://xrootd-cms.infn.it///store/user/crovelli/ParkingDoubleMuonLowMass3/crab_data_Run2022Ev1_3/231026_130851/0000/tau3muNANO_data_2023Oct26_
+root://xrootd-cms.infn.it///store/user/crovelli/ParkingDoubleMuonLowMass3/crab_data_Run2022Ev1_3/231026_130851/0001/tau3muNANO_data_2023Oct26_1

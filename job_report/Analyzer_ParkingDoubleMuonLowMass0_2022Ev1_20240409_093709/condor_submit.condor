@@ -1,0 +1,18 @@
+
+Universe = vanilla
+Executable = /afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/PreliminaryStudies/job_report/Analyzer_ParkingDoubleMuonLowMass0_2022Ev1_20240409_093709/dummy_exec.sh
+use_x509userproxy = true
+Log        = /afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/PreliminaryStudies/job_report/Analyzer_ParkingDoubleMuonLowMass0_2022Ev1_20240409_093709/log/$(ProcId).log
+Output     = /afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/PreliminaryStudies/job_report/Analyzer_ParkingDoubleMuonLowMass0_2022Ev1_20240409_093709/out/$(ProcId).out
+Error      = /afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/PreliminaryStudies/job_report/Analyzer_ParkingDoubleMuonLowMass0_2022Ev1_20240409_093709/out/$(ProcId).error
+getenv      = True
+environment = "LS_SUBCWD=/afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/PreliminaryStudies"
+request_memory = 1000
++MaxRuntime = 86400
+
+arguments = /afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/PreliminaryStudies/job_report/Analyzer_ParkingDoubleMuonLowMass0_2022Ev1_20240409_093709/src/submit_0.src 
+queue 1 
+
+arguments = /afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/PreliminaryStudies/job_report/Analyzer_ParkingDoubleMuonLowMass0_2022Ev1_20240409_093709/src/submit_1.src 
+queue 1 
+

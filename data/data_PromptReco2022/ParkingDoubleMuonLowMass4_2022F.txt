@@ -1,0 +1,4 @@
+# 2591 files
+root://xrootd-cms.infn.it///store/user/crovelli/ParkingDoubleMuonLowMass4/crab_data_Run2022Fv1_4/231026_131137/0000/tau3muNANO_data_2023Oct26_
+root://xrootd-cms.infn.it///store/user/crovelli/ParkingDoubleMuonLowMass4/crab_data_Run2022Fv1_4/231026_131137/0001/tau3muNANO_data_2023Oct26_1
+root://xrootd-cms.infn.it///store/user/crovelli/ParkingDoubleMuonLowMass4/crab_data_Run2022Fv1_4/231026_131137/0002/tau3muNANO_data_2023Oct26_2

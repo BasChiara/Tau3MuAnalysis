@@ -1,0 +1,161 @@
+import ROOT
+import argparse
+import pickle
+import numpy  as np
+import pandas as pd
+import seaborn as sns
+from sklearn.metrics import accuracy_score
+import matplotlib.pyplot as plt
+sns.set(style="white")
+
+import xgboost
+from xgboost import XGBClassifier, plot_importance
+from sklearn.preprocessing import LabelEncoder
+
+from sklearn.metrics         import roc_curve, roc_auc_score
+from sklearn.model_selection import train_test_split, StratifiedKFold
+
+from scipy.stats import ks_2samp
+
+from collections import OrderedDict
+from itertools import product
+
+from pdb import set_trace
+
+# from my config
+from config import * 
+
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--plot_outdir',    default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/BDTtraining/features', help=' output directory for plots')
+parser.add_argument('--category'   ,                                                                 help= 'resolution category to compute (A, B, C)')
+parser.add_argument('--tag',            default= 'app_emulateRun2',                                  help='tag to the training')
+parser.add_argument('--bdt_cut',        default= 0.995, type= float,                                 help='bdt threshold')
+parser.add_argument('--debug',          action = 'store_true' ,                                      help='set it to have useful printout')
+parser.add_argument('-s', '--signal',   action = 'append',                                           help='file with signal events with BDT applied')
+parser.add_argument('-d', '--data',     action = 'append',                                           help='file with data events with BDT applied')
+
+args = parser.parse_args()
+tag = args.tag
+removeNaN = False 
+
+ # ------------ APPLY SELECTIONS ------------ # 
+base_selection = '(tau_fit_mass > %.2f & tau_fit_mass < %.2f ) & (tau_fit_pt > 15.0)'%(mass_range_lo,mass_range_hi) +( '& ' + cat_selection_dict[args.category] if (args.category) else '') 
+sig_selection  = base_selection 
+bkg_selection  = base_selection + '& (tau_fit_mass < %.2f | tau_fit_mass > %.2f)'%(blind_range_lo, blind_range_hi) 
+
+print('[!] base-selection : %s'%base_selection)
+print('[S] signal-selection : %s'%sig_selection)
+print('[B] background-selection : %s'%bkg_selection)
+
+#tag += '_cat%s_%d'%(args.category if (args.category) else 'ABC', args.bdt_cut*1000 if (args.unblind) else 'blind')
+
+#  ------------ PICK SIGNAL & BACKGROUND -------------- #
+if(args.signal is None):
+    signals     = [
+        '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_signal_reMini_2024Jan03.root'
+    ]
+else :
+    signals = args.signal 
+if(args.data is None):
+    backgrounds  = [
+        '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_data_reMini_2024Jan03_open.root'
+    ]
+else :
+    backgrounds = args.data 
+
+print('[+] signal events read from \n', signals)
+print('[+] data events read from \n', backgrounds)
+
+tree_name = 'tree_w_BDT'
+
+sig_rdf = ROOT.RDataFrame(tree_name, signals).Filter(sig_selection)
+sig = pd.DataFrame( sig_rdf.AsNumpy() )
+if(args.debug):print(sig)
+bkg_rdf = ROOT.RDataFrame(tree_name, backgrounds).Filter(bkg_selection)
+bkg = pd.DataFrame( bkg_rdf.AsNumpy() )
+if(args.debug):print(bkg)
+    
+##             ##
+#    PLOTTING   #
+##             ##
+ROOT.gROOT.SetBatch(True)
+ROOT.gStyle.SetOptStat(0)
+ROOT.gStyle.SetLineWidth(2)
+ROOT.gStyle.SetPadTickX(1)
+ROOT.gStyle.SetPadTickY(1)
+ROOT.gStyle.SetHistMinimumZero()
+ROOT.gStyle.SetLegendBorderSize(0)
+ROOT.gStyle.SetLegendTextSize(0.035)
+
+observables = features + ['tau_fit_eta', 'tauEta','bdt_score', 'tau_fit_mass']
+
+c = ROOT.TCanvas('c', '', 800,800)
+c_cut = ROOT.TCanvas('c_cut', '', 800,800)
+legend = ROOT.TLegend(0.55, 0.70, 0.85, 0.85)
+legend_cut = ROOT.TLegend(0.10, 0.75, 0.55, 0.85)
+for i,obs in enumerate(observables):
+    ### signal MC
+    h_sig     = sig_rdf.Histo1D(('h_sig_%s'%obs, '', features_NbinsXloXhiLabel[obs][0], features_NbinsXloXhiLabel[obs][1], features_NbinsXloXhiLabel[obs][2]), obs).GetPtr()
+    h_sig.Scale(1./h_sig.Integral())
+    #  after BDT selection
+    sig_amplify = 10.0
+    h_sig_cut = sig_rdf.Filter('bdt_score>%f'%args.bdt_cut).Histo1D(('h_sig_%s'%obs, '', features_NbinsXloXhiLabel[obs][0], features_NbinsXloXhiLabel[obs][1], features_NbinsXloXhiLabel[obs][2]), obs).GetPtr()
+    h_sig_cut.Scale(sig_amplify*sig_rdf.Mean('weight').GetValue())
+    ### background
+    h_bkg = bkg_rdf.Histo1D(('h_bkg_%s'%obs, '', features_NbinsXloXhiLabel[obs][0], features_NbinsXloXhiLabel[obs][1], features_NbinsXloXhiLabel[obs][2]), obs).GetPtr()
+    h_bkg.Scale(1./h_bkg.Integral())
+    #   after BDT cut
+    h_bkg_cut = bkg_rdf.Filter('bdt_score>%f'%args.bdt_cut).Histo1D(('h_bkg_%s'%obs, '', features_NbinsXloXhiLabel[obs][0], features_NbinsXloXhiLabel[obs][1], features_NbinsXloXhiLabel[obs][2]), obs).GetPtr()
+    #h_bkg_cut.Scale(1./h_bkg.Integral())
+    
+    # inputs 
+    h_bkg.GetXaxis().SetTitle(features_NbinsXloXhiLabel[obs][3]) 
+    h_bkg.SetLineColor(ROOT.kBlue)
+    h_bkg.SetLineWidth(3)
+    h_bkg.SetFillColor(ROOT.kBlue)
+    h_bkg.SetFillStyle(3004)
+    h_bkg.SetMaximum(1.4*max(h_bkg.GetMaximum(),h_sig.GetMaximum()))
+    h_sig.SetLineColor(ROOT.kRed)
+    h_sig.SetLineWidth(3)
+    h_sig.SetFillColor(ROOT.kRed)
+    h_sig.SetFillStyle(3004)
+    # after BDT cut
+    h_bkg_cut.GetXaxis().SetTitle(features_NbinsXloXhiLabel[obs][3]) 
+    h_bkg_cut.SetLineColor(ROOT.kBlack)
+    h_bkg_cut.SetLineWidth(3)
+    h_bkg_cut.SetMarkerStyle(20)
+    #h_bkg_cut.SetFillColor(ROOT.kBlue)
+    #h_bkg_cut.SetFillStyle(3004)
+    h_bkg_cut.SetMaximum(1.4*max(h_bkg_cut.GetMaximum(),h_sig_cut.GetMaximum()))
+    h_sig_cut.SetLineColor(ROOT.kRed)
+    h_sig_cut.SetLineWidth(3)
+    h_sig_cut.SetFillColor(ROOT.kRed)
+    h_sig_cut.SetFillStyle(3004)
+
+    if(i == 0):
+        legend.AddEntry(h_bkg, 'data sidebands', 'f')
+        legend_cut.AddEntry(h_bkg_cut, 'data sidebands (BDT>%.4f)'%args.bdt_cut, 'p')
+        legend.AddEntry(h_sig, 'signal MC', 'f')
+        legend_cut.AddEntry(h_sig_cut, 'signal MC #times %d (BDT>%.4f)'%(sig_amplify, args.bdt_cut), 'f')
+
+    c.cd()
+    h_bkg.Draw('hist')
+    h_sig.Draw('hist same')
+    legend.Draw()
+    ROOT.gPad.RedrawAxis()
+    plot_name = '%sBDTinput_%s'%(args.plot_outdir,obs)
+    c.SaveAs(plot_name+'.png')
+    c.SaveAs(plot_name+'.pdf')
+
+    c_cut.cd()
+    h_bkg_cut.Draw('pe')
+    h_sig_cut.Draw('hist same')
+    legend_cut.Draw()
+    ROOT.gPad.RedrawAxis()
+    plot_name = '%sBDTcut0p%d_%s'%(args.plot_outdir, args.bdt_cut*10000,obs)
+    c_cut.SaveAs(plot_name+'.png')
+    c_cut.SaveAs(plot_name+'.pdf')
+
