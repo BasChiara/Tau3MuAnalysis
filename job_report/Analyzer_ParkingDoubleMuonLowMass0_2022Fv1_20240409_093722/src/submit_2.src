@@ -1,6 +1,0 @@
-#!/bin/bash
-cd /afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/PreliminaryStudies
-echo $PWD
-./bin/Analyzer_app job_report/Analyzer_ParkingDoubleMuonLowMass0_2022Fv1_20240409_093722/cfg/tnp_2.txt /tmp/ DATA ParkingDoubleMuonLowMass0_2022Fv1_2 Tau3Mu 603 
-cp /tmp/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass0_2022Fv1_2_HLT_overlap.root /eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/ParkingDoubleMuonLowMass0_2022Fv1/
-rm /tmp/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass0_2022Fv1_2_HLT_overlap.root
