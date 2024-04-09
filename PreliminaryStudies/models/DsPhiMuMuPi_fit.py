@@ -12,6 +12,7 @@ import math
 import argparse
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--fake_cand',  action='store_true', help='activate it when running on 3 muons')
 parser.add_argument('--plot_outdir',default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/DsPhiMuMuPi/sPlot/', help=' output directory for plots')
 parser.add_argument('--tag',        default= 'reMini', help='tag to the training')
 parser.add_argument('--debug',      action = 'store_true' ,help='set it to have useful printout')
@@ -32,14 +33,20 @@ D_mass  = 1.8693 # GeV
 fit_range_lo  , fit_range_hi   = 1.70, 2.10 # GeV
 mass_window_lo, mass_window_hi = 1.70, 2.10 # GeV #Ds_mass-mass_window, Ds_mass+mass_window
 
-nbins = 40 # needed just for plotting, fits are all unbinned
+nbins = 40 if not args.fake_cand else 25 # needed just for plotting, fits are all unbinned
 
 
 # *** INPUT DATA AND MONTE CARLO ***
-input_tree_name = 'DsPhiMuMuPi_tree'
+input_tree_name = 'DsPhiMuMuPi_tree' if not args.fake_cand else 'WTau3Mu_tree'
 mc_file = [
     '../outRoot//DsPhiMuMuPi_MCanalyzer_2022preEE_HLT_Tau3Mu.root', 
-    '../outRoot//DsPhiMuMuPi_MCanalyzer_2022EE_HLT_Tau3Mu.root']
+    '../outRoot//DsPhiMuMuPi_MCanalyzer_2022EE_HLT_Tau3Mu.root'] if not args.fake_cand else \
+    [
+    #'../outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap_FakeDsRate.root',
+    #'../outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_FakeDsRate.root',
+    '../outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap_FakeDsRate.root',
+    '../outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_FakeDsRate.root',
+    ] 
 data_file = [
     '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Cv1.root',
     '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv1.root',
@@ -50,14 +57,14 @@ data_file = [
 ]
 # ** RooFit Variables
 # Ds mass
-mass = ROOT.RooRealVar('Ds_fit_mass', '#mu#mu #pi mass'  , mass_window_lo,  mass_window_hi, 'GeV' )
+mass = ROOT.RooRealVar('Ds_fit_mass' if not args.fake_cand else 'tau_MuMuPi_mass', '#mu#mu #pi mass'  , mass_window_lo,  mass_window_hi, 'GeV' )
 mass.setRange('fit_range', fit_range_lo,fit_range_hi)
 mass.setRange('full_range', mass_window_lo, mass_window_hi)
 # Ds mass resolution
-mass_err = ROOT.RooRealVar('Ds_fit_mass_err', '#sigma_{M(3 #mu)}/ M(3 #mu)'  , 0.0,  0.03, 'GeV' )
-dspl_sig = ROOT.RooRealVar('Ds_Lxy_sign_BS', ''  , 5.0,  1000)
-sv_prob  = ROOT.RooRealVar('Ds_fit_vprob', ''  , 0.01,  1.0)
-phi_mass = ROOT.RooRealVar('phi_fit_mass', ''  , 0.98,  1.05, 'GeV')
+mass_err = ROOT.RooRealVar('%s_fit_mass_err'%('Ds' if not args.fake_cand else 'tau'), '#sigma_{M(3 #mu)}/ M(3 #mu)'  , 0.0,  0.03, 'GeV' )
+dspl_sig = ROOT.RooRealVar('%s_Lxy_sign_BS'%('Ds' if not args.fake_cand else 'tau'), ''  , 5.0,  1000)
+sv_prob  = ROOT.RooRealVar('%s_fit_vprob'%('Ds' if not args.fake_cand else 'tau'), ''  , 0.01,  1.0)
+phi_mass = ROOT.RooRealVar('phi_fit_mass' if not args.fake_cand else 'tau_phiMuMu_mass', ''  , 0.98,  1.05, 'GeV')
 
 thevars = ROOT.RooArgSet()
 thevars.add(mass)
@@ -83,10 +90,10 @@ sig_efficiency = fullmc.sumEntries()/N_mc/fullmc.weight()
 # signal PDF : double gaussian + constant
 Mass   = ROOT.RooRealVar('Mass' , 'Mass' , Ds_mass, -1.7, 1.9)
 Mass.setConstant(True)
-dMass  = ROOT.RooRealVar('dM', 'dM', 0, -1., 1.)
+dMass  = ROOT.RooRealVar('dM', 'dM', 0, -0.1, 0.1)
 mean   = ROOT.RooFormulaVar('mean','mean', '(@0+@1)', ROOT.RooArgList(Mass,dMass) )
-width1 = ROOT.RooRealVar('width1',  'width1', 0.01,    0.005, 0.05)
-width2 = ROOT.RooRealVar('width2',  'width2', 0.1,    0.005, 0.1)
+width1 = ROOT.RooRealVar('width1',  'width1', 0.01,    0.001, 0.1)
+width2 = ROOT.RooRealVar('width2',  'width2', 0.01,    0.001, 0.1)
 
 gfrac   = ROOT.RooRealVar("gfrac", "", 0.5, 0.0, 1.0)
 gaus1_mc  = ROOT.RooGaussian('gaus1_mc', 'gaus1', mass, mean, width1)
@@ -149,7 +156,7 @@ c.SaveAs('%s/mcDsPhiPi_mass_%s.pdf'%(args.plot_outdir, tag))
 c.SetLogy(1)
 c.SaveAs('%s/mcDsPhiPi_mass_Log_%s.png'%(args.plot_outdir, tag)) 
 c.SaveAs('%s/mcDsPhiPi_mass_Log_%s.pdf'%(args.plot_outdir, tag)) 
-
+if (args.fake_cand): exit(-1)
 #### DATA ####
 
 data_tree = ROOT.TChain(input_tree_name)
