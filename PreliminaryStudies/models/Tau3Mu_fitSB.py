@@ -48,8 +48,10 @@ omega_mass = 0.783 #GeV
 
 
 input_tree_name = 'tree_w_BDT'
-mc_file     = '/eos/cms/store/group/phys_bphys/cbasile/XGBout_signal_reMini2022_kFold_2024Feb22.root'
-data_file   = '/eos/cms/store/group/phys_bphys/cbasile/XGBout_data_reMini2022_kFold_2024Feb22_open.root'
+#mc_file     = '/eos/cms/store/group/phys_bphys/cbasile/XGBout_signal_reMini2022_kFold_2024Feb22.root'
+#data_file   = '/eos/cms/store/group/phys_bphys/cbasile/XGBout_data_reMini2022_kFold_2024Feb22_open.root'
+mc_file     = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_signal_HLT_DoubleMu_kFold_2024Mar12.root'
+data_file   = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_data_HLT_DoubleMu_kFold_2024Mar12_blind.root'
 
 
 # ** RooFit Variables
@@ -84,7 +86,7 @@ thevars.add(mu23_mass)
 thevars.add(run)
 
 ### MC SIGNAL ###
-sgn_selection = 'bdt_score > %.4f'%args.bdt_cut
+sgn_selection = 'bdt_score > %.4f '%args.bdt_cut
 phi_veto = '''fabs(tau_mu12_fitM- {mass:.3f})> {window:.3f} & fabs(tau_mu23_fitM - {mass:.3f})> {window:.3f} & fabs(tau_mu13_fitM -  {mass:.3f})>{window:.3f}'''.format(mass =phi_mass , window = phi_window/2. )
 cat_selection = ''
 if args.category == 'A'  : cat_selection = ' & tau_fit_mass_err/tau_fit_mass <= 0.007'

@@ -47,8 +47,8 @@ args = parser.parse_args()
 tag = args.tag + '_kFold_' + datetime.date.today().strftime('%Y%b%d')
 removeNaN = False 
 
- # ------------ DEFINE SELECTIONS ------------ # 
-base_selection = '(tau_fit_mass > %.2f & tau_fit_mass < %.2f )'%(mass_range_lo,mass_range_hi) 
+# ------------ DEFINE SELECTIONS ------------ # 
+base_selection = '(tau_fit_mass > %.2f & tau_fit_mass < %.2f ) & (tau_fit_pt > 15.0)'%(mass_range_lo,mass_range_hi) 
 sig_selection  = base_selection 
 bkg_selection  = base_selection + ('& (tau_fit_mass < %.2f | tau_fit_mass > %.2f)'%(blind_range_lo, blind_range_hi) if not (args.unblind) else '')
 
@@ -57,37 +57,37 @@ print('[S] signal-selection : %s'%sig_selection)
 print('[B] background-selection : %s'%bkg_selection)
 print('---------------------------------------------')
 
- # ------------ INPUT DATASET ------------ # 
+# ------------ INPUT DATASET ------------ # 
 
 signals     = [
-    '../outRoot/recoKinematicsT3m_MC_2022_reMini_HLT_Tau3Mu.root',
-    '../outRoot/recoKinematicsT3m_MC_2022EE_reMini_HLT_Tau3Mu.root',
+    '../outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_DoubleMu.root',
+    '../outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_DoubleMu.root'
 ]
-
+data_path = '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/'
 backgrounds  = [
     #2022
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022Cv1.root',
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022Dv1.root',
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022Dv2.root',
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022Ev1.root',
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022Fv1.root',
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/recoKinematicsT3m_ParkingDoubleMuonLowMass_2022Gv1.root',
+    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Cv1_HLT_DoubleMu.root',
+    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv1_HLT_DoubleMu.root',
+    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv2_HLT_DoubleMu.root',
+    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Ev1_HLT_DoubleMu.root',
+    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Fv1_HLT_DoubleMu.root',
+    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Gv1_HLT_DoubleMu.root',
     #2023
-    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023B.root', 
-    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023Cv1.root', 
-    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023Cv2.root', 
-    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023Cv3.root', 
-    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023C.root', 
-    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023Dv1.root', 
-    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/recoKinematicsT3m_ParkingDoubleMuonLowMass_2023D.root', 
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023B_HLT_DoubleMu.root',
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv1_HLT_DoubleMu.root',
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv2_HLT_DoubleMu.root',
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv3_HLT_DoubleMu.root',
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023C_HLT_DoubleMu.root',
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv1_HLT_DoubleMu.root',
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023D_HLT_DoubleMu.root',
 ]
 
-tree_name = 'Tau3Mu_HLTemul_tree'
-mc_factor = MC_norm_factor_dict['2022reMini']  
-print('[!] MC normalization factor = %.3e'%mc_factor)
+#tree_name = 'Tau3Mu_HLTemul_tree'
+tree_name = 'WTau3Mu_tree'
+print('[+] adding signal and backgrund samples')
 sig_rdf = ROOT.RDataFrame(tree_name, signals, branches).Filter(sig_selection).Define('weight', 'lumi_factor')
 sig = pd.DataFrame( sig_rdf.AsNumpy() )
-bkg_rdf = ROOT.RDataFrame(tree_name, backgrounds, branches).Filter(bkg_selection).Define('weight', '1')
+bkg_rdf = ROOT.RDataFrame(tree_name, backgrounds, branches).Filter(bkg_selection).Define('weight', '1.0')
 bkg = pd.DataFrame( bkg_rdf.AsNumpy() )
 
 print('... processing input ...')
@@ -109,7 +109,6 @@ bkg.loc[:,'tauEta'] = tauEta(bkg['tau_fit_eta'])
 
 if(args.debug):print(sig)
 if(args.debug):print(bkg)
-
 ##########################################################################################
 ## REWEIGHT AND MAKE TAU MASS FLAT
 ########################################################################################## 
@@ -197,15 +196,15 @@ if args.load_model is None:
             reg_alpha        = 5.0,
             reg_lambda       = 5.0,
             use_label_encoder=False,
-            objective='binary:logistic',
+            eval_metric      = 'auc',
+            objective        ='binary:logistic',
+            early_stopping_rounds = 100, #100
         )
 
         clf.fit(
             X_train, 
             y_train,
             eval_set              = [(X_train, y_train),(X_valid, y_valid)],
-            early_stopping_rounds = 10, #100
-            eval_metric           = 'auc',
             verbose               = True,
             #sample_weight         = ktrain['weight'],
         )
@@ -218,12 +217,12 @@ if args.load_model is None:
         #       return (n_samples, n_classes) array
         print('[Fold %d/%d Prediciton:]' % (i + 1, kfold))
         p_test = clf.predict_proba(sub[bdt_inputs])[:, 1]
-        sub['score'] += p_test #/kfold
+        sub.loc[:,'score'] += p_test #/kfold
 
         # adjust the score to match 0,1
         smin = min(p_test)
         smax = max(p_test)
-        sub['score_norm'] = (p_test - smin) / (smax - smin)
+        sub.loc[:,'score_norm'] = (p_test - smin) / (smax - smin)
 
         print ('round %d' %(i+1))
         print ('\tcross validation error      %.5f' %(np.sum(np.abs(sub['score_norm'] - sub['target']))/len(sub)))

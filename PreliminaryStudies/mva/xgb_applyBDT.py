@@ -79,28 +79,28 @@ else:
     signals = args.signal 
 if(args.data is None):
     backgrounds  = [
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Cv1.root',
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv1.root',
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv2.root',
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Ev1.root',
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Fv1.root',
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Gv1.root',
+    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Cv1.root',
+    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv1.root',
+    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv2.root',
+    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Ev1.root',
+    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Fv1.root',
+    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Gv1.root',
     ]
 else:
     backgrounds = args.data
 
-tree_name = 'Tau3Mu_HLTemul_tree'
+tree_name = 'WTau3Mu_tree'
 if(args.isDsPhiPi): tree_name = 'DsPhiMuMuPi_tree'
 
 # MC dataframe
 sig_rdf = ROOT.RDataFrame(tree_name, signals, branches).Filter(sig_selection).Define('weight', 'lumi_factor')
 sig = pd.DataFrame( sig_rdf.AsNumpy() )
-bkg_rdf = ROOT.RDataFrame(tree_name, backgrounds, branches).Filter(bkg_selection).Define('weight', '1')
-bkg = pd.DataFrame( bkg_rdf.AsNumpy() )
+#bkg_rdf = ROOT.RDataFrame(tree_name, backgrounds, branches).Filter(bkg_selection).Define('weight', '1')
+#bkg = pd.DataFrame( bkg_rdf.AsNumpy() )
 
 print('... processing input ...')
 print(' SIGNAL : %s entries passed the selection' %sig_rdf.Count().GetValue())
-print(' BACKGROUND : %s entries passed the selection' %bkg_rdf.Count().GetValue())
+#print(' BACKGROUND : %s entries passed the selection' %bkg_rdf.Count().GetValue())
 print('---------------------------------------------')
 
 ## DEFINE TARGETS
@@ -112,12 +112,12 @@ bdt_inputs = features + ['tauEta']
 if(args.isDsPhiPi): 
     if(args.debug): print(features_DsPhiPi_to_Tau3Mu)
     sig.rename( columns= features_DsPhiPi_to_Tau3Mu, inplace=True) 
-    bkg.rename( columns= features_DsPhiPi_to_Tau3Mu, inplace=True) 
+    #bkg.rename( columns= features_DsPhiPi_to_Tau3Mu, inplace=True) 
     sig.loc[:,'tauEta'] = tauEta(sig['Ds_fit_eta'])
-    bkg.loc[:,'tauEta'] = tauEta(bkg['Ds_fit_eta'])
+    #bkg.loc[:,'tauEta'] = tauEta(bkg['Ds_fit_eta'])
 else:
     sig.loc[:,'tauEta'] = tauEta(sig['tau_fit_eta'])
-    bkg.loc[:,'tauEta'] = tauEta(bkg['tau_fit_eta'])
+    #bkg.loc[:,'tauEta'] = tauEta(bkg['tau_fit_eta'])
 
 if(args.debug):print(sig.columns)
 if(args.debug):print(bkg)
@@ -135,7 +135,7 @@ n_class = len(classifiers)
 print("    Number of splits %d"%n_class)
 
 sig['bdt_score'] =  np.zeros(sig.shape[0])
-bkg['bdt_score'] =  np.zeros(bkg.shape[0])
+#bkg['bdt_score'] =  np.zeros(bkg.shape[0])
 for i, iclas in classifiers.items():
     print (' evaluating %d/%d classifier' %(i+1, n_class))
     best_iteration = iclas.get_booster().best_iteration
@@ -143,18 +143,18 @@ for i, iclas in classifiers.items():
 
     sig.loc[:,'bdt_fold%d_score' %i] = iclas.predict_proba(sig[bdt_inputs])[:, 1]
     sig.loc[:,'bdt_score'] += iclas.predict_proba(sig[bdt_inputs])[:, 1] / n_class
-    bkg.loc[:,'bdt_fold%d_score' %i] = iclas.predict_proba(bkg[bdt_inputs])[:, 1]
-    bkg.loc[:,'bdt_score'] += iclas.predict_proba(bkg[bdt_inputs])[:, 1] / n_class
+    #bkg.loc[:,'bdt_fold%d_score' %i] = iclas.predict_proba(bkg[bdt_inputs])[:, 1]
+    #bkg.loc[:,'bdt_score'] += iclas.predict_proba(bkg[bdt_inputs])[:, 1] / n_class
 
 newfile_base = '%s/XGBout_'%(args.data_outdir) + ('DsPhiMuMuPi_' if args.isDsPhiPi else 'WTau3Mu_')
-newfile_tail = 'kFold_2024Feb02.root' 
+newfile_tail = args.tag + ".root"#'kFold_2024Feb02.root' 
 
 newfile_mc = newfile_base + 'MC_' + newfile_tail
 print('[OUT] MC output file saved in %s'%newfile_mc)
-sig_out_rdf = ROOT.RDF.MakeNumpyDataFrame({col: sig[col].values for col in sig.columns}).Snapshot('DsPhiMuMuPi_tree', newfile_mc)
+sig_out_rdf = ROOT.RDF.MakeNumpyDataFrame({col: sig[col].values for col in sig.columns}).Snapshot('tree_w_BDT', newfile_mc)
 
 newfile_data = newfile_base + 'DATA_' + newfile_tail
 print('[OUT] DATA output file saved in %s'%newfile_data)
-bkg_out_rdf = ROOT.RDF.MakeNumpyDataFrame({col: bkg[col].values for col in bkg.columns}).Snapshot('DsPhiMuMuPi_tree', newfile_data)
+#bkg_out_rdf = ROOT.RDF.MakeNumpyDataFrame({col: bkg[col].values for col in bkg.columns}).Snapshot('tree_w_BDT', newfile_data)
 
 ###
