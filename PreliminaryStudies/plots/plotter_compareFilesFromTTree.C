@@ -32,7 +32,7 @@ void SetInputFile(const std::vector<TString>& inFile){
      inRootFile_.push_back(*it);
   }
   setTDRStyle();
-  extraText = "Preliminary";
+  extraText = "Simulation Preliminary";
 
 }//SetInputFile()
 void SetInputTree(const std::vector<TString>& inTree){

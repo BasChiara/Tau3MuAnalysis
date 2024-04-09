@@ -46,6 +46,8 @@ Color_t PtlColorMap(const TString& particle){
   PtlColor["mc"] = kRed;
   PtlColor["Run3_HLT_Tau3Mu"] = kRed-7;
   PtlColor["Run3_HLT_DoubleMu"] = kGreen+2;
+  PtlColor["2023preBPix"] = kAzure +1; 
+  PtlColor["2023BPix"]    = kOrange +1;
 
   return PtlColor[particle];
 }
@@ -81,6 +83,9 @@ TString CategoryLegend(const TString& category){
   Leg_entry["mc"] = "signal";
   Leg_entry["Run3_HLT_Tau3Mu"]   = "HLT_Tau3Mu";
   Leg_entry["Run3_HLT_DoubleMu"] = "HLT_DoubleMu";
+  Leg_entry["2023preBPix"] = "2023 pre-BPix";
+  Leg_entry["2023BPix"] = "2023 post-BPix";
+
   return Leg_entry[category];
 }
 

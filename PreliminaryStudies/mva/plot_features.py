@@ -42,7 +42,7 @@ tag = args.tag
 removeNaN = False 
 
  # ------------ APPLY SELECTIONS ------------ # 
-base_selection = '(tau_fit_mass > %.2f & tau_fit_mass < %.2f )'%(mass_range_lo,mass_range_hi) +( '& ' + cat_selection_dict[args.category] if (args.category) else '') 
+base_selection = '(tau_fit_mass > %.2f & tau_fit_mass < %.2f ) & (tau_fit_pt > 15.0)'%(mass_range_lo,mass_range_hi) +( '& ' + cat_selection_dict[args.category] if (args.category) else '') 
 sig_selection  = base_selection 
 bkg_selection  = base_selection + '& (tau_fit_mass < %.2f | tau_fit_mass > %.2f)'%(blind_range_lo, blind_range_hi) 
 
