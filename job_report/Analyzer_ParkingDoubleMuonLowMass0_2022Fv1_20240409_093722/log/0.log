@@ -1,2 +1,54 @@
 000 (9542170.000.000) 04/09 09:37:23 Job submitted from host: <188.185.114.121:9618?addrs=188.185.114.121-9618+[2001-1458-d00-a--100-273]-9618&alias=bigbird19.cern.ch&noUDP&sock=schedd_1932_c510>
 ...
+040 (9542170.000.000) 04/09 09:44:15 Started transferring input files
+	Transferring to host: <128.142.161.145:9618?addrs=128.142.161.145-9618+[2001-1458-301-b9--100-e]-9618&alias=b9g03p7833.cern.ch&noUDP&sock=slot1_26_1063223_897d_2793>
+...
+040 (9542170.000.000) 04/09 09:44:15 Finished transferring input files
+...
+001 (9542170.000.000) 04/09 09:44:16 Job executing on host: <128.142.161.145:9618?addrs=128.142.161.145-9618+[2001-1458-301-b9--100-e]-9618&alias=b9g03p7833.cern.ch&noUDP&sock=startd_3443_30aa>
+...
+006 (9542170.000.000) 04/09 09:44:25 Image size of job updated: 107212
+	105  -  MemoryUsage of job (MB)
+	107208  -  ResidentSetSize of job (KB)
+...
+006 (9542170.000.000) 04/09 09:49:26 Image size of job updated: 128612
+	124  -  MemoryUsage of job (MB)
+	126228  -  ResidentSetSize of job (KB)
+...
+006 (9542170.000.000) 04/09 09:59:27 Image size of job updated: 128612
+	124  -  MemoryUsage of job (MB)
+	126284  -  ResidentSetSize of job (KB)
+...
+006 (9542170.000.000) 04/09 10:04:28 Image size of job updated: 128612
+	124  -  MemoryUsage of job (MB)
+	126336  -  ResidentSetSize of job (KB)
+...
+006 (9542170.000.000) 04/09 10:09:28 Image size of job updated: 128612
+	124  -  MemoryUsage of job (MB)
+	126384  -  ResidentSetSize of job (KB)
+...
+006 (9542170.000.000) 04/09 10:14:28 Image size of job updated: 128612
+	124  -  MemoryUsage of job (MB)
+	126440  -  ResidentSetSize of job (KB)
+...
+006 (9542170.000.000) 04/09 10:19:29 Image size of job updated: 129640
+	125  -  MemoryUsage of job (MB)
+	127576  -  ResidentSetSize of job (KB)
+...
+006 (9542170.000.000) 04/09 10:49:31 Image size of job updated: 138012
+	134  -  MemoryUsage of job (MB)
+	136740  -  ResidentSetSize of job (KB)
+...
+006 (9542170.000.000) 04/09 11:19:40 Image size of job updated: 155272
+	134  -  MemoryUsage of job (MB)
+	136740  -  ResidentSetSize of job (KB)
+...
+040 (9542170.000.000) 04/09 11:19:40 Started transferring output files
+...
+040 (9542170.000.000) 04/09 11:19:40 Finished transferring output files
+...
+007 (9542170.000.000) 04/09 11:19:40 Shadow exception!
+	Error from slot1_26@b9g03p7833.cern.ch: STARTER at 128.142.161.145 failed to send file(s) to <188.185.114.121:9618>; SHADOW at 188.185.114.121 failed to write to file /afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/PreliminaryStudies/cbasile.cc: (errno 2) No such file or directory
+	7634  -  Run Bytes Sent By Job
+	10936  -  Run Bytes Received By Job
+...

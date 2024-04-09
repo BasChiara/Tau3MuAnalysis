@@ -1,2 +1,45 @@
 000 (9542173.001.000) 04/09 09:37:29 Job submitted from host: <188.185.114.121:9618?addrs=188.185.114.121-9618+[2001-1458-d00-a--100-273]-9618&alias=bigbird19.cern.ch&noUDP&sock=schedd_1932_c510>
 ...
+040 (9542173.001.000) 04/09 09:44:18 Started transferring input files
+	Transferring to host: <128.142.60.144:9618?addrs=128.142.60.144-9618+[2001-1458-301-22--100-8f]-9618&alias=b9s05p4462.cern.ch&noUDP&sock=slot1_17_4022_9cdd_17423>
+...
+040 (9542173.001.000) 04/09 09:44:18 Finished transferring input files
+...
+001 (9542173.001.000) 04/09 09:44:19 Job executing on host: <128.142.60.144:9618?addrs=128.142.60.144-9618+[2001-1458-301-22--100-8f]-9618&alias=b9s05p4462.cern.ch&noUDP&sock=startd_3288_df7c>
+...
+006 (9542173.001.000) 04/09 09:44:27 Image size of job updated: 103924
+	102  -  MemoryUsage of job (MB)
+	103924  -  ResidentSetSize of job (KB)
+...
+006 (9542173.001.000) 04/09 09:49:27 Image size of job updated: 123208
+	120  -  MemoryUsage of job (MB)
+	121968  -  ResidentSetSize of job (KB)
+...
+006 (9542173.001.000) 04/09 09:54:28 Image size of job updated: 123208
+	120  -  MemoryUsage of job (MB)
+	121988  -  ResidentSetSize of job (KB)
+...
+006 (9542173.001.000) 04/09 09:59:29 Image size of job updated: 123208
+	120  -  MemoryUsage of job (MB)
+	122040  -  ResidentSetSize of job (KB)
+...
+006 (9542173.001.000) 04/09 10:04:29 Image size of job updated: 123208
+	120  -  MemoryUsage of job (MB)
+	122088  -  ResidentSetSize of job (KB)
+...
+006 (9542173.001.000) 04/09 10:09:29 Image size of job updated: 123208
+	120  -  MemoryUsage of job (MB)
+	122140  -  ResidentSetSize of job (KB)
+...
+006 (9542173.001.000) 04/09 10:14:30 Image size of job updated: 123208
+	120  -  MemoryUsage of job (MB)
+	122188  -  ResidentSetSize of job (KB)
+...
+006 (9542173.001.000) 04/09 10:19:30 Image size of job updated: 123348
+	120  -  MemoryUsage of job (MB)
+	122336  -  ResidentSetSize of job (KB)
+...
+006 (9542173.001.000) 04/09 10:44:32 Image size of job updated: 123348
+	120  -  MemoryUsage of job (MB)
+	122368  -  ResidentSetSize of job (KB)
+...

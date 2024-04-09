@@ -55,9 +55,15 @@ class WTau3Mu_tools : public WTau3Mu_base{
    ROOT::Math::PtEtaPhiMVector RecoMu1_P4, RecoMu2_P4, RecoMu3_P4;
 
    // offline muon sf MUON-POG
-   TH2Poly* h_muonSF_lowpT = 0;
-   TH2Poly* h_muonSF_medpT = 0;
-   float tau_mu1_offlineSF, tau_mu2_offlineSF, tau_mu3_offlineSF;
+   TH2Poly* h_muonSF_lowpT          = 0;
+   TH2Poly* h_muonSF_lowpT_sysUP    = 0;
+   TH2Poly* h_muonSF_lowpT_sysDOWN  = 0;
+   TH2Poly* h_muonSF_medpT          = 0; // NOT used 
+   TH2Poly* h_muonSF_medpT_sysUP    = 0; //  " 
+   TH2Poly* h_muonSF_medpT_sysDOWN  = 0; //  "
+   float tau_mu1_IDrecoSF, tau_mu2_IDrecoSF, tau_mu3_IDrecoSF;
+   float tau_mu1_IDrecoSF_sysUP, tau_mu2_IDrecoSF_sysUP, tau_mu3_IDrecoSF_sysUP;
+   float tau_mu1_IDrecoSF_sysDOWN, tau_mu2_IDrecoSF_sysDOWN, tau_mu3_IDrecoSF_sysDOWN;
 
    private:
    bool debug = false; 

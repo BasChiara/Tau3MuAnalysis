@@ -31,7 +31,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
          // parse the SF file
          if (isMC_){
             parseMuonSF(year_, "low");         
-            parseMuonSF(year_, "medium");         
+            //parseMuonSF(year_, "medium");         
          }
 
          // name and setup the output

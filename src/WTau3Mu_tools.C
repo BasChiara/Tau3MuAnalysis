@@ -434,9 +434,13 @@ int WTau3Mu_tools::parseMuonSF(const TString & era, const TString & pTrange){
    //define pT bins in each eta-bin
    int ieta = 0;
    // ** TH2F with SF
-   TH2Poly* h_muonSF_ = new TH2Poly();
+   TH2Poly* h_muonSF_      = new TH2Poly();
+   TH2Poly* h_muonSF_sUP   = new TH2Poly(); 
+   TH2Poly* h_muonSF_sDOWN = new TH2Poly(); 
    TString h_muonSF_name = "h_" + TString(muons_IDsf_set_) + "_" + era +"_" +pTrange;
-   h_muonSF_->SetNameTitle(h_muonSF_name + "_val", "offline muon SFs");
+   h_muonSF_->SetNameTitle(h_muonSF_name + "_val", "ID/reco muon SF value");
+   h_muonSF_sUP->SetNameTitle(h_muonSF_name + "_sUP", "ID/reco muon SF +sys");
+   h_muonSF_sDOWN->SetNameTitle(h_muonSF_name + "_sDOWN", "ID/reco muon SF -sys");
    float deta = 0.01, dpt = 0.01;
    for (const auto& pT_binning : data_content.get_child("content")){
       std::vector<float> pt_edges;
@@ -449,23 +453,39 @@ int WTau3Mu_tools::parseMuonSF(const TString & era, const TString & pTrange){
       // retrive SF in each bin
       for (const auto& category : pT_binning.second.get_child("content")){
          for (const auto& sf_val : category.second.get_child("content")){
-            if (sf_val.second.get_child("key").data()!= "nominal") continue;
-            if(debug) std::cout<< Form("> eta [%.1f, %.1f] pT [%.1f, %.1f] -> SF : %.3f", eta_edges.at(ieta), eta_edges.at(ieta+1),pt_edges.at(ipT), pt_edges.at(ipT + 1), sf_val.second.get<double>("value") ) << std::endl; 
-            h_muonSF_->AddBin(eta_edges.at(ieta), pt_edges.at(ipT), eta_edges.at(ieta+1), pt_edges.at(ipT + 1)); 
-            h_muonSF_->Fill(eta_edges.at(ieta) + deta, pt_edges.at(ipT) + dpt, sf_val.second.get<double>("value")); 
-            ipT++;
-         }
+            float xlo = eta_edges.at(ieta), xhi = eta_edges.at(ieta+1), ylo = pt_edges.at(ipT), yhi =  pt_edges.at(ipT + 1); 
+            // SF nominal value
+            if (sf_val.second.get_child("key").data() == "nominal"){
+               if(debug) std::cout<< Form("> eta [%.1f, %.1f] pT [%.1f, %.1f] -> SF : %.3f", eta_edges.at(ieta), eta_edges.at(ieta+1),pt_edges.at(ipT), pt_edges.at(ipT + 1), sf_val.second.get<double>("value") ) << std::endl; 
+               h_muonSF_->AddBin(xlo, ylo, xhi, yhi); 
+               h_muonSF_->Fill(xlo+ deta, ylo + dpt, sf_val.second.get<double>("value"));
+            // SF nominal value + sys-err
+            } else if (sf_val.second.get_child("key").data() == "systup"){
+               h_muonSF_sUP->AddBin(xlo, ylo, xhi, yhi); 
+               h_muonSF_sUP->Fill(xlo+ deta, ylo + dpt, sf_val.second.get<double>("value"));
+            // SF nominal value - sys-err
+            } else if (sf_val.second.get_child("key").data() == "systdown"){
+               h_muonSF_sDOWN->AddBin(xlo, ylo, xhi, yhi); 
+               h_muonSF_sDOWN->Fill(xlo+ deta, ylo + dpt, sf_val.second.get<double>("value"));
+            }
+           
+         } 
+         ipT++;
       }
-      // [!!] per ora metto a mano lo SF per pT < 3.0 GeV
-      //h_muonSF_->AddBin(eta_edges.at(ieta), 0.0 , eta_edges.at(ieta+1), pt_edges.front()); 
-      //h_muonSF_->Fill(eta_edges.at(ieta) + deta, 0.0 + dpt, 1.0);  
       ieta++;
    }
 
    // save histogram in the correct pointer
-   if (pTrange == "low") h_muonSF_lowpT = h_muonSF_;
-   else if (pTrange == "medium") h_muonSF_medpT = h_muonSF_;
-   
+   if (pTrange == "low"){
+      h_muonSF_lowpT = h_muonSF_;
+      h_muonSF_lowpT_sysUP = h_muonSF_sUP;
+      h_muonSF_lowpT_sysDOWN = h_muonSF_sDOWN;
+   }
+   else if (pTrange == "medium"){
+      h_muonSF_medpT = h_muonSF_;
+      h_muonSF_medpT_sysUP = h_muonSF_sUP;
+      h_muonSF_lowpT_sysDOWN = h_muonSF_sDOWN;
+   }
    return 0;
 
 }// parseMuonSF()
@@ -476,16 +496,22 @@ int WTau3Mu_tools::applyMuonSF(const int& TauIdx){
    int bin = -5;
    // mu1
    bin = h_muonSF_lowpT->FindBin(fabs(TauTo3Mu_mu1_eta[TauIdx]), TauTo3Mu_mu1_pt[TauIdx]);
-   tau_mu1_offlineSF = (bin > 0 ? h_muonSF_lowpT->GetBinContent(bin) : 1.0);
-   if(debug) std::cout << Form("> mu1 (pT, eta) = (%.2f,%.2f ) \t SF = %.3f", TauTo3Mu_mu1_pt[TauIdx], TauTo3Mu_mu1_eta[TauIdx], tau_mu1_offlineSF ) << std::endl;
+   tau_mu1_IDrecoSF           = (bin > 0 ? h_muonSF_lowpT->GetBinContent(bin) : 1.0);
+   tau_mu1_IDrecoSF_sysUP     = (bin > 0 ? h_muonSF_lowpT_sysUP->GetBinContent(bin) : 1.0);
+   tau_mu1_IDrecoSF_sysDOWN   = (bin > 0 ? h_muonSF_lowpT_sysDOWN->GetBinContent(bin) : 1.0);
+   if(debug) std::cout << Form("> mu1 (pT, eta) = (%.2f,%.2f ) \t SF = %.3f", TauTo3Mu_mu1_pt[TauIdx], TauTo3Mu_mu1_eta[TauIdx], tau_mu1_IDrecoSF ) << std::endl;
    // mu2
    bin = h_muonSF_lowpT->FindBin(fabs(TauTo3Mu_mu2_eta[TauIdx]), TauTo3Mu_mu2_pt[TauIdx]);
-   tau_mu2_offlineSF = (bin > 0 ? h_muonSF_lowpT->GetBinContent(bin) : 1.0);
-   if(debug) std::cout << Form("> mu2 (pT, eta) = (%.2f,%.2f ) \t SF = %.3f", TauTo3Mu_mu2_pt[TauIdx], TauTo3Mu_mu2_eta[TauIdx], tau_mu2_offlineSF ) << std::endl;
+   tau_mu2_IDrecoSF           = (bin > 0 ? h_muonSF_lowpT->GetBinContent(bin) : 1.0);
+   tau_mu2_IDrecoSF_sysUP     = (bin > 0 ? h_muonSF_lowpT_sysUP->GetBinContent(bin) : 1.0);
+   tau_mu2_IDrecoSF_sysDOWN   = (bin > 0 ? h_muonSF_lowpT_sysDOWN->GetBinContent(bin) : 1.0);
+   if(debug) std::cout << Form("> mu2 (pT, eta) = (%.2f,%.2f ) \t SF = %.3f", TauTo3Mu_mu2_pt[TauIdx], TauTo3Mu_mu2_eta[TauIdx], tau_mu2_IDrecoSF ) << std::endl;
    // mu3
    bin = h_muonSF_lowpT->FindBin(fabs(TauTo3Mu_mu3_eta[TauIdx]), TauTo3Mu_mu3_pt[TauIdx]);
-   tau_mu3_offlineSF = (bin > 0 ? h_muonSF_lowpT->GetBinContent(bin) : 1.0);
-   if(debug) std::cout << Form("> mu3 (pT, eta) = (%.2f,%.2f ) \t SF = %.3f", TauTo3Mu_mu3_pt[TauIdx], TauTo3Mu_mu3_eta[TauIdx], tau_mu3_offlineSF ) << std::endl;
+   tau_mu3_IDrecoSF           = (bin > 0 ? h_muonSF_lowpT->GetBinContent(bin) : 1.0);
+   tau_mu3_IDrecoSF_sysUP     = (bin > 0 ? h_muonSF_lowpT_sysUP->GetBinContent(bin) : 1.0);
+   tau_mu3_IDrecoSF_sysDOWN   = (bin > 0 ? h_muonSF_lowpT_sysDOWN->GetBinContent(bin) : 1.0);
+   if(debug) std::cout << Form("> mu3 (pT, eta) = (%.2f,%.2f ) \t SF = %.3f", TauTo3Mu_mu3_pt[TauIdx], TauTo3Mu_mu3_eta[TauIdx], tau_mu3_IDrecoSF ) << std::endl;
 
    return 0;
 }//applyMuonSF
