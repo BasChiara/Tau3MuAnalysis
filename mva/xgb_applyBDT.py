@@ -37,15 +37,16 @@ from config import *
 ##########################################################################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--load_model', help='load pkl instead of training')
-parser.add_argument('--plot_outdir',default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/BDTtraining/', help=' output directory for plots')
-parser.add_argument('--data_outdir',default= '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/', help='output directory for ntuples with BDT applied')
-parser.add_argument('--tag',        default= 'emulateRun2', help='tag to the training')
-parser.add_argument('--debug',      action = 'store_true' ,help='set it to have useful printout')
-parser.add_argument('--save_output',action = 'store_true' ,help='set it to save the bdt output')
-parser.add_argument('--isDsPhiPi',  action = 'store_true' ,help='set apply BDT to control channel')
-parser.add_argument('-s', '--signal',   action = 'append',                                           help='file with signal events with BDT applied')
-parser.add_argument('-d', '--data',     action = 'append',                                           help='file with data events with BDT applied')
+parser.add_argument('--load_model',                                                                     help='load pkl instead of training')
+parser.add_argument('--plot_outdir',    default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/BDTtraining/',    help=' output directory for plots')
+parser.add_argument('--data_outdir',    default= '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/',       help='output directory for ntuples with BDT applied')
+parser.add_argument('--tag',            default= 'emulateRun2',                                         help='tag to the training')
+parser.add_argument('--debug',          action = 'store_true' ,                                         help='set it to have useful printout')
+parser.add_argument('--save_output',    action = 'store_true' ,                                         help='set it to save the bdt output')
+parser.add_argument('--isDsPhiPi',      action = 'store_true' ,                                         help='set apply BDT to control channel')
+parser.add_argument('--isFakeRate',     action = 'store_true' ,                                         help='set apply BDT to control channel')
+parser.add_argument('--isMC',           action = 'store_true' ,                                         help='set if running on MonteCarlo')
+parser.add_argument('-d', '--data',     action = 'append',                                              help='dataset to apply BDT weights')
 
 args = parser.parse_args()
 tag = args.tag 
@@ -59,68 +60,46 @@ if(args.isDsPhiPi):
                             '(Ds_fit_vprob > 0.01)',
                             '(phi_fit_mass > 0.98 & phi_fit_mass < 1.05)'
                         ])
+elif (args.isFakeRate):
+    base_selection = 'tau_fit_mass > %.2f'%mass_range_lo
 else:
     base_selection = '(tau_fit_mass > %.2f & tau_fit_mass < %.2f )'%(mass_range_lo,mass_range_hi) 
-sig_selection  = base_selection 
+selection  = base_selection 
+data_selection  = base_selection 
 bkg_selection  = base_selection
 
 print('[!] base-selection : %s'%base_selection)
-print('[S] signal-selection : %s'%sig_selection)
-print('[B] background-selection : %s'%bkg_selection)
 print('---------------------------------------------')
 
  # ------------ INPUT DATASET ------------ # 
 
-if(args.signal is None):
-    signals     = [
+if(args.data is None):
+    dataset     = [
     '../outRoot//DsPhiMuMuPi_MCanalyzer_2022preEE_HLT_Tau3Mu.root', 
     '../outRoot//DsPhiMuMuPi_MCanalyzer_2022EE_HLT_Tau3Mu.root']
 else:
-    signals = args.signal 
-if(args.data is None):
-    backgrounds  = [
-    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Cv1.root',
-    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv1.root',
-    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv2.root',
-    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Ev1.root',
-    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Fv1.root',
-    #'/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Gv1.root',
-    ]
-else:
-    backgrounds = args.data
+    dataset = args.data
 
-tree_name = 'WTau3Mu_tree'
-if(args.isDsPhiPi): tree_name = 'DsPhiMuMuPi_tree'
+tree_name = 'WTau3Mu_tree' if not args.isDsPhiPi else 'DsPhiMuMuPi_tree' 
 
-# MC dataframe
-sig_rdf = ROOT.RDataFrame(tree_name, signals, branches).Filter(sig_selection).Define('weight', 'lumi_factor')
-sig = pd.DataFrame( sig_rdf.AsNumpy() )
-#bkg_rdf = ROOT.RDataFrame(tree_name, backgrounds, branches).Filter(bkg_selection).Define('weight', '1')
-#bkg = pd.DataFrame( bkg_rdf.AsNumpy() )
+data_rdf = ROOT.RDataFrame(tree_name, dataset, branches).Filter(data_selection).Define('weight', 'lumi_factor')
+dat = pd.DataFrame( data_rdf.AsNumpy() )
 
 print('... processing input ...')
-print(' SIGNAL : %s entries passed the selection' %sig_rdf.Count().GetValue())
-#print(' BACKGROUND : %s entries passed the selection' %bkg_rdf.Count().GetValue())
+print('[+] input-dataset is %s : %s entries passed the selection' %( 'MC' if args.isMC else 'DATA' ,data_rdf.Count().GetValue()))
 print('---------------------------------------------')
-
-## DEFINE TARGETS
-#sig.loc[:,'target'] = np.ones (sig.shape[0]).astype(int)
-#bkg.loc[:,'target'] = np.zeros(bkg.shape[0]).astype(int)
 
 ## ETA BINS
 bdt_inputs = features + ['tauEta']
 if(args.isDsPhiPi): 
     if(args.debug): print(features_DsPhiPi_to_Tau3Mu)
-    sig.rename( columns= features_DsPhiPi_to_Tau3Mu, inplace=True) 
-    #bkg.rename( columns= features_DsPhiPi_to_Tau3Mu, inplace=True) 
-    sig.loc[:,'tauEta'] = tauEta(sig['Ds_fit_eta'])
-    #bkg.loc[:,'tauEta'] = tauEta(bkg['Ds_fit_eta'])
+    # rename Ds branches to match BDT structure 
+    dat.rename( columns= features_DsPhiPi_to_Tau3Mu, inplace=True) 
+    dat.loc[:,'tauEta'] = tauEta(dat['Ds_fit_eta'])
 else:
-    sig.loc[:,'tauEta'] = tauEta(sig['tau_fit_eta'])
-    #bkg.loc[:,'tauEta'] = tauEta(bkg['tau_fit_eta'])
+    dat.loc[:,'tauEta'] = tauEta(dat['tau_fit_eta'])
 
-if(args.debug):print(sig.columns)
-if(args.debug):print(bkg)
+if(args.debug):print(dat.columns)
 
 ###                ###
 #  LOAD BDT weights  #
@@ -132,29 +111,20 @@ with open(classifier_file, 'rb') as f:
     classifiers = pickle.load(f)
 
 n_class = len(classifiers)
-print("    Number of splits %d"%n_class)
+print("[BDT] number of splits %d"%n_class)
 
-sig['bdt_score'] =  np.zeros(sig.shape[0])
-#bkg['bdt_score'] =  np.zeros(bkg.shape[0])
+dat['bdt_score'] =  np.zeros(dat.shape[0])
 for i, iclas in classifiers.items():
-    print (' evaluating %d/%d classifier' %(i+1, n_class))
+    print ('[BDT] evaluating %d/%d classifier' %(i+1, n_class))
     best_iteration = iclas.get_booster().best_iteration
     print('\tbest iteration %d' %(best_iteration))
 
-    sig.loc[:,'bdt_fold%d_score' %i] = iclas.predict_proba(sig[bdt_inputs])[:, 1]
-    sig.loc[:,'bdt_score'] += iclas.predict_proba(sig[bdt_inputs])[:, 1] / n_class
-    #bkg.loc[:,'bdt_fold%d_score' %i] = iclas.predict_proba(bkg[bdt_inputs])[:, 1]
-    #bkg.loc[:,'bdt_score'] += iclas.predict_proba(bkg[bdt_inputs])[:, 1] / n_class
+    dat.loc[:,'bdt_fold%d_score' %i] = iclas.predict_proba(dat[bdt_inputs])[:, 1]
+    dat.loc[:,'bdt_score'] += iclas.predict_proba(dat[bdt_inputs])[:, 1] / n_class
 
 newfile_base = '%s/XGBout_'%(args.data_outdir) + ('DsPhiMuMuPi_' if args.isDsPhiPi else 'WTau3Mu_')
-newfile_tail = args.tag + ".root"#'kFold_2024Feb02.root' 
+newfile_tail = ('MC_' if args.isMC else 'DATA_') + args.tag + ".root"
+newfile      = newfile_base + newfile_tail
 
-newfile_mc = newfile_base + 'MC_' + newfile_tail
-print('[OUT] MC output file saved in %s'%newfile_mc)
-sig_out_rdf = ROOT.RDF.MakeNumpyDataFrame({col: sig[col].values for col in sig.columns}).Snapshot('tree_w_BDT', newfile_mc)
-
-newfile_data = newfile_base + 'DATA_' + newfile_tail
-print('[OUT] DATA output file saved in %s'%newfile_data)
-#bkg_out_rdf = ROOT.RDF.MakeNumpyDataFrame({col: bkg[col].values for col in bkg.columns}).Snapshot('tree_w_BDT', newfile_data)
-
-###
+print('[OUT] output file saved in %s'%newfile)
+data_out_rdf = ROOT.RDF.MakeNumpyDataFrame({col: dat[col].values for col in dat.columns}).Snapshot('tree_w_BDT', newfile)
