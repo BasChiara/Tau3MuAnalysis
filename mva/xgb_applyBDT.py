@@ -43,24 +43,24 @@ parser.add_argument('--data_outdir',    default= '/eos/user/c/cbasile/Tau3MuRun3
 parser.add_argument('--tag',            default= 'emulateRun2',                                         help='tag to the training')
 parser.add_argument('--debug',          action = 'store_true' ,                                         help='set it to have useful printout')
 parser.add_argument('--save_output',    action = 'store_true' ,                                         help='set it to save the bdt output')
-parser.add_argument('--isDsPhiPi',      action = 'store_true' ,                                         help='set apply BDT to control channel')
-parser.add_argument('--isFakeRate',     action = 'store_true' ,                                         help='set apply BDT to control channel')
+parser.add_argument('--process',        choices=['WTau3Mu', 'W3MuNu', 'data', 'DsPhiMuMuPi', 'fake_rate'],   help='what process is in the input sample')
 parser.add_argument('--isMC',           action = 'store_true' ,                                         help='set if running on MonteCarlo')
+parser.add_argument('--isMulticlass',   action = 'store_true' ,                                         help='set if applying a multiclass classifier')
 parser.add_argument('-d', '--data',     action = 'append',                                              help='dataset to apply BDT weights')
 
 args = parser.parse_args()
-tag = args.tag 
+tag = '_'.join([args.process, 'MC' if args.isMC else 'DATA']) + ( ('_' + args.tag)  if args.tag else '')
 removeNaN = False 
 
  # ------------ DEFINE SELECTIONS ------------ # 
-if(args.isDsPhiPi):
+if(args.process == 'DsPhiPi'):
     base_selection = '&'.join([
                             '(Ds_fit_mass > %.2f & Ds_fit_mass < %.2f )'%(Ds_mass_range_lo,Ds_mass_range_hi),
                             '(Ds_Lxy_sign_BS > 5.0)',
                             '(Ds_fit_vprob > 0.01)',
                             '(phi_fit_mass > 0.98 & phi_fit_mass < 1.05)'
                         ])
-elif (args.isFakeRate):
+elif (args.process == 'fake_rate'):
     base_selection = 'tau_fit_mass > %.2f'%mass_range_lo
 else:
     base_selection = '(tau_fit_mass > %.2f & tau_fit_mass < %.2f )'%(mass_range_lo,mass_range_hi) 
@@ -74,24 +74,39 @@ print('---------------------------------------------')
  # ------------ INPUT DATASET ------------ # 
 
 if(args.data is None):
+    data_path = '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/'
     dataset     = [
-    '../outRoot//DsPhiMuMuPi_MCanalyzer_2022preEE_HLT_Tau3Mu.root', 
-    '../outRoot//DsPhiMuMuPi_MCanalyzer_2022EE_HLT_Tau3Mu.root']
+    #2022
+    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Cv1_HLT_overlap.root',
+    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv1_HLT_overlap.root',
+    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv2_HLT_overlap.root',
+    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Ev1_HLT_overlap.root',
+    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Fv1_HLT_overlap.root',
+    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Gv1_HLT_overlap.root',
+    #2023
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023B_HLT_overlap.root',
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv1_HLT_overlap.root',
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv2_HLT_overlap.root',
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv3_HLT_overlap.root',
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023C_HLT_overlap.root',
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv1_HLT_overlap.root',
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023D_HLT_overlap.root',
+]
 else:
     dataset = args.data
 
-tree_name = 'WTau3Mu_tree' if not args.isDsPhiPi else 'DsPhiMuMuPi_tree' 
+tree_name = 'WTau3Mu_tree' if not args.process == 'DsPhiPi' else 'DsPhiMuMuPi_tree' 
 
 data_rdf = ROOT.RDataFrame(tree_name, dataset, branches).Filter(data_selection).Define('weight', 'lumi_factor')
 dat = pd.DataFrame( data_rdf.AsNumpy() )
 
 print('... processing input ...')
-print('[+] input-dataset is %s : %s entries passed the selection' %( 'MC' if args.isMC else 'DATA' ,data_rdf.Count().GetValue()))
+print('[+] input-dataset is %s : %s entries passed the selection' %( args.process ,data_rdf.Count().GetValue()))
 print('---------------------------------------------')
 
 ## ETA BINS
 bdt_inputs = features + ['tauEta']
-if(args.isDsPhiPi): 
+if(args.process == 'DsPhiPi'): 
     if(args.debug): print(features_DsPhiPi_to_Tau3Mu)
     # rename Ds branches to match BDT structure 
     dat.rename( columns= features_DsPhiPi_to_Tau3Mu, inplace=True) 
@@ -113,18 +128,30 @@ with open(classifier_file, 'rb') as f:
 n_class = len(classifiers)
 print("[BDT] number of splits %d"%n_class)
 
-dat['bdt_score'] =  np.zeros(dat.shape[0])
+if args.isMulticlass :
+    dat['bdt_score_t3m'] =  np.zeros(dat.shape[0])
+    dat['bdt_score_b']   =  np.zeros(dat.shape[0])
+    dat['bdt_score_w3m'] =  np.zeros(dat.shape[0])
+else:
+    dat['bdt_score'] =  np.zeros(dat.shape[0])
 for i, iclas in classifiers.items():
     print ('[BDT] evaluating %d/%d classifier' %(i+1, n_class))
     best_iteration = iclas.get_booster().best_iteration
     print('\tbest iteration %d' %(best_iteration))
+    if args.isMulticlass :
+        dat.loc[:,'bdt_fold%d_score_t3m' %i] = iclas.predict_proba(dat[bdt_inputs])[:, 0]
+        dat.loc[:,'bdt_score_t3m'] += iclas.predict_proba(dat[bdt_inputs])[:, 0] / n_class
+        dat.loc[:,'bdt_fold%d_score_b' %i] = iclas.predict_proba(dat[bdt_inputs])[:, 1]
+        dat.loc[:,'bdt_score_b']   += iclas.predict_proba(dat[bdt_inputs])[:, 1] / n_class
+        dat.loc[:,'bdt_fold%d_score_w3m' %i] = iclas.predict_proba(dat[bdt_inputs])[:, 2]
+        dat.loc[:,'bdt_score_w3m'] += iclas.predict_proba(dat[bdt_inputs])[:, 2] / n_class
+    else:
+        dat.loc[:,'bdt_fold%d_score' %i] = iclas.predict_proba(dat[bdt_inputs])[:, 1]
+        dat.loc[:,'bdt_score'] += iclas.predict_proba(dat[bdt_inputs])[:, 1] / n_class
 
-    dat.loc[:,'bdt_fold%d_score' %i] = iclas.predict_proba(dat[bdt_inputs])[:, 1]
-    dat.loc[:,'bdt_score'] += iclas.predict_proba(dat[bdt_inputs])[:, 1] / n_class
-
-newfile_base = '%s/XGBout_'%(args.data_outdir) + ('DsPhiMuMuPi_' if args.isDsPhiPi else 'WTau3Mu_')
-newfile_tail = ('MC_' if args.isMC else 'DATA_') + args.tag + ".root"
-newfile      = newfile_base + newfile_tail
+newfile_base = '%s/XGBout_'%(args.data_outdir) + ('DsPhiMuMuPi_' if args.process == 'DsPhiPi' else 'WTau3Mu_')
+#newfile_tail = ('MC_' if args.isMC else 'DATA_') + args.tag + ".root"
+newfile      = '%s/XGBout_'%(args.data_outdir) + tag + '.root' 
 
 print('[OUT] output file saved in %s'%newfile)
 data_out_rdf = ROOT.RDF.MakeNumpyDataFrame({col: dat[col].values for col in dat.columns}).Snapshot('tree_w_BDT', newfile)

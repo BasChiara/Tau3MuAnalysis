@@ -37,6 +37,12 @@ enum HLT_paths {
     HLT_overlap = 3
 };
 
+enum MCsignals {
+    MC_Tau3Mu,
+    MC_DsPhiPi,
+    MC_W3MuNu
+};
+
 // Lumi-normalization
 namespace LumiRun3
 {
@@ -46,6 +52,13 @@ inline std::map<TString, float> LumiFactor{
    {"2022EE"         , 0.00005537}, 
    {"2023preBPix"    , 0.00004177}, 
    {"2023BPix"       , 0.00004821}, 
+};
+inline std::map<TString, float> LumiFactor_W3MuNu{
+   {"DEFAULT"        , 1.0}, 
+   {"2022preEE"      , 1.0}, 
+   {"2022EE"         , 0.082}, 
+   {"2023preBPix"    , 1.0}, 
+   {"2023BPix"       , 1.0}, 
 };
 }
 namespace scale_factor_src

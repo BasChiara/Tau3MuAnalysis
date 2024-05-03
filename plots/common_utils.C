@@ -46,8 +46,16 @@ Color_t PtlColorMap(const TString& particle){
   PtlColor["mc"] = kRed;
   PtlColor["Run3_HLT_Tau3Mu"] = kRed-7;
   PtlColor["Run3_HLT_DoubleMu"] = kGreen+2;
+  PtlColor["2022preEE"]   = kAzure +1; 
+  PtlColor["2022EE"]      = kAzure +1;
+  PtlColor["Tau3Mu"]      = kRed;
+  PtlColor["W3MuNu"]      = kGreen+1; 
   PtlColor["2023preBPix"] = kAzure +1; 
   PtlColor["2023BPix"]    = kOrange +1;
+
+  PtlColor["unbalanced"] = kBlue;
+  PtlColor["rebalanced"] = kRed;
+
 
   return PtlColor[particle];
 }
@@ -79,12 +87,18 @@ TString CategoryLegend(const TString& category){
   Leg_entry["Run3_prompt"] = "Run3 prompt";
   Leg_entry["Run3_reMini"] = "Run3 reMini";
 
-  Leg_entry["data22"] = "data 2022";
-  Leg_entry["mc"] = "signal";
-  Leg_entry["Run3_HLT_Tau3Mu"]   = "HLT_Tau3Mu";
-  Leg_entry["Run3_HLT_DoubleMu"] = "HLT_DoubleMu";
+  Leg_entry["data22"]             = "data 2022";
+  Leg_entry["mc"]                 = "signal";
+  Leg_entry["Run3_HLT_Tau3Mu"]    = "HLT_Tau3Mu";
+  Leg_entry["Run3_HLT_DoubleMu"]  = "HLT_DoubleMu";
+  Leg_entry["2022preEE"]   = "2022preEE"; 
+  Leg_entry["2022EE"]      = "2022EE";
+  Leg_entry["Tau3Mu"]      = "W#tau(3#mu)#nu MC"; 
+  Leg_entry["W3MuNu"]      = "W3#mu#nu MC"; 
   Leg_entry["2023preBPix"] = "2023 pre-BPix";
   Leg_entry["2023BPix"] = "2023 post-BPix";
+  Leg_entry["unbalanced"] = "original";
+  Leg_entry["rebalanced"] = "resampled";
 
   return Leg_entry[category];
 }

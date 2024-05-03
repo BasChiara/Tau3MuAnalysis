@@ -3,7 +3,7 @@
 from collections import OrderedDict
 import numpy  as np
 import pandas as pd
-
+import ROOT
 
 ###                        ###
 #  MONTECARLO NORMALIZATION  #
@@ -82,6 +82,27 @@ cat_selection_dict = {
     'C' : '(tau_fit_mass_err/tau_fit_mass >= 0.012)'
 }
 
+#########################
+#   STYLE per PROCESS   #
+#########################
+process_name = ['Tau3Mu', 'W3MuNu', 'DsPhiPi', 'DataSB']
+color_process = {
+    'Tau3Mu' : ROOT.kRed,
+    'W3MuNu' : ROOT.kGreen+2,
+    'DsPhiPi': ROOT.kViolet,
+    'DataSB' : ROOT.kBlue,
+}
+legend_process = {
+    'Tau3Mu' : '$\\tau\\to 3\\mu$',
+    'W3MuNu' : '$W\\to 3\\mu\\nu$',
+    'DsPhiPi': '$D_{s}\\to \\phi\\pi$',
+    'DataSB' : 'data SB'
+}
+bdt_label_process ={
+   'Tau3Mu' : 0,
+   'DataSB' : 1,
+   'W3MuNu' : 2,
+}
 ##############
 #    BDT     #
 ##############
@@ -111,6 +132,9 @@ labels['tau_mu3_TightID_PV' ] = '$\mu_3$ ID'
 labels['tauEta'             ] = '$|\eta_{\\tau}|$'
 ##labels['bdt'                ] = 'BDT score'
 labels['bdt_score'          ] = 'BDT score'
+#labels['bdt_score_t3m'      ] = 'BDT $\\tau 3\\mu$ '
+#labels['bdt_score_b'        ] = 'BDT bkg'
+#labels['bdt_score_w3m'      ] = 'BDT W3$\\mu$'
 labels['tau_fit_mass'       ] = '$\\tau$ mass'
 
 features = [
@@ -162,29 +186,30 @@ def tauEta(eta):
 
 ### ----- features Nbins xlow xhigh ---- ###
 
-features_NbinsXloXhiLabel = {
-    'tau_fit_pt'        : [ 40, 0, 80,  'p_{T}(3 #mu) (GeV)'],
-    'tau_fit_mt'        : [ 90, 0, 180, 'M_{T}(3 #mu)'],
-    'tau_relIso'        : [ 50, 0, 0.5, 'rel. Isolation (3 #mu)'],
-    'tau_met_Dphi'      : [ 63, 0, 6.3, '#Delta #phi (3 #mu, MET)'],
-    'tau_met_pt'        : [ 75, 0, 150.,'MET (GeV)'],
-    'tau_met_ratio_pt'  : [ 60, 0., 6., 'MET/p_{T}(3 #mu)'],
-    'W_pt'              : [ 80, 0, 150, 'p_{T}(W) (GeV)'],
-    'miss_pz_min'       : [100, -300, 300, 'min p_{z}^{#nu} (GeV)'],
-    'miss_pz_max'       : [100,-1500, 1500,'max p_{z}^{#nu} (GeV)'],
-    'tau_mu12_dZ'       : [ 30, 0, 0.3, '#Delta z (#mu_1, #mu_2)'],
-    'tau_mu13_dZ'       : [ 30, 0, 0.3, '#Delta z (#mu_1, #mu_3)'],
-    'tau_mu23_dZ'       : [ 30, 0, 0.3, '#Delta z (#mu_2, #mu_3)'],
-    'tau_Lxy_sign_BS'   : [ 40, 0, 30,  'SV L_{xy}/#sigma'],
-    'tau_fit_vprob'     : [ 20, 0,  1,  'SV probability'],
-    'tau_cosAlpha_BS'   : [ 50,-1,  1,  'cos_{#alpha}(SV, BS)'],
-    'tau_mu1_TightID_PV': [  2,-0.5,1.5, '#mu_1 ID'],
-    'tau_mu2_TightID_PV': [  2,-0.5,1.5, '#mu_2 ID'],
-    'tau_mu3_TightID_PV': [  2,-0.5,1.5, '#mu_3 ID'],
-    'tauEta'            : [  8,-0.5,7.5, '3#mu #eta bins'],
-    'tau_fit_eta'       : [ 70, -3.5, 3.5,'#eta (3 #mu)'],
-    'tau_fit_mass'      : [ 40,1.6, 2.0, 'M(3 #mu)'],
-    'bdt_score'         : [ 50, 0, 1,    'BDT score'],
+features_NbinsXloXhiLabelLog = {
+    'tau_fit_pt'        : [ 35, 10, 80,  'p_{T}(3 #mu) (GeV)',      0],
+    'tau_fit_mt'        : [ 60, 0, 120,  'M_{T}(3 #mu)',            0],
+    'tau_relIso'        : [ 50, 0, 0.5,  'rel. Isolation (3 #mu)',  1],
+    'tau_met_Dphi'      : [ 32, 0, 6.4,  '#Delta #phi (3 #mu, MET)',0],
+    'tau_met_pt'        : [ 50, 0, 150., 'MET (GeV)',               0],
+    'tau_met_ratio_pt'  : [ 30, 0., 3.,  'MET/p_{T}(3 #mu)',        0],
+    'W_pt'              : [ 40, 0, 120,  'p_{T}(W) (GeV)',          0],
+    'miss_pz_min'       : [50, -300, 300, 'min p_{z}^{#nu} (GeV)',  0],
+    'miss_pz_max'       : [50,-1500, 1500,'max p_{z}^{#nu} (GeV)',  0],
+    'tau_mu12_dZ'       : [ 20, 0, 0.2, '#Delta z (#mu_1, #mu_2)',  0],
+    'tau_mu13_dZ'       : [ 20, 0, 0.2, '#Delta z (#mu_1, #mu_3)',  0],
+    'tau_mu23_dZ'       : [ 20, 0, 0.2, '#Delta z (#mu_2, #mu_3)',  0],
+    'tau_Lxy_sign_BS'   : [ 25, 0, 10,  'SV L_{xy}/#sigma',         0],
+    'tau_fit_vprob'     : [ 20, 0,  1,  'SV probability',           0],
+    'tau_cosAlpha_BS'   : [ 50, 0.9,1,  'cos_{#alpha}(SV, BS)',     1],
+    'tau_mu1_TightID_PV': [  2,-0.5,1.5, '#mu_1 ID',                0],
+    'tau_mu2_TightID_PV': [  2,-0.5,1.5, '#mu_2 ID',                0],
+    'tau_mu3_TightID_PV': [  2,-0.5,1.5, '#mu_3 ID',                0],
+    'tauEta'            : [  8,-0.5,7.5, '3#mu #eta bins',          0],
+    'tau_fit_eta'       : [ 35, -3.5, 3.5,'#eta (3 #mu)',           0],
+    'tau_fit_mass'      : [ 40,1.6, 2.0, 'M(3 #mu)',                0],
+    'bdt_score'         : [ 50, 0, 1,    'BDT score',               1],
+    'bdt_score_t3m'     : [ 50, 0, 1,    'BDT_{#tau 3 #mu} score',  1],
 }
 
 ###                ###
