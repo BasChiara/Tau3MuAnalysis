@@ -1,0 +1,8 @@
+# 10 April production
+/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano_2024Mar29/ppW3MuNu_2022EE_MGv5NLO_pythia8_NanoAOD/crab_ppW3MuNu_2022EE/240329_131133/0000/
+/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano_2024Apr10/ppW3MuNu_Run3Summer22EE_mc_MGv5NLO_pythia8_v2/crab_ppW3MuNu_2022EE_v2/240410_090916/0000/
+/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano_2024Apr10/ppW3MuNu_Run3Summer22EE_mc_MGv5NLO_pythia8_v3/crab_ppW3MuNu_2022EE_v3/240410_090508/0000/
+/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano_2024Apr10/ppW3MuNu_Run3Summer22EE_mc_MGv5NLO_pythia8_v4/crab_ppW3MuNu_2022EE_v4/240410_090514/0000/
+/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano_2024Apr10/ppW3MuNu_Run3Summer22EE_mc_MGv5NLO_pythia8_v5/crab_ppW3MuNu_2022EE_v5/240410_090521/0000/
+/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano_2024Apr10/ppW3MuNu_Run3Summer22EE_mc_MGv5NLO_pythia8_v6/crab_ppW3MuNu_2022EE_v6/240410_090525/0000/
+/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano_2024Apr10/ppW3MuNu_Run3Summer22EE_mc_MGv5NLO_pythia8_v7/crab_ppW3MuNu_2022EE_v7/240410_090529/0000/
