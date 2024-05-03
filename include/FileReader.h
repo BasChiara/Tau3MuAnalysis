@@ -17,7 +17,7 @@ class FileReader{
       ~FileReader(){ }
 
       TChain* lxplusTChain_loader();
-      TChain* xrootdTChain_loader(const int& Nfiles);
+      TChain* xrootdTChain_loader(const int& Nfiles, const int& init_file = 1);
 
 
 
@@ -32,7 +32,7 @@ class FileReader{
       char Buffer[5000];
       std::string NtupleDir;
       char MyRootFile[10000];
-      const bool debug = false;
+      const bool debug = true;
 
 
 };

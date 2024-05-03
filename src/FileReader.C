@@ -65,7 +65,7 @@ TChain* FileReader::lxplusTChain_loader(){
     return outChain_;
 }//lxplusTChain_loader()
 
-TChain* FileReader::xrootdTChain_loader(const int& Nfiles){
+TChain* FileReader::xrootdTChain_loader(const int& Nfiles, const int& init_file){
 
     // open the text file containing the input-files paths
 	std::ifstream *inputFile = new std::ifstream(inputFileName_);
@@ -79,27 +79,30 @@ TChain* FileReader::xrootdTChain_loader(const int& Nfiles){
 	char MyRootFile[10000];
 	TString ChainPath("");
 	
-    int Nfile = 0;
+    int addedFiles = 0;
     int filesToAdd = Nfiles;
+    int last_file  = Nfiles + init_file; 
+    if (debug) std::cout << " + adding " << filesToAdd << " files" << std::endl; 
+    // read the .txt lines
     while( !(inputFile->eof()) && (filesToAdd > 0) ){
         inputFile->getline(Buffer,500);
         if (!strstr(Buffer,"#") && !(strspn(Buffer," ") == strlen(Buffer)))
         {
             sscanf(Buffer,"%s",MyRootFile);
             if (debug) std::cout << " [+] start adding "<< filesToAdd << " files from " << MyRootFile << std::endl;
-            for(int i = 0; i < filesToAdd; i++){
+            for(int i = init_file; i < last_file; i++){
                 ChainPath = TString(MyRootFile);
                 if(ChainPath.EndsWith("_")) ChainPath.Append(Form("%d.root", i+1));
                 else ChainPath.Append(Form("%.3d.root", i));
-                if (debug) std::cout << " + chaining " << ChainPath << std::endl; 
+                if (debug) std::cout << " + " << ChainPath << std::endl; 
                 int status = outChain_->Add(TString(ChainPath));
-                Nfile++;
-                if(Nfile > 1000 || Nfile == Nfiles) filesToAdd -= 1000;
+                addedFiles++;
+                if(addedFiles > 1000 || addedFiles == Nfiles) last_file -= addedFiles;
             }
         }
     }
 
-	std::cout <<" [+] number of chained files : " << Nfile << std::endl; 
+	std::cout <<" [+] number of chained files : " << addedFiles << std::endl; 
 
 	inputFile->close();
 	delete inputFile;
