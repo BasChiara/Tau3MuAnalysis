@@ -72,7 +72,7 @@ else:
     h_SFmedPt = infile.Get('h_NUM_MediumID_DEN_TrackerMuons_2022preEE_medium_val')
 
 c = ROOT.TCanvas("c", "", 800, 800)
-legend = ROOT.TLegend(0.60, 0.70, 0.80, 0.80)
+legend = ROOT.TLegend(0.60, 0.70, 0.80, 0.85)
 legend.SetBorderSize(0)
 legend.SetTextSize(0.035)
 
@@ -108,12 +108,12 @@ for i, eta  in enumerate(eta_pt_lowpT):
     gr_med.SetMarkerColor(ROOT.kRed)
     legend.Clear()
     legend.SetHeader(eta_binning)
-    legend.AddEntry(gr_low, r"MediumID J/$\psi$")
+    legend.AddEntry(gr_low, "MediumID J/#psi")
     legend.AddEntry(gr_med, "MediumID Z")
     c.cd()
 
     gr_low.Draw('AP')
-    gr_med.Draw('P')   
+    #gr_med.Draw('P')   
     legend.Draw()
     
     

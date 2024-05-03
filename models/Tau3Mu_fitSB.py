@@ -34,7 +34,7 @@ ROOT.TH1.SetDefaultSumw2()
 # **** USEFUL CONSTANT VARIABLES *** #
 mass_window = 0.060 # GeV
 tau_mass = 1.777 # GeV
-fit_range_lo  , fit_range_hi   = 1.70, 1.85 # GeV
+fit_range_lo  , fit_range_hi   = 1.65, 1.95 # GeV
 mass_window_lo, mass_window_hi = 1.60, 2.00 # GeV #tau_mass-mass_window, tau_mass+mass_window
 
 nbins = 40 # needed just for plotting, fits are all unbinned
@@ -48,10 +48,10 @@ omega_mass = 0.783 #GeV
 
 
 input_tree_name = 'tree_w_BDT'
-#mc_file     = '/eos/cms/store/group/phys_bphys/cbasile/XGBout_signal_reMini2022_kFold_2024Feb22.root'
-#data_file   = '/eos/cms/store/group/phys_bphys/cbasile/XGBout_data_reMini2022_kFold_2024Feb22_open.root'
-mc_file     = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_signal_HLT_DoubleMu_kFold_2024Mar12.root'
-data_file   = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_data_HLT_DoubleMu_kFold_2024Mar12_blind.root'
+mc_file     = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_signal_kFold_HLToverlap_bkgW3MuNu_LxyS0_2024May01.root'
+data_file   = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_WTau3Mu_DATA_apply_bkgW3MuNu_LxyS0_2024May01.root'
+#mc_file     = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_signal_HLT_DoubleMu_kFold_2024Mar12.root'
+#data_file   = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_data_HLT_DoubleMu_kFold_2024Mar12_blind.root'
 
 
 # ** RooFit Variables
@@ -67,13 +67,15 @@ mass_err = ROOT.RooRealVar('tau_fit_mass_err', '#sigma_{M(3 #mu)}/ M(3 #mu)'  , 
 # BDT score
 bdt = ROOT.RooRealVar('bdt_score', 'BDT score'  , 0.0,  1.0, '' )
 # data weights
-weight = ROOT.RooRealVar('weight', 'weight'  , 0.0,  1.0, '' )
+weight = ROOT.RooRealVar('weight', 'weight'  , 0.00005,  1.0, '' )
 # di-muon mass
 mu12_mass = ROOT.RooRealVar('tau_mu12_fitM', 'tau_mu12_fitM'  , -10.0,  10.0, 'GeV' )
 mu23_mass = ROOT.RooRealVar('tau_mu23_fitM', 'tau_mu23_fitM'  , -10.0,  10.0, 'GeV' )
 mu13_mass = ROOT.RooRealVar('tau_mu13_fitM', 'tau_mu13_fitM'  , -10.0,  10.0, 'GeV' )
 # run
 run = ROOT.RooRealVar('run', 'run'  , 0,  362800)
+#displacement
+Lsign = ROOT.RooRealVar('tau_Lxy_sign_BS', 'tau_Lxy_sign_BS', 0., 1000, '')
 
 thevars = ROOT.RooArgSet()
 thevars.add(mass)
@@ -84,10 +86,11 @@ thevars.add(mu12_mass)
 thevars.add(mu13_mass)
 thevars.add(mu23_mass)
 thevars.add(run)
+thevars.add(Lsign)
 
 ### MC SIGNAL ###
-sgn_selection = 'bdt_score > %.4f '%args.bdt_cut
-phi_veto = '''fabs(tau_mu12_fitM- {mass:.3f})> {window:.3f} & fabs(tau_mu23_fitM - {mass:.3f})> {window:.3f} & fabs(tau_mu13_fitM -  {mass:.3f})>{window:.3f}'''.format(mass =phi_mass , window = phi_window/2. )
+sgn_selection = '(bdt_score > %.4f)'%args.bdt_cut
+phi_veto = '''(fabs(tau_mu12_fitM- {mass:.3f})> {window:.3f} & fabs(tau_mu23_fitM - {mass:.3f})> {window:.3f} & fabs(tau_mu13_fitM -  {mass:.3f})>{window:.3f})'''.format(mass =phi_mass , window = phi_window/2. )
 cat_selection = ''
 if args.category == 'A'  : cat_selection = ' & tau_fit_mass_err/tau_fit_mass <= 0.007'
 if args.category == 'B'  : cat_selection = ' & tau_fit_mass_err/tau_fit_mass > 0.007 & tau_fit_mass_err/tau_fit_mass <= 0.012'
@@ -121,7 +124,7 @@ signal_model = ROOT.RooAddPdf('ext_model_sig_%s'%process_name, 'ext_model_sig_%s
 # signal fit
 results_gaus = signal_model.fitTo(
     fullmc, 
-    ROOT.RooFit.Range('sig_range'), 
+    ROOT.RooFit.Range('fit_range'), 
     ROOT.RooFit.Save(),
     ROOT.RooFit.Extended(ROOT.kTRUE),
     ROOT.RooFit.SumW2Error(True),
@@ -144,7 +147,7 @@ signal_model.plotOn(
     frame, 
     ROOT.RooFit.LineColor(ROOT.kRed),
     ROOT.RooFit.Range('full_range'),
-    ROOT.RooFit.NormRange('sig_range'),
+    ROOT.RooFit.NormRange('fit_range'),
     ROOT.RooFit.MoveToBack()
 )
 print('signal chi2 %.2f'%(frame.chiSquare()))

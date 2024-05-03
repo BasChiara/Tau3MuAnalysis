@@ -64,7 +64,7 @@ mass.setRange('full_range', mass_window_lo, mass_window_hi)
 mass_err = ROOT.RooRealVar('%s_fit_mass_err'%('Ds' if not args.fake_cand else 'tau'), '#sigma_{M(3 #mu)}/ M(3 #mu)'  , 0.0,  0.03, 'GeV' )
 dspl_sig = ROOT.RooRealVar('%s_Lxy_sign_BS'%('Ds' if not args.fake_cand else 'tau'), ''  , 5.0,  1000)
 sv_prob  = ROOT.RooRealVar('%s_fit_vprob'%('Ds' if not args.fake_cand else 'tau'), ''  , 0.01,  1.0)
-phi_mass = ROOT.RooRealVar('phi_fit_mass' if not args.fake_cand else 'tau_phiMuMu_mass', ''  , 0.98,  1.05, 'GeV')
+phi_mass = ROOT.RooRealVar('phi_fit_mass' if not args.fake_cand else 'tau_phiMuMu_mass', ''  , 0.99,  1.05, 'GeV')
 
 thevars = ROOT.RooArgSet()
 thevars.add(mass)

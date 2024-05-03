@@ -32,6 +32,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--plot_outdir',    default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/BDTtraining/', help=' output directory for plots')
 parser.add_argument('--category'   ,                                                                 help= 'resolution category to compute (A, B, C)')
 parser.add_argument('--tag',            default= 'app_emulateRun2',                                  help='tag to the training')
+parser.add_argument('--LxySign_cut',    default=  0.0,  type = float,                                help='set random state for reproducible results')
 parser.add_argument('--debug',          action = 'store_true' ,                                      help='set it to have useful printout')
 parser.add_argument('--unblind',        action = 'store_true' ,                                      help='set it to unblind the data')
 parser.add_argument('-s', '--signal',   action = 'append',                                           help='file with signal events with BDT applied')
@@ -42,7 +43,7 @@ tag = args.tag
 removeNaN = False 
 
  # ------------ APPLY SELECTIONS ------------ # 
-base_selection = '(tau_fit_mass > %.2f & tau_fit_mass < %.2f )'%(mass_range_lo,mass_range_hi) +( '& ' + cat_selection_dict[args.category] if (args.category) else '') 
+base_selection = '(tau_fit_mass > %.2f & tau_fit_mass < %.2f ) & (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu) & (tau_Lxy_sign_BS > %.2f)'%(mass_range_lo,mass_range_hi, args.LxySign_cut) 
 sig_selection  = base_selection 
 bkg_selection  = base_selection + ('& (tau_fit_mass < %.2f | tau_fit_mass > %.2f)'%(blind_range_lo, blind_range_hi) if not (args.unblind) else '')
 
@@ -117,50 +118,50 @@ print('[=] save BDT vs Mtau in %s.png(pdf) '%currentPlot_name)
 
 
 # ------------ BDT SCORE ACROSS kFOLDs ------------ # 
-ROOT.gStyle.SetPalette(ROOT.kCMYK)
-kFold = 5
-h_BDTfold_data  = []
-h_BDTfold_signal = []
-for i in range(kFold):
-    h_BDTfold_data.append(bkg_rdf.Filter('bdt_to_apply==%d'%i).Histo1D(('h_BDTfold_data_%d'%i, 'bdt score in data n fold %d'%i, 50, 0.0, 1.0), 'bdt_score'))
-    h_BDTfold_signal.append(sig_rdf.Filter('bdt_to_apply==%d'%i).Histo1D(('h_BDTfold_signal_%d'%i, 'bdt score in MC in fold %d'%i, 50, 0.0, 1.0), 'bdt_score'))
-
-h_BDTfold_data[0].GetXaxis().SetTitle('BDT score')
-h_BDTfold_data[0].GetXaxis().SetTitleSize(0.35)
-h_BDTfold_signal[0].GetXaxis().SetTitle('BDT score')
-h_BDTfold_signal[0].GetXaxis().SetTitleSize(0.35)
-
-c_dat  = ROOT.TCanvas('c_dat', '', 800,800)
-legend_dat = ROOT.TLegend(0.6, 0.6, 0.80, 0.85)
-c_sig  = ROOT.TCanvas('c_sig', '', 800,800)
-legend_sig = ROOT.TLegend( 0.15, 0.6, 0.35, 0.85)
-for i in range(kFold):
-    c_dat.cd()
-    h_BDTfold_data[i].Scale(1./h_BDTfold_data[i].GetEntries())
-    h_BDTfold_data[i].SetLineWidth(2)
-    h_BDTfold_data[i].Draw('same hist plc')
-    legend_dat.AddEntry('h_BDTfold_data_%d'%i, 'fold %d'%i,'f')
-    c_sig.cd()
-    h_BDTfold_signal[i].Scale(1./h_BDTfold_signal[i].GetEntries())
-    h_BDTfold_signal[i].SetLineWidth(2)
-    h_BDTfold_signal[i].Draw('same hist plc')
-    legend_sig.AddEntry('h_BDTfold_signal_%d'%i, 'fold %d'%i, 'f')
-
-currentPlot_name = '%sBDTvsFolds_data_%s' %(args.plot_outdir,tag)
-c_dat.SetLogy(1)
-c_dat.cd()
-legend_dat.Draw()
-c_dat.SaveAs(currentPlot_name+'.png')
-c_dat.SaveAs(currentPlot_name+'.pdf')
-print('[=] save BDT score vs folds in %s.png(pdf) '%currentPlot_name)
-    
-currentPlot_name = '%sBDTvsFolds_signal_%s' %(args.plot_outdir,tag)
-c_sig.SetLogy(1)
-c_sig.cd()
-legend_sig.Draw()
-c_sig.SaveAs(currentPlot_name+'.png')
-c_sig.SaveAs(currentPlot_name+'.pdf')
-print('[=] save BDT score vs folds in %s.png(pdf) '%currentPlot_name)
+#ROOT.gStyle.SetPalette(ROOT.kCMYK)
+#kFold = 5
+#h_BDTfold_data  = []
+#h_BDTfold_signal = []
+#for i in range(kFold):
+#    h_BDTfold_data.append(bkg_rdf.Filter('bdt_to_apply==%d'%i).Histo1D(('h_BDTfold_data_%d'%i, 'bdt score in data n fold %d'%i, 50, 0.0, 1.0), 'bdt_score'))
+#    h_BDTfold_signal.append(sig_rdf.Filter('bdt_to_apply==%d'%i).Histo1D(('h_BDTfold_signal_%d'%i, 'bdt score in MC in fold %d'%i, 50, 0.0, 1.0), 'bdt_score'))
+#
+#h_BDTfold_data[0].GetXaxis().SetTitle('BDT score')
+#h_BDTfold_data[0].GetXaxis().SetTitleSize(0.35)
+#h_BDTfold_signal[0].GetXaxis().SetTitle('BDT score')
+#h_BDTfold_signal[0].GetXaxis().SetTitleSize(0.35)
+#
+#c_dat  = ROOT.TCanvas('c_dat', '', 800,800)
+#legend_dat = ROOT.TLegend(0.6, 0.6, 0.80, 0.85)
+#c_sig  = ROOT.TCanvas('c_sig', '', 800,800)
+#legend_sig = ROOT.TLegend( 0.15, 0.6, 0.35, 0.85)
+#for i in range(kFold):
+#    c_dat.cd()
+#    h_BDTfold_data[i].Scale(1./h_BDTfold_data[i].GetEntries())
+#    h_BDTfold_data[i].SetLineWidth(2)
+#    h_BDTfold_data[i].Draw('same hist plc')
+#    legend_dat.AddEntry('h_BDTfold_data_%d'%i, 'fold %d'%i,'f')
+#    c_sig.cd()
+#    h_BDTfold_signal[i].Scale(1./h_BDTfold_signal[i].GetEntries())
+#    h_BDTfold_signal[i].SetLineWidth(2)
+#    h_BDTfold_signal[i].Draw('same hist plc')
+#    legend_sig.AddEntry('h_BDTfold_signal_%d'%i, 'fold %d'%i, 'f')
+#
+#currentPlot_name = '%sBDTvsFolds_data_%s' %(args.plot_outdir,tag)
+#c_dat.SetLogy(1)
+#c_dat.cd()
+#legend_dat.Draw()
+#c_dat.SaveAs(currentPlot_name+'.png')
+#c_dat.SaveAs(currentPlot_name+'.pdf')
+#print('[=] save BDT score vs folds in %s.png(pdf) '%currentPlot_name)
+#    
+#currentPlot_name = '%sBDTvsFolds_signal_%s' %(args.plot_outdir,tag)
+#c_sig.SetLogy(1)
+#c_sig.cd()
+#legend_sig.Draw()
+#c_sig.SaveAs(currentPlot_name+'.png')
+#c_sig.SaveAs(currentPlot_name+'.pdf')
+#print('[=] save BDT score vs folds in %s.png(pdf) '%currentPlot_name)
 
 
 # ------------ EFFICIENCY vs Mtau ------------ # 
