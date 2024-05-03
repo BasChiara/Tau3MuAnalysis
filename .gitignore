@@ -16,7 +16,7 @@ job_report/Analyzer_*
 *__pycache__
 
 # condor
-*/cbasile.cc
+*cbasile.cc
 
 # vscode cache
 *.vscode
