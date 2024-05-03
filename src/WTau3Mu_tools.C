@@ -77,37 +77,35 @@ std::vector<unsigned int> WTau3Mu_tools::sorted_cand_mT(){
 }//sorted_cand_mT()
 
 bool WTau3Mu_tools::TriggerMatching(const int TauIdx, const int config){
-    //int trigger_configuration = (config == -1 ? HLTconf_ : config);
-    int trigger_configuration = config;
-    bool is_fired_trigger = false;
-    bool is_fired_Tau3Mu = false, is_fired_DoubleMu = false;
-    if(trigger_configuration == HLT_paths::HLT_Tau3Mu){ //|| trigger_configuration == HLT_paths::HLT_overlap){
-        // check if the 3 muons + tau fired the trigger
-        bool is_fired_1 = HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 &&
-                            TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[TauIdx] &&
-                            TauTo3Mu_mu2_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[TauIdx] &&
-                            TauTo3Mu_mu3_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[TauIdx] &&
-                            TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[TauIdx];
-        bool is_fired_2 = HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15 &&
-                            TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[TauIdx] &&
-                            TauTo3Mu_mu2_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[TauIdx] &&
-                            TauTo3Mu_mu3_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[TauIdx]&&
-                            TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[TauIdx];
-        is_fired_Tau3Mu = (is_fired_1 || is_fired_2) && HLT_Tau3Mu_emulator(TauIdx);
-        is_fired_trigger = is_fired_Tau3Mu;
-    }
-    if(trigger_configuration == HLT_paths::HLT_DoubleMu ){ //|| trigger_configuration == HLT_paths::HLT_overlap){
-        is_fired_DoubleMu = HLT_DoubleMu4_3_LowMass &&
-	  (
+   //int trigger_configuration = (config == -1 ? HLTconf_ : config);
+   int trigger_configuration = config;
+   bool is_fired_trigger = false;
+   bool is_fired_Tau3Mu = false, is_fired_DoubleMu = false;
+   if(trigger_configuration == HLT_paths::HLT_Tau3Mu|| trigger_configuration == HLT_paths::HLT_overlap){
+      // check if the 3 muons + tau fired the trigger
+      bool is_fired_1 = HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 &&
+                           TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[TauIdx] &&
+                           TauTo3Mu_mu2_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[TauIdx] &&
+                           TauTo3Mu_mu3_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[TauIdx] &&
+                           TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[TauIdx];
+      bool is_fired_2 = HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15 &&
+                           TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[TauIdx] &&
+                           TauTo3Mu_mu2_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[TauIdx] &&
+                           TauTo3Mu_mu3_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[TauIdx]&&
+                           TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[TauIdx];
+      is_fired_Tau3Mu = (is_fired_1 || is_fired_2) && HLT_Tau3Mu_emulator(TauIdx);
+   }
+   if(trigger_configuration == HLT_paths::HLT_DoubleMu ){ //|| trigger_configuration == HLT_paths::HLT_overlap){
+      is_fired_DoubleMu = HLT_DoubleMu4_3_LowMass &&
+	   (
 	   (TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx]) ||
 	   (TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu3_fired_DoubleMu4_3_LowMass[TauIdx]) ||
 	   (TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu3_fired_DoubleMu4_3_LowMass[TauIdx])
 	   ) && 
      HLT_DoubleMu_emulator(TauIdx);
-     is_fired_trigger = is_fired_DoubleMu;
     }
-    if(trigger_configuration == HLT_paths::HLT_overlap) is_fired_trigger = true;
-    //is_fired_trigger = is_fired_Tau3Mu || is_fired_DoubleMu;
+    //if(trigger_configuration == HLT_paths::HLT_overlap) is_fired_trigger = true;
+    is_fired_trigger = is_fired_Tau3Mu || is_fired_DoubleMu;
     return is_fired_trigger;
 }//TriggerMatching()
 
@@ -260,12 +258,13 @@ void  WTau3Mu_tools::GenPartFillP4(){
    }
 
 
-   int mu1, mu2, mu3;
+   int mu1 = -1, mu2 = -1, mu3 = -1;
    bool tau3Mu_found = false;
 
    for (UInt_t g = 0; g < nGenPart; g++){
 
       // look for 3 muons from same Tau 
+      if (GenPart_genPartIdxMother[g] < 0 ) continue;
       if(abs(GenPart_pdgId[g]) == isMuon 
             && abs(GenPart_pdgId[GenPart_genPartIdxMother[g]]) == isTau
             && !tau3Mu_found)
@@ -273,7 +272,8 @@ void  WTau3Mu_tools::GenPartFillP4(){
          mu1 = g;
          int Tau_idx = GenPart_genPartIdxMother[g];
          if (debug) std::cout << " mu1 found @" << mu1 << std::endl;
-         for(UInt_t gg = g+1; gg < nGenPart; gg++){ 
+         for(UInt_t gg = g+1; gg < nGenPart; gg++){
+            if (GenPart_genPartIdxMother[gg] < 0) continue;
             if(abs(GenPart_pdgId[gg]) == isMuon 
             && abs(GenPart_pdgId[GenPart_genPartIdxMother[gg]]) == isTau
             && GenPart_genPartIdxMother[gg] == Tau_idx
@@ -282,6 +282,7 @@ void  WTau3Mu_tools::GenPartFillP4(){
                mu2 = gg;
                if (debug) std::cout << " mu2 found @" << mu2 << std::endl;
                for(UInt_t ggg = gg+1; ggg < nGenPart; ggg++){ 
+                  if(GenPart_genPartIdxMother[ggg] < 0) continue;
                   if(abs(GenPart_pdgId[ggg]) == isMuon 
                      && abs(GenPart_pdgId[GenPart_genPartIdxMother[ggg]]) == isTau
                      && GenPart_genPartIdxMother[ggg] == Tau_idx
@@ -301,39 +302,41 @@ void  WTau3Mu_tools::GenPartFillP4(){
      
    }// loop on gen particles
 
-         // save Muon and Tau idx
-         Muons_idxs.push_back(mu1); Muons_idxs.push_back(mu2); Muons_idxs.push_back(mu3); 
-         Taus_idxs.push_back(GenPart_genPartIdxMother[mu1]); Taus_idxs.push_back(GenPart_genPartIdxMother[mu2]); Taus_idxs.push_back(GenPart_genPartIdxMother[mu3]);
-         Muons_pt.push_back(GenPart_pt[mu1]); Muons_pt.push_back(GenPart_pt[mu2]); Muons_pt.push_back(GenPart_pt[mu3]);
+   if ((mu1<0)||(mu2<0)||(mu3<0)) return;
 
-     
-      if(Muons_idxs.size() < 3){
-         std::cout << " [ERROR] wrong number of gen-muons it is " << Muons_idxs.size() << std::endl;
-         exit(-1);
-      }else if(Muons_idxs.size() == 3){
-         if (debug) std::cout << " [OK] 3 muons found" << std::endl;
-         // Tau index & Tau's mother idx 
-         Tau_idx = Taus_idxs[0];
-         int motherTau_idx = GenPart_genPartIdxMother[Tau_idx];
-            // Tau comes from W
-         if (abs(GenPart_pdgId[motherTau_idx]) == isW)
-         {
-            W_idx = motherTau_idx;   
-            // in case of tau radiative decays
-         }else if( abs(GenPart_pdgId[motherTau_idx]) == isTau 
-                && abs(GenPart_pdgId[GenPart_genPartIdxMother[motherTau_idx]]) == isW)
-         {
-            Tau_idx = motherTau_idx;
-            W_idx = GenPart_genPartIdxMother[motherTau_idx]; 
-         }  
-      }else{
-         std::cout << " [!!] number of gen-muons from taus is " << Muons_idxs.size() << std::endl;
-         if(debug){
-            for (int i=0; i < Taus_idxs.size(); i++) std::cout << Form("tau : %d\t mu: %d", Taus_idxs[i] , Muons_idxs[i])<< std::endl;
-         }
-         exit(-1);
-      }
+   // save Muon and Tau idx
+   Muons_idxs.push_back(mu1); Muons_idxs.push_back(mu2); Muons_idxs.push_back(mu3); 
+   Taus_idxs.push_back(GenPart_genPartIdxMother[mu1]); Taus_idxs.push_back(GenPart_genPartIdxMother[mu2]); Taus_idxs.push_back(GenPart_genPartIdxMother[mu3]);
+   Muons_pt.push_back(GenPart_pt[mu1]); Muons_pt.push_back(GenPart_pt[mu2]); Muons_pt.push_back(GenPart_pt[mu3]);
+
    
+   if(Muons_idxs.size() < 3){
+      std::cout << " [ERROR] wrong number of gen-muons it is " << Muons_idxs.size() << std::endl;
+      exit(-1);
+   }else if(Muons_idxs.size() == 3){
+      if (debug) std::cout << " [OK] 3 muons found" << std::endl;
+      // Tau index & Tau's mother idx 
+      Tau_idx = Taus_idxs[0];
+      int motherTau_idx = GenPart_genPartIdxMother[Tau_idx];
+         // Tau comes from W
+      if (abs(GenPart_pdgId[motherTau_idx]) == isW)
+      {
+         W_idx = motherTau_idx;   
+         // in case of tau radiative decays
+      }else if( abs(GenPart_pdgId[motherTau_idx]) == isTau 
+               && abs(GenPart_pdgId[GenPart_genPartIdxMother[motherTau_idx]]) == isW)
+      {
+         Tau_idx = motherTau_idx;
+         W_idx = GenPart_genPartIdxMother[motherTau_idx]; 
+      }  
+   }else{
+      std::cout << " [!!] number of gen-muons from taus is " << Muons_idxs.size() << std::endl;
+      if(debug){
+         for (int i=0; i < Taus_idxs.size(); i++) std::cout << Form("tau : %d\t mu: %d", Taus_idxs[i] , Muons_idxs[i])<< std::endl;
+      }
+      exit(-1);
+   }
+
 
    // order muons in leading, sub-leading and trailing
    std::sort(Muons_idxs.begin(),Muons_idxs.end(), [this](int &a, int &b){ return GenPart_pt[a]>GenPart_pt[b]; });
@@ -349,11 +352,11 @@ void  WTau3Mu_tools::GenPartFillP4(){
    GenMu3_P4.SetPt(GenPart_pt[Mu3_idx]); GenMu3_P4.SetEta(GenPart_eta[Mu3_idx]); GenMu3_P4.SetPhi(GenPart_phi[Mu3_idx]); GenMu3_P4.SetM(Muon_MASS);
 
    if(debug){
-      std::cout << " W found @ " << W_idx << std::endl;
-      std::cout << " nu found @ " << Nu_idx << std::endl;
-      std::cout << " tau found @ " << Tau_idx << std::endl;
-      std::cout << " Mu found @ " << Mu1_idx  << " " << Mu2_idx << " "<< Mu3_idx << std::endl;
-      std::cout << " Mu pT " << GenPart_pt[Mu1_idx] << " " << GenPart_pt[Mu2_idx] << " "<< GenPart_pt[Mu3_idx] << std::endl;
+      std::cout << " W found @ "    << W_idx << std::endl;
+      std::cout << " nu found @ "   << Nu_idx << std::endl;
+      std::cout << " tau found @ "  << Tau_idx << std::endl;
+      std::cout << " Mu found @ "   << Mu1_idx  << " " << Mu2_idx << " "<< Mu3_idx << std::endl;
+      std::cout << " Mu pT "        << GenPart_pt[Mu1_idx] << " " << GenPart_pt[Mu2_idx] << " "<< GenPart_pt[Mu3_idx] << std::endl;
    }
 
 } // GenPartFillP4()

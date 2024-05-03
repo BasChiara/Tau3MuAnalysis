@@ -10,7 +10,7 @@ void WTau3Mu_analyzer::Loop(){
    const Long64_t Nbreak = nentries + 10; 
    const Long64_t Nprint = (int)(nentries/20.);
 
-   unsigned int nEvTau3Mu =0, nTriggerBit = 0, nEvTriggerFired_Tau3Mu = 0, nEvTriggerFired_DoubleMu = 0, nEvReinforcedHLT = 0, nEvDiMuResVeto = 0;
+   unsigned int nEvTau3Mu =0, nTriggerBit = 0, nEvTriggerFired_Tau3Mu = 0, nEvTriggerFired_DoubleMu = 0, nEvTriggerFired_Total = 0, nEvReinforcedHLT = 0, nEvDiMuResVeto = 0;
    unsigned int nTauFired3Mu = 0, nTauReinforcedHLT = 0, nTauDiMuonVeto = 0, nTauMCmatched = 0;
    bool flag_HLT_Tau3mu = false, flag_HLT_DoubleMu = false, flag_reinfHLT = true, flag_diMuResVeto =true;
 
@@ -77,7 +77,7 @@ void WTau3Mu_analyzer::Loop(){
             flag_HLT_Tau3mu   = TriggerMatching(t,HLT_paths::HLT_Tau3Mu);
             flag_HLT_DoubleMu = TriggerMatching(t,HLT_paths::HLT_DoubleMu);
          }
-         if(HLTconf_ != HLT_paths::HLT_overlap && !(flag_HLT_Tau3mu || flag_HLT_DoubleMu)) continue;
+         if(!(flag_HLT_Tau3mu || flag_HLT_DoubleMu)) continue;
          nTauFired3Mu++;
          HLT_isfired_DoubleMu = (int)flag_HLT_DoubleMu; HLT_isfired_Tau3Mu = (int)flag_HLT_Tau3mu; 
 
@@ -187,6 +187,7 @@ void WTau3Mu_analyzer::Loop(){
       // HLT summary
       if(flag_HLT_Tau3mu) nEvTriggerFired_Tau3Mu++;
       if(flag_HLT_DoubleMu) nEvTriggerFired_DoubleMu++;
+      if(flag_HLT_DoubleMu || flag_HLT_Tau3mu) nEvTriggerFired_Total++;
 
    }// loop on events
 
@@ -197,6 +198,7 @@ void WTau3Mu_analyzer::Loop(){
    std::cout << " Events whith HLT-bit ON " << nTriggerBit << std::endl;
    std::cout << " Events which fully fired HLT_Tau3Mu " << nEvTriggerFired_Tau3Mu << std::endl;
    std::cout << " Events which fully fired HLT_DoubleMu " << nEvTriggerFired_DoubleMu << std::endl;
+   std::cout << " Events which fully fired TOTAL " << nEvTriggerFired_Total << std::endl;
    std::cout << " Events after di-muon resonance veto " << nEvDiMuResVeto << std::endl;
    std::cout << " Events after HLT_DoubleMu reinforcement " << nEvReinforcedHLT << std::endl;
    std::cout << " Tau candidates with 3 fired muons " << nTauFired3Mu << std::endl;
@@ -245,11 +247,12 @@ void WTau3Mu_analyzer::saveOutput(){
    outFile_->cd();
 
    outTree_->Write();
-   h_muonSF_lowpT->Write();
-   h_muonSF_lowpT_sysUP->Write();
-   h_muonSF_lowpT_sysDOWN->Write();
-   //make h_muonSF_medpT->Write();
-
+   if(isMC_){
+      h_muonSF_lowpT->Write();
+      h_muonSF_lowpT_sysUP->Write();
+      h_muonSF_lowpT_sysDOWN->Write();
+      //make h_muonSF_medpT->Write();
+   }
    outFile_->Close();
    std::cout << " [OUTPUT] root file saved in " << outFilePath_ << std::endl;
 
