@@ -10,43 +10,69 @@
 #include <sys/stat.h>
 #include <string>
 #include <stdio.h>
+#include <boost/program_options.hpp>
+namespace po = boost::program_options;
 
 //ROOT includes
 #include <TROOT.h>
 #include <TFile.h>
 #include <TTree.h>
 #include <TChain.h>
-
 using namespace std;
 
 int main(int argc, char* argv[]) {
 	
    // usage : ./bin/Analyzer_app data/file.txt outputdir/ DATA 2022A Tau3Mu Nfiles
-   if ( argc < 2 ){
-		std::cout << " [ERROR] missing arguments : insert the file and the dataset you want to use :-)" << std::endl; 
-		std::cout <<  argv[0] <<" [inputFile] [outpudir] [DATA/MC] [year] [Tau3Mu/DsPhiPi] [Nfiles] [init_file] [opt-tag]" << std::endl;
-		return 1;
-	}
-
-	// command line inputs
-	std::string inputFileName = argv[1];
-	std::string outputDir = argv[2];
-	TString dataset = argv[3];
-	TString year = argv[4];
-   TString channel = "Tau3Mu";
-   if (argc > 5) channel = argv[5];
-   if (channel != "Tau3Mu" && channel != "DsPhiPi") {
-      std::cout << " [ERROR] specify which channel you want to analyze options are \"Tau3Mu\" or \"DsPhiPi\"." << std::endl;
-      exit(-1);
-   }
+   // INPUT PARSER
+   std::string inputFileName;
+   std::string outputDir;
+   std::string dset;
+   std::string year;
+   std::string analyzer = "Tau3Mu";
+   std::string process = "default";
    int Nfiles = 1000;
-   if (argc > 6) Nfiles = std::stoi(argv[6]);
    int init_file = 0;
-   if (argc > 7) init_file = std::stoi(argv[7]); 
-   TString tag = "";
-   if (argc > 8) tag = argv[8];
+   std::string tag;
 
+   po::options_description desc("Allowed options");
+    desc.add_options()
+      ("help,h", "produce help message")
+      ("input,i",      po::value<std::string>(&inputFileName),                               "input file list")
+      ("output,o",     po::value<std::string>(&outputDir)->default_value("./outRoot"),       "output directory")
+      ("dataset,d",    po::value<std::string>(&dset),                                     "DATA - MC - file.root")
+      ("year,y",       po::value<std::string>(&year),                                        "year-era")
+      ("analyzer,a",   po::value<std::string>(&analyzer)->default_value("Tau3Mu"),           "analyzer : [Tau3Mu,DsPhiPi]")
+      ("process,p",    po::value<std::string>(&process)->default_value("data"),              "process: [data, Tau3Mu, DsPhiPi, W3MuNu]")
+      ("Nfiles,N",     po::value<int>(&Nfiles)->default_value(1000),                         "number of files")
+      ("init_file,f",  po::value<int>(&init_file)->default_value(0),                         "initial file")
+      ("tag,t",        po::value<std::string>(&tag),                                         "tag");
+
+   po::variables_map vm;
+
+   try {
+      po::store(po::parse_command_line(argc, argv, desc), vm);
+      po::notify(vm);
+   } catch (std::exception& e) {
+      std::cerr << "Error: " << e.what() << std::endl;
+      return 1;
+   }
+
+   if (vm.count("help")) {
+      std::cout << desc << "\n";
+      return 1;
+   }
+
+   if (analyzer != "Tau3Mu" && analyzer != "DsPhiPi") {
+      std::cerr << " [ERROR] specify which analyzer to use options are: \"Tau3Mu\" or \"DsPhiPi\"." << std::endl;
+      return 1;
+   }
+   if (process != "data" && process != "Tau3Mu" && process != "DsPhiPi" && process != "W3MuNu"){
+      std::cerr << " [ERROR] specify which sample to analyze options are: \"data\", \"Tau3Mu\", \"DsPhiPi\" or \"W3MuNu\"." << std::endl;
+      return 1; 
+   }
+   
    // create a root TChain with input files
+   TString dataset(dset);
 	TChain* chain = new TChain("Events");
    bool isMC = false;
    FileReader file_loader = FileReader(inputFileName);
@@ -60,18 +86,18 @@ int main(int argc, char* argv[]) {
    }else if (dataset.Contains(".root")) 
       chain->Add(TString(inputFileName));
 	else{
-      std::cout << " [ERROR] dataset must be specified as MC or DATA (no case sensitive)" << std::endl;
+      std::cerr << " [ERROR] dataset must be specified as MC or DATA (no case sensitive)" << std::endl;
 		exit(-1);
 	}
 
 
    // lounch analyzer
-	if (channel == "Tau3Mu"){
-      WTau3Mu_analyzer* recoAnalyzer = new WTau3Mu_analyzer(chain, outputDir, year, tag, isMC);
+	if (analyzer == "Tau3Mu"){
+      WTau3Mu_analyzer* recoAnalyzer = new WTau3Mu_analyzer(chain, outputDir, year, process, tag, isMC);
       recoAnalyzer->Loop();
 
       delete recoAnalyzer;
-   }else if (channel == "DsPhiPi"){
+   }else if (analyzer == "DsPhiPi"){
       DsPhiMuMuPi_analyzer* recoAnalyzer = new DsPhiMuMuPi_analyzer(chain, outputDir, year, isMC);
       recoAnalyzer->Loop();
 

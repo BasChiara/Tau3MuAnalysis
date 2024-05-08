@@ -55,10 +55,10 @@ inline std::map<TString, float> LumiFactor{
 };
 inline std::map<TString, float> LumiFactor_W3MuNu{
    {"DEFAULT"        , 1.0}, 
-   {"2022preEE"      , 1.0}, 
-   {"2022EE"         , 0.082}, 
-   {"2023preBPix"    , 1.0}, 
-   {"2023BPix"       , 1.0}, 
+   {"2022preEE"      , 0.00174}, 
+   {"2022EE"         , 0.08640}, 
+   {"2023preBPix"    , 0.00173}, 
+   {"2023BPix"       , 0.00100}, 
 };
 }
 namespace scale_factor_src

@@ -175,7 +175,7 @@ void WTau3Mu_analyzer::Loop(){
          // Ds-> phi(mumu) pi fake 
          fakeDs_mass(t);
          // MC maching
-         if(isMC_){
+         if(process_ == "Tau3Mu"){
            isMCmatching = (t == TauTo3Mu_MCmatch_idx);
            if(isMCmatching) nTauMCmatched++;
          }

@@ -1,9 +1,11 @@
 ROOTCFLAGS    = $(shell root-config --cflags)
+BOOSTCFLAGS   = $(shell boost-config --cflags)
 ROOTLIBS      = $(shell root-config --libs)
+BOOSTLIBS     = $(shell boost-config --libs)
 ROOTGLIBS     = $(shell root-config --glibs) -lTMVA -lRooFit -lRooFitCore -lMinuit
 
 CXX           = g++
-CXXFLAGS      = -g -fPIC -Wno-deprecated -O -ansi -D_GNU_SOURCE -g -O2 -lboost_system -lboost_filesystem -static-libgcc
+CXXFLAGS      = -g -fPIC -Wno-deprecated -O -ansi -D_GNU_SOURCE -g -O2 -lboost_system -lboost_filesystem -lboost_program_options -static-libgcc
 LD            = g++
 LDFLAGS       = -g -lGenVector # con errori tipo 'undefined reference to `ROOT::Math::GenVector::Throw(char const*)'
 SOFLAGS       = -shared
@@ -14,16 +16,15 @@ PLATFORM     := $(shell root-config --platform)
 
 
 CXXFLAGS      += $(ROOTCFLAGS)
-#CXX           += -I./
-LIBS           = $(ROOTLIBS) 
+LIBS           = $(ROOTLIBS)
 
 NGLIBS         = $(ROOTGLIBS) 
 GLIBS          = $(filter-out -lNew , $(NGLIBS))
 
 INCLUDEDIR       = ./
-CXX	         += -I$(INCLUDEDIR) -I.
+CXX	         	+= -I$(INCLUDEDIR) -I.
 OUTLIB	         = $(INCLUDEDIR)/lib/
-OUTEXE				= $(INCLUDEDIR)/bin/
+OUTEXE			 = $(INCLUDEDIR)/bin/
 
 .SUFFIXES: .cc,.C,.hh,.h
 .PREFIXES: ./lib/

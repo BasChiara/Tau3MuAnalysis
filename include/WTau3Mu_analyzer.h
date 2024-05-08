@@ -7,15 +7,22 @@
 class WTau3Mu_analyzer : public WTau3Mu_tools{
 
    public:
-      WTau3Mu_analyzer(TTree *tree=0, const TString & outdir = "./outRoot", const TString& year = "2022preEE", const TString & tag="", const bool isMC = false) : WTau3Mu_tools(tree, isMC){
+      WTau3Mu_analyzer(TTree *tree=0, const TString & outdir = "./outRoot", const TString& year = "2022preEE", const TString process = "Tau3Mu", const TString & tag="", const bool isMC = false) : WTau3Mu_tools(tree, isMC){
          // running on DATA or MC ?
          isMC_ = isMC;
          TString DATA_MC_tag = "DATA";
          if (isMC_) DATA_MC_tag = "MC";
-         // set the year
+         // which era is processed
          year_ = year;
+         // set the simulated process
+         process_ = process;
+         TString process_tag = "";
+         if (process_ != "data" ) process_tag = "on" + process_; 
 
-         if (auto search = LumiRun3::LumiFactor.find(year_); isMC_ && search != LumiRun3::LumiFactor.end()){
+         // normalization
+         auto search = LumiRun3::LumiFactor.find(year_);
+         if (process_ == "W3MuNu") search = LumiRun3::LumiFactor_W3MuNu.find(year_);
+         if (isMC_ && search != LumiRun3::LumiFactor.end()){
             if(debug) std::cout << "> found year tag " << search->first << std::endl;
             lumi_factor = search->second;
          }else lumi_factor =LumiRun3::LumiFactor["DEFAULT"];
@@ -24,11 +31,13 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
          if(HLTconf_ == HLT_paths::HLT_Tau3Mu)   HLT_tag = "HLT_Tau3Mu"; 
          if(HLTconf_ == HLT_paths::HLT_DoubleMu) HLT_tag = "HLT_DoubleMu"; 
          if(HLTconf_ == HLT_paths::HLT_overlap)  HLT_tag = "HLT_overlap"; 
+         
          // final tag
          tag_ = DATA_MC_tag +"analyzer_"+ year_ + "_" + HLT_tag;
+         if (!process_tag.IsNull()) tag_ = tag_ + "_" + process_tag;
          if (!tag.IsNull()) tag_ = tag_ + "_" + tag;     
 
-         // parse the SF file
+         // parse the SF file for MonteCarlo
          if (isMC_){
             parseMuonSF(year_, "low");         
             //parseMuonSF(year_, "medium");         
@@ -43,7 +52,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
          std::cout << "[ Tau 3 Mu analyzer ]"<< std::endl;
          std::cout << "> Lumi weight for " << year_ << " = " << lumi_factor << std::endl;
          std::cout << "> HLT path : " << HLT_tag << std::endl;
-         std::cout << "> running on " << DATA_MC_tag << std::endl;
+         std::cout << "> running on " << DATA_MC_tag << " - " << process_ << std::endl;
          std::cout << "-------------------------------------------" << std::endl;
       }
       virtual ~WTau3Mu_analyzer(){}
@@ -69,6 +78,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
 
       TString tag_;
       TString year_;
+      TString process_;
 
       TString outFilePath_;
       TFile*  outFile_;
