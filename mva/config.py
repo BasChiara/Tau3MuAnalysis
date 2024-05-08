@@ -81,6 +81,18 @@ cat_selection_dict = {
     'B' : '(tau_fit_mass_err/tau_fit_mass >= 0.007 & tau_fit_mass_err/tau_fit_mass < 0.012)',
     'C' : '(tau_fit_mass_err/tau_fit_mass >= 0.012)'
 }
+cat_color_dict = {
+    'A' : ROOT.kRed,
+    'B' : ROOT.kBlue,
+    'C' : ROOT.kGreen +1
+}
+
+cat_eta_selection_dict = {
+    'A' : '(tau_fit_absEta < 0.9)',
+    'B' : '(tau_fit_absEta > 0.9 & tau_fit_absEta < 1.9)', 
+    'C' : '(tau_fit_absEta > 1.9)',
+
+}
 
 #########################
 #   STYLE per PROCESS   #

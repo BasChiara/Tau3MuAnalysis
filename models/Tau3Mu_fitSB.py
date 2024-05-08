@@ -10,22 +10,28 @@ from pdb import set_trace
 from array import array 
 import math
 import argparse
+# import custom configurations
+import sys
+sys.path.append('..')
+from mva.config import mass_range_lo, mass_range_hi, cat_selection_dict, cat_color_dict,cat_eta_selection_dict
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--plot_outdir',default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/SigBkg_models/Tau3Mu_massFit/reMini', help=' output directory for plots')
-parser.add_argument('--tag',        default= 'emulateRun2', help='tag to the training')
-parser.add_argument('--debug',      action = 'store_true' ,help='set it to have useful printout')
-parser.add_argument('-u','--unblind',action = 'store_true' ,help='set it to run UN-blind')
-parser.add_argument('--save_ws',    action = 'store_true' ,help='set it to save the workspace for combine')
-parser.add_argument('--category',   default = 'noCat')
-parser.add_argument('-y','--year',  default = '22')
-parser.add_argument('--bdt_cut',    type= float, default = 0.990)
+parser.add_argument('--plot_outdir',    default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/SigBkg_models/Tau3Mu_massFit/reMini', help=' output directory for plots')
+parser.add_argument('--tag',            default= 'emulateRun2', help='tag to the training')
+parser.add_argument('--debug',          action = 'store_true' ,help='set it to have useful printout')
+parser.add_argument('-u','--unblind',   action = 'store_true' ,help='set it to run UN-blind')
+parser.add_argument('--save_ws',        action = 'store_true' ,help='set it to save the workspace for combine')
+parser.add_argument('--double_gaussian',action = 'store_true' ,help='set it to fit signal with double gaussian')
+parser.add_argument('--category',       default = 'noCat')
+parser.add_argument('-y','--year',      default = '22')
+parser.add_argument('--bdt_cut',        type= float, default = 0.990)
 
 args = parser.parse_args()
 
 
 tag = 'bdt%d_%s%s'%(args.bdt_cut*1000, args.category, args.year) + ('_' + args.tag ) if not (args.tag is None) else ''
 process_name = 'WTau3Mu_%s%s'%(args.category, args.year)
+category_by_eta = True
 
 ROOT.gROOT.SetBatch(True)
 ROOT.gStyle.SetOptStat(True)
@@ -34,7 +40,7 @@ ROOT.TH1.SetDefaultSumw2()
 # **** USEFUL CONSTANT VARIABLES *** #
 mass_window = 0.060 # GeV
 tau_mass = 1.777 # GeV
-fit_range_lo  , fit_range_hi   = 1.65, 1.95 # GeV
+fit_range_lo  , fit_range_hi   = 1.68, 1.87 # GeV
 mass_window_lo, mass_window_hi = 1.60, 2.00 # GeV #tau_mass-mass_window, tau_mass+mass_window
 
 nbins = 40 # needed just for plotting, fits are all unbinned
@@ -64,6 +70,7 @@ mass.setRange('sig_range', blind_region_lo,blind_region_hi)
 mass.setRange('full_range', mass_window_lo, mass_window_hi)
 # tau mass resolution
 mass_err = ROOT.RooRealVar('tau_fit_mass_err', '#sigma_{M(3 #mu)}/ M(3 #mu)'  , 0.0,  0.03, 'GeV' )
+eta = ROOT.RooRealVar('tau_fit_eta', '#eta_{3 #mu}'  , -4.0,  4.0)
 # BDT score
 bdt = ROOT.RooRealVar('bdt_score', 'BDT score'  , 0.0,  1.0, '' )
 # data weights
@@ -79,6 +86,7 @@ Lsign = ROOT.RooRealVar('tau_Lxy_sign_BS', 'tau_Lxy_sign_BS', 0., 1000, '')
 
 thevars = ROOT.RooArgSet()
 thevars.add(mass)
+thevars.add(eta)
 thevars.add(mass_err)
 thevars.add(bdt)
 thevars.add(weight)
@@ -92,10 +100,11 @@ thevars.add(Lsign)
 sgn_selection = '(bdt_score > %.4f)'%args.bdt_cut
 phi_veto = '''(fabs(tau_mu12_fitM- {mass:.3f})> {window:.3f} & fabs(tau_mu23_fitM - {mass:.3f})> {window:.3f} & fabs(tau_mu13_fitM -  {mass:.3f})>{window:.3f})'''.format(mass =phi_mass , window = phi_window/2. )
 cat_selection = ''
-if args.category == 'A'  : cat_selection = ' & tau_fit_mass_err/tau_fit_mass <= 0.007'
-if args.category == 'B'  : cat_selection = ' & tau_fit_mass_err/tau_fit_mass > 0.007 & tau_fit_mass_err/tau_fit_mass <= 0.012'
-if args.category == 'C'  : cat_selection = ' & tau_fit_mass_err/tau_fit_mass > 0.012'
-if args.category == 'AB' : cat_selection = ' & tau_fit_mass_err/tau_fit_mass < 0.012'
+cat_selection = f'({cat_selection_dict[args.category]})' if not category_by_eta else '(fabs(tau_fit_eta) < 0.9)' #'(fabs(tau_fit_eta) > 0.9 & fabs(tau_fit_eta) < 1.9)'
+#if args.category == 'A'  : cat_selection = ' & tau_fit_mass_err/tau_fit_mass <= 0.007'
+#if args.category == 'B'  : cat_selection = ' & tau_fit_mass_err/tau_fit_mass > 0.007 & tau_fit_mass_err/tau_fit_mass <= 0.012'
+#if args.category == 'C'  : cat_selection = ' & tau_fit_mass_err/tau_fit_mass > 0.012'
+#if args.category == 'AB' : cat_selection = ' & tau_fit_mass_err/tau_fit_mass < 0.012'
 base_selection = phi_veto + '&' + cat_selection + ' & run < 362800'
 sgn_selection += '& '+ base_selection 
 
@@ -114,12 +123,19 @@ Mtau   = ROOT.RooRealVar('Mtau' , 'Mtau' , tau_mass, -1.7, 1.9)
 Mtau.setConstant(True)
 dMtau  = ROOT.RooRealVar('dM', 'dM', 0, -0.1, 0.1)
 mean   = ROOT.RooFormulaVar('mean','mean', '(@0+@1)', ROOT.RooArgList(Mtau,dMtau) )
-width  = ROOT.RooRealVar('width',  'width', 0.01,    0.005, 0.05)
+width  = ROOT.RooRealVar('width',  'width',  0.01,    0.005, 0.05)
+width2 = ROOT.RooRealVar('width2', 'width2', 0.05,    0.005, 0.05)
 
+f      = ROOT.RooRealVar('f', 'f', 0.5, 0., 1.0)
 nsig   = ROOT.RooRealVar('model_sig_%s_norm'%process_name, 'model_sig_%s_norm'%process_name, fullmc.sumEntries(), 0., 3*fullmc.sumEntries())
-gaus   = ROOT.RooGaussian('model_sig_%s'%process_name, 'model_sig_%s'%process_name, mass, mean, width)
-
-signal_model = ROOT.RooAddPdf('ext_model_sig_%s'%process_name, 'ext_model_sig_%s'%process_name, ROOT.RooArgList(gaus), nsig )
+gaus   = ROOT.RooGaussian('gaus1_%s'%process_name, 'gaus1_%s'%process_name, mass, mean, width)
+if args.double_gaussian:
+    gaus2  = ROOT.RooGaussian('gaus2_%s'%process_name, 'gaus2_%s'%process_name, mass, mean, width2)
+    gsum   = ROOT.RooAddModel(f'model_sig_{process_name}', f'model_sig_{process_name}', [gaus, gaus2], [f])
+    signal_model = ROOT.RooAddPdf('ext_model_sig_%s'%process_name, 'ext_model_sig_%s'%process_name, ROOT.RooArgList(gsum), nsig )
+else:
+    gaus.SetName(f'model_sig_{process_name}')
+    signal_model = ROOT.RooAddPdf('ext_model_sig_%s'%process_name, 'ext_model_sig_%s'%process_name, ROOT.RooArgList(gaus), nsig )
 
 # signal fit
 results_gaus = signal_model.fitTo(
@@ -128,7 +144,7 @@ results_gaus = signal_model.fitTo(
     ROOT.RooFit.Save(),
     ROOT.RooFit.Extended(ROOT.kTRUE),
     ROOT.RooFit.SumW2Error(True),
-    ROOT.RooFit.PrintLevel(-1),
+    #ROOT.RooFit.PrintLevel(-1),
 )
 
 # * draw & save
@@ -146,7 +162,7 @@ fullmc.plotOn(
 signal_model.plotOn(
     frame, 
     ROOT.RooFit.LineColor(ROOT.kRed),
-    ROOT.RooFit.Range('full_range'),
+    ROOT.RooFit.Range('fit_range'),
     ROOT.RooFit.NormRange('fit_range'),
     ROOT.RooFit.MoveToBack()
 )
