@@ -26,7 +26,11 @@ TString inRootFile_  = "../outRoot/MCstudiesT3m_MC_2022preEE.root";
 TString outPath_     = "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/";
 TString treeName_    = "Tau3Mu_HLTemul_tree";
 
-
+float legend_x1 = 0.55;
+float legend_x2 = 0.80;
+float legend_y1 = 0.80;
+float legend_y2 = 0.85;
+float leg_entry_dy = 0.04;
 
 
 void SetInputFile(const TString& inFile = ""){
@@ -65,12 +69,12 @@ int draw_one_histo(const TString& branch_name, const TString& category, const TS
    TH1F* h = new TH1F("h", "", Nbins, x_low, x_high);
    inTree->Draw(branch_name+">>h");
    histoSetUp(h, category, x_name, fill, norm);
-   h->SetMaximum(1.4*h->GetBinContent(h->GetMaximumBin()));
+   float max_f = 1.4;
+   if (logY) max_f = 3.0;
+   h->SetMaximum(max_f*h->GetBinContent(h->GetMaximumBin()));
    // canva
    TCanvas* c1 = new TCanvas("c1","canvas", 800,800);
    c1->DrawFrame(0,0,1,1);
-   gPad->SetLeftMargin(0.13);
-   gPad->SetBottomMargin(0.13);
    gStyle->SetOptStat(0);
 
    h->Draw("HIST");
@@ -111,12 +115,9 @@ int draw_many_histos(std::vector<TString> branches, std::vector<TString> categor
    // TCanvas
    TCanvas* c = new TCanvas("c","canvas", 800,800);
    c->DrawFrame(0,0,1,1);
-   gPad->SetLeftMargin(0.13);
-   gPad->SetBottomMargin(0.13);
    gStyle->SetOptStat(0);
    // TLegend
-   float leg_entry_dy = 0.04;
-   auto legend = new TLegend(0.60,0.80-branches.size()*leg_entry_dy,0.85,0.80);
+   auto legend = new TLegend(legend_x1,legend_y1-branches.size()*leg_entry_dy,legend_x2,legend_y2);
    legend->SetBorderSize(0);
    legend->SetTextSize(0.035);
 
@@ -141,7 +142,9 @@ int draw_many_histos(std::vector<TString> branches, std::vector<TString> categor
       maxY = (h->GetBinContent(h->GetMaximumBin()) > maxY ? h->GetBinContent(h->GetMaximumBin()) : maxY);
       stk->Add(h);
    }
-   stk->SetMaximum(1.4*maxY);
+   float max_f = 1.4;
+   if (logY) max_f = 3.0;
+   stk->SetMaximum(max_f*maxY);
    stk->Draw("nostack HIST");
    legend->Draw();
    // semi-log scale
@@ -182,8 +185,7 @@ int ProfileVsPU( std::vector<TString> branches, std::vector<TString> description
 
    gStyle->SetPalette(kCMYK);
    // TLegend
-   float leg_entry_dy = 0.05;
-   auto legend = new TLegend(0.60,0.80-branches.size()*leg_entry_dy,0.85,0.80);
+   auto legend = new TLegend(legend_x1,legend_y1-branches.size()*leg_entry_dy,legend_x2,legend_y2);
    legend->SetBorderSize(0);
    legend->SetTextSize(0.03);
 
@@ -234,11 +236,9 @@ int drawProfile2D( std::vector<TString> branches, std::vector<TString> descripti
    c->DrawFrame(0,0,1,1);
    gPad->SetLeftMargin(0.13);
    gPad->SetBottomMargin(0.13);
-
    gStyle->SetPalette(kCMYK);
    // TLegend
-   float leg_entry_dy = 0.05;
-   auto legend = new TLegend(0.60,0.80-branches.size()*leg_entry_dy,0.85,0.80);
+   auto legend = new TLegend(legend_x1,legend_y1-branches.size()*leg_entry_dy,legend_x2,legend_y2);
    legend->SetBorderSize(0);
    legend->SetTextSize(0.03);
 
@@ -296,8 +296,7 @@ int drawTGraph(std::vector<TString> branches, TString description, const TString
 
    gStyle->SetPalette(kCMYK);
    // TLegend
-   float leg_entry_dy = 0.05;
-   auto legend = new TLegend(0.60,0.80-branches.size()*leg_entry_dy,0.85,0.80);
+   auto legend = new TLegend(legend_x1,legend_y1-branches.size()*leg_entry_dy,legend_x2,legend_y2);
    legend->SetBorderSize(0);
    legend->SetTextSize(0.03);
 
@@ -344,13 +343,10 @@ int efficiencyVsPU( std::vector<TString> selections, std::vector<TString> descri
    // TCanvas
    TCanvas* c = new TCanvas("c","canvas", 800,800);
    c->DrawFrame(0,0,1,1);
-   gPad->SetLeftMargin(0.13);
-   gPad->SetBottomMargin(0.13);
 
    gStyle->SetPalette(kCMYK);
    // TLegend
-   float leg_entry_dy = 0.05;
-   auto legend = new TLegend(0.60,0.99-selections.size()*leg_entry_dy,0.85,0.80);
+   auto legend = new TLegend(legend_x1,legend_y1-selections.size()*leg_entry_dy,legend_x2,legend_y2);
    legend->SetBorderSize(0);
    legend->SetTextSize(0.03);
 

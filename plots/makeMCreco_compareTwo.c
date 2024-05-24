@@ -8,7 +8,7 @@
    //SetInputFile( {"/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_fulltrainUnBalanced_emulateRun2_kFold_2024Apr17.root", "/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_fulltrainReBalanced_emulateRun2_kFold_2024Apr17.root"});
    SetInputFile( {"../outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap.root", "../outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_privW3MuNu.root"});
    SetInputTree( {"WTau3Mu_tree", "WTau3Mu_tree"});
-   SetSelection( {"", ""});
+   SetSelection( {"",""});
    TString cat_1 = "Tau3Mu";
    TString cat_2 = "W3MuNu";
    TString out_tag = "T3MvsW3Mu";

@@ -28,7 +28,7 @@ Lumi2022_G =  3.071
 
 Lumi2022_preEE  = Lumi2022_D
 Lumi2022_EE     = Lumi2022_E+Lumi2022_F+Lumi2022_G
-Lumi2022_reMini = Lumi2022_F+Lumi2022_G
+Lumi2022 = 34.7 
 
 Lumi2022_Serr = 0.022
 
@@ -39,6 +39,8 @@ Lumi2023_D = 1.669
 
 Lumi2023_preBPix = Lumi2023_B + Lumi2023_C
 Lumi2023_BPix = Lumi2023_D
+
+Lumi2023    = 27.9
 
 Lumi2023_Serr = 0.0
 
@@ -58,9 +60,9 @@ Lumi_MC_2023BPix  = Nev_MC_2023BPix/(Filter_eff * xs_Wmunu_X * Br_Tau3Mu_default
 
 # --- NORM FACTOR TO USE 
 
-MC_norm_factor_dict = {
-   '2022EE' : Lumi2022_EE/Lumi_MC_2022EE,
-   '2022reMini' : Lumi2022_reMini/Lumi_MC_2022EE,
+LumiVal_plots = {
+   '2022' : "34.7", 
+   '2023' : "27.9",
 }
 
 
@@ -91,7 +93,11 @@ cat_eta_selection_dict = {
     'A' : '(tau_fit_absEta < 0.9)',
     'B' : '(tau_fit_absEta > 0.9 & tau_fit_absEta < 1.9)', 
     'C' : '(tau_fit_absEta > 1.9)',
-
+}
+cat_eta_selection_dict_fit = {
+    'A' : '(fabs(tau_fit_eta) < 0.9)',
+    'B' : '(fabs(tau_fit_eta) > 0.9 & fabs(tau_fit_eta) < 1.9)', 
+    'C' : '(fabs(tau_fit_eta) > 1.9)',
 }
 
 #########################
@@ -105,9 +111,9 @@ color_process = {
     'DataSB' : ROOT.kBlue,
 }
 legend_process = {
-    'Tau3Mu' : '$\\tau\\to 3\\mu$',
-    'W3MuNu' : '$W\\to 3\\mu\\nu$',
-    'DsPhiPi': '$D_{s}\\to \\phi\\pi$',
+    'Tau3Mu' : '#tau->3#mu',
+    'W3MuNu' : 'W#rightarrow#mu#nu',
+    'DsPhiPi': 'D_{s}->#phi#pi',
     'DataSB' : 'data SB'
 }
 bdt_label_process ={
@@ -222,6 +228,9 @@ features_NbinsXloXhiLabelLog = {
     'tau_fit_mass'      : [ 40,1.6, 2.0, 'M(3 #mu)',                0],
     'bdt_score'         : [ 50, 0, 1,    'BDT score',               1],
     'bdt_score_t3m'     : [ 50, 0, 1,    'BDT_{#tau 3 #mu} score',  1],
+    'tau_mu12_fitM'     : [ 40, 0.8, 1.2,'M(#mu_{1}#mu_{2})',       0],
+    'tau_mu13_fitM'     : [ 40, 0.8, 1.2,'M(#mu_{1}#mu_{3})',       0],
+    'tau_mu23_fitM'     : [ 40, 0.8, 1.2,'M(#mu_{2}#mu_{3})',       0],
 }
 
 ###                ###

@@ -4,6 +4,7 @@ job_report/Analyzer_*
 
 # Text files
 #*.txt
+*.log
 
 # Multimedia
 *.pdf

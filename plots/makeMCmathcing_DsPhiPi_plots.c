@@ -3,7 +3,7 @@
    gStyle->SetPadTickX(1);
    gStyle->SetPadTickY(1);
    gStyle->SetLineWidth(2);
-   SetIO("../outRoot/DsPhiMuMuPi_MCanalyzer_2022_reMini_HLT_Tau3Mu.root", "MCmatching_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/DsPhiMuMuPi/MC_2022/");
+   SetIO("../outRoot/DsPhiMuMuPi_MCanalyzer_2022_HLT_Tau3Mu.root", "DsPhiMuMuPi_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/DsPhiMuMuPi/MC_2022/");
 
    // muons ID
    draw_many_histos({"phi_mu1_MediumID",  "phi_mu2_MediumID"},    {"mu1", "mu2"}, "#mu medium ID", 2, -0.5,1.5, "Muons_MediumID", true);

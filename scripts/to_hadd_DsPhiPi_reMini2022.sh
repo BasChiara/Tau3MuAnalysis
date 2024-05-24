@@ -1,6 +1,6 @@
-#
-#   make the hadd of data files
-#
+#!/usr/bin/bash
+
+# hadd reco data files 
 
 python3 hadd_files.py -p /eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/ -a DsPhiMuMuPi_DATAanalyzer -e Cv1
 python3 hadd_files.py -p /eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/ -a DsPhiMuMuPi_DATAanalyzer -e Dv1

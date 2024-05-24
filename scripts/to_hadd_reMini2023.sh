@@ -1,4 +1,4 @@
-# /usr/bin
+#!/usr/bin/bash
 
 #
 #   make the hadd of data files

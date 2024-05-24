@@ -141,7 +141,7 @@ int draw_branches(std::vector<TString> branches, std::vector<TString> categories
   gStyle->SetOptStat(0);
   // TLegend
   float leg_entry_dy = 0.04;
-  auto legend = new TLegend(0.60,0.80-branches.size()*leg_entry_dy,0.85,0.80);
+  auto legend = new TLegend(0.50,0.80-branches.size()*leg_entry_dy,0.90,0.80);
   legend->SetBorderSize(0);
   legend->SetTextSize(0.035);
 
