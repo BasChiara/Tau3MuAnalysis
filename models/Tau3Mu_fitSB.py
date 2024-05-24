@@ -3,20 +3,23 @@
 #############################################
 
 import ROOT
+ROOT.RooMsgService.instance().setGlobalKillBelow(ROOT.RooFit.ERROR)
 import os
 from math import pi, sqrt
+import numpy as np
 from glob import glob
-from pdb import set_trace
 from array import array 
-import math
 import argparse
 # import custom configurations
 import sys
 sys.path.append('..')
-from mva.config import mass_range_lo, mass_range_hi, cat_selection_dict, cat_color_dict,cat_eta_selection_dict
+from mva.config import mass_range_lo, mass_range_hi, cat_selection_dict, cat_color_dict,cat_eta_selection_dict_fit
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--plot_outdir',    default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/SigBkg_models/Tau3Mu_massFit/reMini', help=' output directory for plots')
+parser.add_argument('--combine_dir',    default= 'input_combine/', help=' output directory for combine datacards and ws')
+parser.add_argument('-s', '--signal',                              help='input Tau3Mu MC')
+parser.add_argument('-d', '--data',                                help='input DATA')
 parser.add_argument('--tag',            default= 'emulateRun2', help='tag to the training')
 parser.add_argument('--debug',          action = 'store_true' ,help='set it to have useful printout')
 parser.add_argument('-u','--unblind',   action = 'store_true' ,help='set it to run UN-blind')
@@ -24,14 +27,22 @@ parser.add_argument('--save_ws',        action = 'store_true' ,help='set it to s
 parser.add_argument('--double_gaussian',action = 'store_true' ,help='set it to fit signal with double gaussian')
 parser.add_argument('--category',       default = 'noCat')
 parser.add_argument('-y','--year',      default = '22')
+parser.add_argument('--optim_bdt',      action = 'store_true', help='run BDT cut optimization')
 parser.add_argument('--bdt_cut',        type= float, default = 0.990)
 
 args = parser.parse_args()
 
-
-tag = 'bdt%d_%s%s'%(args.bdt_cut*1000, args.category, args.year) + ('_' + args.tag ) if not (args.tag is None) else ''
-process_name = 'WTau3Mu_%s%s'%(args.category, args.year)
 category_by_eta = True
+
+# **** OUTPUT settings **** 
+process_name = 'WTau3Mu_%s%s'%(args.category, args.year)
+tag = (f'bdt{args.bdt_cut:,.4f}_{process_name}' if not args.optim_bdt else f'bdt_scan_{process_name}') + ('_' + args.tag ) if not (args.tag is None) else ''
+set_bdt_cut = [args.bdt_cut] if not args.optim_bdt else np.arange(0.9900, 0.9995, 0.0005) 
+print('\n')
+print(f'BDT selection scenario {set_bdt_cut}')
+
+wspace_filename = f'{args.combine_dir}/wspace_{tag}.root'
+out_data_filename = f'{args.combine_dir}/sensitivity_tree_{tag}.root'
 
 ROOT.gROOT.SetBatch(True)
 ROOT.gStyle.SetOptStat(True)
@@ -52,13 +63,16 @@ phi_mass = 1.020 #GeV
 phi_window = 0.020 #GeV
 omega_mass = 0.783 #GeV
 
-
+# **** INPUT DATA ****
 input_tree_name = 'tree_w_BDT'
-mc_file     = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_signal_kFold_HLToverlap_bkgW3MuNu_LxyS0_2024May01.root'
-data_file   = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_WTau3Mu_DATA_apply_bkgW3MuNu_LxyS0_2024May01.root'
-#mc_file     = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_signal_HLT_DoubleMu_kFold_2024Mar12.root'
-#data_file   = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_data_HLT_DoubleMu_kFold_2024Mar12_blind.root'
-
+mc_file     = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_signal_kFold_HLT_overlap_LxyS150_2024Apr29.root' if not args.signal else args.signal
+if not os.path.exists(args.signal):
+    print(f'[ERROR] MC file {mc_file} does NOT exist')
+print(f'[+] added MC file :\n {mc_file}')
+data_file   = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_data_kFold_HLT_overlap_LxyS150_2024Apr29_open.root' if not args.data else args.data
+if not os.path.exists(args.data):
+    print(f'[ERROR] DATA file {mc_file} does NOT exist')
+print(f'[+] added DATA file :\n {mc_file}')
 
 # ** RooFit Variables
 # tau mass
@@ -96,226 +110,284 @@ thevars.add(mu23_mass)
 thevars.add(run)
 thevars.add(Lsign)
 
-### MC SIGNAL ###
-sgn_selection = '(bdt_score > %.4f)'%args.bdt_cut
-phi_veto = '''(fabs(tau_mu12_fitM- {mass:.3f})> {window:.3f} & fabs(tau_mu23_fitM - {mass:.3f})> {window:.3f} & fabs(tau_mu13_fitM -  {mass:.3f})>{window:.3f})'''.format(mass =phi_mass , window = phi_window/2. )
-cat_selection = ''
-cat_selection = f'({cat_selection_dict[args.category]})' if not category_by_eta else '(fabs(tau_fit_eta) < 0.9)' #'(fabs(tau_fit_eta) > 0.9 & fabs(tau_fit_eta) < 1.9)'
-#if args.category == 'A'  : cat_selection = ' & tau_fit_mass_err/tau_fit_mass <= 0.007'
-#if args.category == 'B'  : cat_selection = ' & tau_fit_mass_err/tau_fit_mass > 0.007 & tau_fit_mass_err/tau_fit_mass <= 0.012'
-#if args.category == 'C'  : cat_selection = ' & tau_fit_mass_err/tau_fit_mass > 0.012'
-#if args.category == 'AB' : cat_selection = ' & tau_fit_mass_err/tau_fit_mass < 0.012'
-base_selection = phi_veto + '&' + cat_selection + ' & run < 362800'
-sgn_selection += '& '+ base_selection 
+# ** data frame to scan Punzi sensitivity
 
-mc_tree = ROOT.TChain(input_tree_name)
-mc_tree.AddFile(mc_file)
-N_mc = mc_tree.GetEntries(base_selection)
+if args.optim_bdt :
+    df_columns      = ['bdt_cut', 'sig_Nexp', 'sig_eff', 'bkg_Nexp', 'bkg_Nexp_Sregion', 'bkg_eff', 'PunziS_val', 'PunziS_err', 'AMS_val']
+    bdt_cut         = []  
+    sig_Nexp        = []
+    sig_eff         = []
+    bkg_Nexp        = []
+    bkg_Nexp_Sregion= []
+    bkg_eff         = []
+    PunziS_val      = []
+    PunziS_err      = []
+    AMS_val         = []
 
-fullmc = ROOT.RooDataSet('mc_%s'%process_name, 'mc_%s'%process_name, mc_tree, thevars, sgn_selection, "weight")
-fullmc.Print()
-print('entries = %.2f'%fullmc.sumEntries() )
-print('weight  = %e'%fullmc.weight() )
-sig_efficiency = fullmc.sumEntries()/N_mc/fullmc.weight()
+# **** EVENT SELECTION ****
+phi_veto            = '''(fabs(tau_mu12_fitM- {mass:.3f})> {window:.3f} & fabs(tau_mu23_fitM - {mass:.3f})> {window:.3f} & fabs(tau_mu13_fitM -  {mass:.3f})>{window:.3f})'''.format(mass =phi_mass , window = phi_window/2. )
+cat_selection       = f'({cat_selection_dict[args.category]})' if not category_by_eta else cat_eta_selection_dict_fit[args.category]
+sidebands_selection = f'((tau_fit_mass < {blind_region_lo} )|| (tau_fit_mass > {blind_region_hi}))'
 
-# signal PDF
-Mtau   = ROOT.RooRealVar('Mtau' , 'Mtau' , tau_mass, -1.7, 1.9)
-Mtau.setConstant(True)
-dMtau  = ROOT.RooRealVar('dM', 'dM', 0, -0.1, 0.1)
-mean   = ROOT.RooFormulaVar('mean','mean', '(@0+@1)', ROOT.RooArgList(Mtau,dMtau) )
-width  = ROOT.RooRealVar('width',  'width',  0.01,    0.005, 0.05)
-width2 = ROOT.RooRealVar('width2', 'width2', 0.05,    0.005, 0.05)
+if args.save_ws : file_ws = ROOT.TFile(wspace_filename, "RECREATE")
 
-f      = ROOT.RooRealVar('f', 'f', 0.5, 0., 1.0)
-nsig   = ROOT.RooRealVar('model_sig_%s_norm'%process_name, 'model_sig_%s_norm'%process_name, fullmc.sumEntries(), 0., 3*fullmc.sumEntries())
-gaus   = ROOT.RooGaussian('gaus1_%s'%process_name, 'gaus1_%s'%process_name, mass, mean, width)
-if args.double_gaussian:
-    gaus2  = ROOT.RooGaussian('gaus2_%s'%process_name, 'gaus2_%s'%process_name, mass, mean, width2)
-    gsum   = ROOT.RooAddModel(f'model_sig_{process_name}', f'model_sig_{process_name}', [gaus, gaus2], [f])
-    signal_model = ROOT.RooAddPdf('ext_model_sig_%s'%process_name, 'ext_model_sig_%s'%process_name, ROOT.RooArgList(gsum), nsig )
-else:
-    gaus.SetName(f'model_sig_{process_name}')
-    signal_model = ROOT.RooAddPdf('ext_model_sig_%s'%process_name, 'ext_model_sig_%s'%process_name, ROOT.RooArgList(gaus), nsig )
+for cut in set_bdt_cut:
+    bdt_selection       = f'(bdt_score > {cut:,.4f})'
+    base_selection      = phi_veto + '&' + cat_selection + ' & (run < 362800)'
+    sgn_selection       = f'{bdt_selection} & {base_selection}'
+    tag = f'bdt{cut:,.4f}_{args.category}{args.year}' + ('_' + args.tag ) if not (args.tag is None) else ''
 
-# signal fit
-results_gaus = signal_model.fitTo(
-    fullmc, 
-    ROOT.RooFit.Range('fit_range'), 
-    ROOT.RooFit.Save(),
-    ROOT.RooFit.Extended(ROOT.kTRUE),
-    ROOT.RooFit.SumW2Error(True),
-    #ROOT.RooFit.PrintLevel(-1),
-)
+    # **** IMPORT SIGNAL ****
+    mc_tree = ROOT.TChain(input_tree_name)
+    mc_tree.AddFile(mc_file)
+    N_mc = mc_tree.GetEntries(base_selection)
 
-# * draw & save
-frame = mass.frame()
-frame.SetTitle('#tau -> 3 #mu signal - CAT %s BDTscore > %.4f'%(args.category, args.bdt_cut))
+    fullmc = ROOT.RooDataSet('mc_%s'%process_name, 'mc_%s'%process_name, mc_tree, thevars, sgn_selection, "weight")
+    fullmc.Print()
+    sig_efficiency = mc_tree.GetEntries(sgn_selection)/N_mc
 
-fullmc.plotOn(
-    frame, 
-    ROOT.RooFit.Binning(nbins), 
-    ROOT.RooFit.XErrorSize(0), 
-    ROOT.RooFit.LineWidth(2),
-    ROOT.RooFit.FillColor(ROOT.kRed),
-    DataError="SumW2",
-)
-signal_model.plotOn(
-    frame, 
-    ROOT.RooFit.LineColor(ROOT.kRed),
-    ROOT.RooFit.Range('fit_range'),
-    ROOT.RooFit.NormRange('fit_range'),
-    ROOT.RooFit.MoveToBack()
-)
-print('signal chi2 %.2f'%(frame.chiSquare()))
-signal_model.paramOn(
-    frame,
-    ROOT.RooFit.Title("Signal Fit parameters:"),
-    ROOT.RooFit.Layout(0.6, 0.75, 0.9),
-    ROOT.RooFit.Format("NEU", ROOT.RooFit.AutoPrecision(1)),
-)
-frame.getAttText().SetTextSize(0.03)
+    print('\n\n------ SIGNAL MC ------- ')
+    print(f' entries   : {N_mc}')
+    print(f' selection : {sgn_selection}')
+    print(f' total entries = %.2f'%fullmc.sumEntries() )
+    print(f' signal efficiency = %.4e'%sig_efficiency)
+    print('------------------------\n')
+    if fullmc.sumEntries() == 0: continue
+    # **** IMPORT DATA ****
+    data_tree = ROOT.TChain(input_tree_name)
+    data_tree.AddFile(data_file)
+    N_data = data_tree.GetEntries(base_selection + f' & {sidebands_selection}' if runblind else '') 
 
-c = ROOT.TCanvas("c", "c", 800, 800)
-ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
-frame.Draw()
-c.SaveAs('%s/signal_mass_%s.png'%(args.plot_outdir, tag)) 
-c.SaveAs('%s/signal_mass_%s.pdf'%(args.plot_outdir, tag)) 
-c.SetLogy(1)
-c.SaveAs('%s/signal_mass_Log_%s.png'%(args.plot_outdir, tag)) 
-c.SaveAs('%s/signal_mass_Log_%s.pdf'%(args.plot_outdir, tag)) 
+    if runblind:
+        print('\n *** running BLIND')
+        # cut for blinding
+        blinder  = ROOT.RooFormulaVar('blinder', 'blinder',  f'{sidebands_selection} & {sgn_selection}', ROOT.RooArgList(thevars))
+        datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, blinder)
+    else:
+        print('\n *** running OPEN')
+        datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, sgn_selection)
+    datatofit.Print()
+    bkg_efficiency = datatofit.sumEntries()/N_data
 
-# -- plot pulls
-h_pullMC = frame.pullHist()
-frame_pull = mass.frame(Title = '[pull] #tau -> 3 #mu signal - CAT %s BDTscore > %.4f'%(args.category, args.bdt_cut))
-frame_pull.addPlotable(h_pullMC, 'P')
-cp = ROOT.TCanvas("cp", "cp", 800, 800)
-ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
-frame_pull.Draw()
-cp.SaveAs('%s/pull_signal_mass_%s.png'%(args.plot_outdir, tag)) 
-cp.SaveAs('%s/pull_signal_mass_%s.pdf'%(args.plot_outdir, tag)) 
+    print('\n------ DATA SIDEBANDS ------- ')
+    print(f' entries in SB  : {N_data}')
+    print(f' selection      : {sgn_selection}')
+    print(f' total entries  : %.2f'%datatofit.sumEntries() )
+    print(f' background efficiency : %.4e'%bkg_efficiency)
+    print('------------------------\n\n')
+    if datatofit.sumEntries() == 0 : continue 
+    # **** SIGNAL MODEL ****
+    # signal PDF
+    Mtau   = ROOT.RooRealVar('Mtau' , 'Mtau' , tau_mass)
+    Mtau.setConstant(True)
+    dMtau  = ROOT.RooRealVar('dM', 'dM', 0, -0.04, 0.04)
+    mean   = ROOT.RooFormulaVar('mean','mean', '(@0+@1)', ROOT.RooArgList(Mtau,dMtau) )
+    width  = ROOT.RooRealVar('width',  'width',  0.01,    0.005, 0.05)
+    width2 = ROOT.RooRealVar('width2', 'width2', 0.05,    0.005, 0.05)
 
-#### DATA ####
-base_selection += ' & ((tau_fit_mass < %.3f )|| (tau_fit_mass > %.3f))'%(blind_region_lo, blind_region_hi)
+    f      = ROOT.RooRealVar('f', 'f', 0.5, 0., 1.0)
+    nsig   = ROOT.RooRealVar('model_sig_%s_norm'%process_name, 'model_sig_%s_norm'%process_name, fullmc.sumEntries(), 0., 3*fullmc.sumEntries())
+    gaus   = ROOT.RooGaussian('gaus1_%s'%process_name, 'gaus1_%s'%process_name, mass, mean, width)
+    if args.double_gaussian:
+        gaus2  = ROOT.RooGaussian('gaus2_%s'%process_name, 'gaus2_%s'%process_name, mass, mean, width2)
+        gsum   = ROOT.RooAddModel(f'model_sig_{process_name}', f'model_sig_{process_name}', ROOT.RooArgList(gaus, gaus2), ROOT.RooArgList(f))
+        signal_model = ROOT.RooAddPdf('ext_model_sig_%s'%process_name, 'ext_model_sig_%s'%process_name, ROOT.RooArgList(gsum), nsig )
+    else:
+        gaus.SetName(f'model_sig_{process_name}')
+        signal_model = ROOT.RooAddPdf('ext_model_sig_%s'%process_name, 'ext_model_sig_%s'%process_name, ROOT.RooArgList(gaus), nsig )
 
-data_tree = ROOT.TChain(input_tree_name)
-data_tree.AddFile(data_file)
-N_data = data_tree.GetEntries(base_selection) 
+    # **** BACKGROUND MODEL ****
+    # background PDF
+    slope = ROOT.RooRealVar('slope', 'slope', -1.0, -10.0, 10.0)
+    expo  = ROOT.RooExponential('model_bkg_%s'%process_name, 'model_bkg_%s'%process_name, mass, slope)
 
-if runblind:
-    print('BLIND')
-    # cut for blinding
-    blinder  = ROOT.RooFormulaVar('blinder', 'blinder',  ' ((tau_fit_mass < %.3f )|| (tau_fit_mass > %.3f)) & (%s)'%(blind_region_lo, blind_region_hi, sgn_selection) , ROOT.RooArgList(thevars))
-    datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, blinder)
-else:
-    print('NOW I SEE')
-    datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, sgn_selection)
-datatofit.Print()
-bkg_efficiency = datatofit.sumEntries()/N_data
+    # number of background events
+    nbkg = ROOT.RooRealVar('model_bkg_%s_norm'%process_name, 'model_bkg_%s_norm'%process_name, datatofit.numEntries(), 0., 3*datatofit.numEntries())
+    ext_bkg_model = ROOT.RooAddPdf("toy_add_model_bkg_WTau3Mu", "add background pdf", ROOT.RooArgList(expo),  ROOT.RooArgList(nbkg))
 
-frame_b = mass.frame()
-frame_b.SetTitle('#tau -> 3 #mu signal+bkg - CAT %s BDTscore > %.3f'%(args.category, args.bdt_cut))
+    # **** TIME TO FIT ****
+    # signal fit
+    results_gaus = signal_model.fitTo(
+        fullmc, 
+        ROOT.RooFit.Range('fit_range'), 
+        ROOT.RooFit.Save(),
+        ROOT.RooFit.Extended(ROOT.kTRUE),
+        ROOT.RooFit.SumW2Error(True),
+        ROOT.RooFit.PrintLevel(-1),
+    )
+    # * draw & save
+    frame = mass.frame()
+    frame.SetTitle('#tau -> 3#mu signal - CAT %s BDTscore > %.4f'%(args.category, args.bdt_cut))
 
-datatofit.plotOn(
-    frame_b, 
-    ROOT.RooFit.Binning(nbins), 
-    ROOT.RooFit.MarkerSize(1.)
-)
+    fullmc.plotOn(
+        frame, 
+        ROOT.RooFit.Binning(nbins), 
+        ROOT.RooFit.XErrorSize(0), 
+        ROOT.RooFit.LineWidth(2),
+        ROOT.RooFit.FillColor(ROOT.kRed),
+        ROOT.RooFit.DataError(1),
+    )
+    signal_model.plotOn(
+        frame, 
+        ROOT.RooFit.LineColor(ROOT.kRed),
+        ROOT.RooFit.Range('fit_range'),
+        ROOT.RooFit.NormRange('fit_range'),
+        ROOT.RooFit.MoveToBack()
+    )
+    print('signal chi2 %.2f'%(frame.chiSquare()))
+    signal_model.paramOn(
+        frame,
+        ROOT.RooFit.Layout(0.6, 0.75, 0.9),
+        ROOT.RooFit.Format("NEU", ROOT.RooFit.AutoPrecision(1)),
+    )
+    frame.getAttText().SetTextSize(0.03)
 
-# background PDF
-slope = ROOT.RooRealVar('slope', 'slope', -1.0, -10.0, 10.0)
-expo  = ROOT.RooExponential('model_bkg_%s'%process_name, 'model_bkg_%s'%process_name, mass, slope)
+    c = ROOT.TCanvas("c", "c", 800, 800)
+    ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
+    frame.Draw()
+    c.SaveAs('%s/signal_mass_%s.png'%(args.plot_outdir, tag)) 
+    c.SaveAs('%s/signal_mass_%s.pdf'%(args.plot_outdir, tag)) 
+    c.SetLogy(1)
+    c.SaveAs('%s/signal_mass_Log_%s.png'%(args.plot_outdir, tag)) 
+    c.SaveAs('%s/signal_mass_Log_%s.pdf'%(args.plot_outdir, tag)) 
 
-# number of background events
-nbkg = ROOT.RooRealVar('model_bkg_%s_norm'%process_name, 'model_bkg_%s_norm'%process_name, datatofit.numEntries(), 0., 3*datatofit.numEntries())
-ext_bkg_model = ROOT.RooAddPdf("toy_add_model_bkg_WTau3Mu", "add background pdf", ROOT.RooArgList(expo),  ROOT.RooArgList(nbkg))
+    # -- plot pulls
+    h_pullMC = frame.pullHist()
+    h_pullMC.setYAxisLimits(-5., 5.)
+    frame_pull = mass.frame(ROOT.RooFit.Title('[pull] #tau -> 3 #mu signal - CAT %s BDTscore > %.4f'%(args.category, args.bdt_cut)))
+    frame_pull.addPlotable(h_pullMC, 'P')
+    cp = ROOT.TCanvas("cp", "cp", 800, 800)
+    ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
+    frame_pull.Draw()
+    cp.SaveAs('%s/pull_signal_mass_%s.png'%(args.plot_outdir, tag)) 
+    cp.SaveAs('%s/pull_signal_mass_%s.pdf'%(args.plot_outdir, tag))
 
-# fit background with exponential model
-results_expo = ext_bkg_model.fitTo(datatofit, ROOT.RooFit.Range('left_SB,right_SB'), ROOT.RooFit.Save(),ROOT.RooFit.PrintLevel(-1))
-ext_bkg_model.plotOn(
-    frame_b, 
-    ROOT.RooFit.LineColor(ROOT.kBlue),
-    ROOT.RooFit.Range('full_range'),
-    ROOT.RooFit.NormRange('left_SB,right_SB')
-)
-fullmc.plotOn(
-    frame_b, 
-    ROOT.RooFit.Binning(nbins), 
-    ROOT.RooFit.DrawOption('B'), 
-    ROOT.RooFit.DataError(ROOT.RooAbsData.ErrorType(2)), 
-    ROOT.RooFit.XErrorSize(0), 
-    ROOT.RooFit.LineWidth(2),
-    ROOT.RooFit.FillColor(ROOT.kRed),
-    ROOT.RooFit.FillStyle(3004),                
-)
-signal_model.plotOn(
-    frame_b, 
-    ROOT.RooFit.LineColor(ROOT.kRed),
-    ROOT.RooFit.Range('sig_range'),
-    ROOT.RooFit.NormRange('sig_range')
-)
-# print N signal and N background on plot
-text_S = ROOT.TText(tau_mass, 0.90*frame_b.GetMaximum(), "Ns = %.2f +/- %.2f"%(nsig.getValV(), nsig.getError()))
-text_eS= ROOT.TText(tau_mass, 0.85*frame_b.GetMaximum(), "effS = %.2f"%(sig_efficiency))
-text_B = ROOT.TText(tau_mass, 0.80*frame_b.GetMaximum(), "Nb = %.2f +/- %.2f"%(nbkg.getValV(), nbkg.getError()))
-text_eB= ROOT.TText(tau_mass, 0.75*frame_b.GetMaximum(), "effB = %.2e"%(bkg_efficiency))
-text_S.SetTextSize(0.035)
-text_eS.SetTextSize(0.035)
-text_B.SetTextSize(0.035)
-text_eB.SetTextSize(0.035)
-frame_b.addObject(text_S)
-frame_b.addObject(text_eS)
-frame_b.addObject(text_B)
-frame_b.addObject(text_eB)
+    frame_b = mass.frame()
+    frame_b.SetTitle('#tau -> 3 #mu signal+bkg - CAT %s BDTscore > %.3f'%(args.category, args.bdt_cut))
+
+    datatofit.plotOn(
+        frame_b, 
+        ROOT.RooFit.Binning(nbins), 
+        ROOT.RooFit.MarkerSize(1.)
+    )
+
+    # fit background
+    results_expo = ext_bkg_model.fitTo(datatofit, ROOT.RooFit.Range('left_SB,right_SB'), ROOT.RooFit.Save(),ROOT.RooFit.PrintLevel(-1))
+    ext_bkg_model.plotOn(
+        frame_b, 
+        ROOT.RooFit.LineColor(ROOT.kBlue),
+        ROOT.RooFit.Range('full_range'),
+        ROOT.RooFit.NormRange('left_SB,right_SB') 
+    )
+    fullmc.plotOn(
+        frame_b, 
+        ROOT.RooFit.Binning(nbins), 
+        ROOT.RooFit.DrawOption('B'), 
+        ROOT.RooFit.DataError(ROOT.RooAbsData.ErrorType(2)), 
+        ROOT.RooFit.XErrorSize(0), 
+        ROOT.RooFit.LineWidth(2),
+        ROOT.RooFit.FillColor(ROOT.kRed),
+        ROOT.RooFit.FillStyle(3004),                
+    )
+    signal_model.plotOn(
+        frame_b, 
+        ROOT.RooFit.LineColor(ROOT.kRed),
+        ROOT.RooFit.Range('sig_range'),
+        ROOT.RooFit.NormRange('sig_range')
+    )
+    # print N signal and N background on plot
+    text_S = ROOT.TText(tau_mass, 0.90*frame_b.GetMaximum(), "Ns = %.2f +/- %.2f"%(nsig.getValV(), nsig.getError()))
+    text_eS= ROOT.TText(tau_mass, 0.85*frame_b.GetMaximum(), "effS = %.2f"%(sig_efficiency))
+    text_B = ROOT.TText(tau_mass, 0.80*frame_b.GetMaximum(), "Nb = %.2f +/- %.2f"%(nbkg.getValV(), nbkg.getError()))
+    text_eB= ROOT.TText(tau_mass, 0.75*frame_b.GetMaximum(), "effB = %.2e"%(bkg_efficiency))
+    text_S.SetTextSize(0.035)
+    text_eS.SetTextSize(0.035)
+    text_B.SetTextSize(0.035)
+    text_eB.SetTextSize(0.035)
+    frame_b.addObject(text_S)
+    frame_b.addObject(text_eS)
+    frame_b.addObject(text_B)
+    frame_b.addObject(text_eB)
 
 
-c2 = ROOT.TCanvas("c2", "c2", 800, 800)
-ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
-frame_b.Draw()
-c2.SaveAs('%s/SigBkg_mass_%s.png'%(args.plot_outdir, tag)) 
-c2.SaveAs('%s/SigBkg_mass_%s.pdf'%(args.plot_outdir, tag)) 
-c2.SetLogy(1)
-c2.SaveAs('%s/SigBkg_mass_Log_%s.png'%(args.plot_outdir, tag)) 
-c2.SaveAs('%s/SigBkg_mass_Log_%s.pdf'%(args.plot_outdir, tag)) 
-print(' -- RooExtendPdf = %.2f'%ext_bkg_model.expectedEvents(ROOT.RooArgSet(mass)))
-print(' -- BaseSelection %s'%base_selection)
-print(' == S efficiency %.2f '%sig_efficiency)
-print(' == B efficiency %.2e '%bkg_efficiency)
+    c2 = ROOT.TCanvas("c2", "c2", 800, 800)
+    ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
+    frame_b.Draw()
+    c2.SaveAs('%s/SigBkg_mass_%s.png'%(args.plot_outdir, tag)) 
+    c2.SaveAs('%s/SigBkg_mass_%s.pdf'%(args.plot_outdir, tag)) 
+    c2.SetLogy(1)
+    c2.SaveAs('%s/SigBkg_mass_Log_%s.png'%(args.plot_outdir, tag)) 
+    c2.SaveAs('%s/SigBkg_mass_Log_%s.pdf'%(args.plot_outdir, tag))
 
-if not args.save_ws : exit(-1)
-# ----------------------------------------------------------------------------------------------------
-#### SAVE MODEL TO A WORKSPACE ####
-wspace_filename = "input_combine/wspace_%s_%s.root"%(process_name,tag)
-wspace_name     = "WTau3Mu_w"
-# fix the signal shape
-dMtau.setConstant(True)
-#width.setConstant(True)
+    print('\n\n---------- SUMMARY ----------')
+    print(' ** selection : \n%s'%base_selection)
+    print(' RooExtendPdf = %.2f'%ext_bkg_model.expectedEvents(ROOT.RooArgSet(mass)))
+    #B = (nbkg.getValV())*(ext_bkg_model.createIntegral(ROOT.RooArgSet(mass), ROOT.RooFit.NormSet(mass), ROOT.RooFit.Range('sig_range')).getValV())
+    B = (nbkg.getValV())*(ext_bkg_model.createIntegral(ROOT.RooArgSet(mass), ROOT.RooArgSet(mass), 'sig_range').getValV())
+    print(' B in sig-region : %.2f'%B)
+    S = nsig.getValV() 
+    print('  Ns = %.2f +/- %.2f'%(nsig.getValV(), nsig.getError()))
+    print('  == S efficiency %.4f '%sig_efficiency)
+    print('  Nb = %.2f +/- %.2f'%(nbkg.getValV(), nbkg.getError()))
+    print('  == B efficiency %.4e '%bkg_efficiency)
+    Punzi_S = sig_efficiency/(0.5 + sqrt(B))
+    print(' ** Punzi sensitivity = %.4f'%Punzi_S)
+    AMS = sqrt(2 * ( (S + B)*np.log(1+S/B) - S) )
+    print(' ** AMS = %.4f'%AMS)
+    if args.optim_bdt :
+        bdt_cut.append(cut)
+        sig_Nexp.append(nsig.getValV())
+        sig_eff.append(sig_efficiency)
+        bkg_Nexp.append(nbkg.getValV())
+        bkg_Nexp_Sregion.append(B)
+        bkg_eff.append(bkg_efficiency)
+        PunziS_val.append(Punzi_S)
+        PunziS_err.append(0)
+        AMS_val.append(AMS)
 
-# save observed data // bkg-only Asimov with name 'dat_obs'
-fulldata = ROOT.RooDataSet('full_data', 'full_data', data_tree, thevars, sgn_selection)
-if runblind:
-    # GenerateAsimovData() generates binned data following the binning of the observables
-    mass.setBins(nbins)
-    data = ROOT.RooStats.AsymptoticCalculator.GenerateAsimovData(ext_bkg_model, ROOT.RooArgSet(mass) )
-    data.SetName('data_obs') 
-else :
-    data     = ROOT.RooDataSet('data_obs','data_obs', fulldata, ROOT.RooArgSet(mass))
-data.Print()
+    if not args.save_ws : continue
+    # ----------------------------------------------------------------------------------------------------
+    #### SAVE MODEL TO A WORKSPACE ####
+    wspace_name     = f'wspace_{process_name}_bdt{cut:,.4f}'
+    # fix both signal & background shape
+    dMtau.setConstant(True)
+    width.setConstant(True)
+    width2.setConstant(True)
+    f.setConstant(True)
+    #nsig.setConstant(False)
+    slope.setConstant(True)
+    #nbkg.setConstant(False)
 
-ws = ROOT.RooWorkspace(wspace_name, wspace_name)
-getattr(ws, 'import')(data)
-getattr(ws, 'import')(gaus)
-getattr(ws, 'import')(nsig)
-getattr(ws, 'import')(expo)
-getattr(ws, 'import')(nbkg)
-ws.Print()
-ws.writeToFile(wspace_filename)
+    # save observed data // bkg-only Asimov with name 'dat_obs'
+    fulldata = ROOT.RooDataSet('full_data', 'full_data', data_tree, thevars, sgn_selection)
+    mass.setBins(2*nbins)
+    if runblind:
+        # GenerateAsimovData() generates binned data following the binning of the observables
+        asimov_data = ROOT.RooStats.AsymptoticCalculator.GenerateAsimovData(ext_bkg_model, ROOT.RooArgSet(mass) )
+        data = ROOT.RooDataHist("data_obs", "data_obs", mass, asimov_data)
+        #data.SetName('data_obs') 
+    else :
+        #data     = ROOT.RooDataSet('data_obs','data_obs', fulldata, ROOT.RooArgSet(mass))
+        data = ROOT.RooDataHist("data_obs", "data_obs", mass, fulldata)
+    data.Print()
 
-#### WRITE THE DATACARD ####
-datacard_name = "input_combine/datacard_%s_%s.txt"%(process_name,tag)
-# dump the text datacard
-with open(datacard_name, 'w') as card:
-   card.write(
-'''
+    ws = ROOT.RooWorkspace(wspace_name, wspace_name)
+    getattr(ws, 'import')(data)
+    getattr(ws, 'import')(gaus) if not args.double_gaussian else getattr(ws, 'import')(gsum) 
+    #getattr(ws, 'import')(nsig)
+    getattr(ws, 'import')(expo)
+    #getattr(ws, 'import')(nbkg)
+    ws.Print()
+    file_ws.cd()
+    #ws.writeToFile(wspace_filename, False)
+    ws.Write()
+
+    #### WRITE THE DATACARD ####
+    datacard_name = f'{args.combine_dir}/datacard_{process_name}_bdt{cut:,.4f}.txt'
+    # dump the text datacard
+    with open(datacard_name, 'w') as card:
+        card.write(
+    '''
 imax 1 number of channels
 jmax * number of background sources
 kmax * number of nuisance parameters
@@ -327,26 +399,32 @@ shapes data_obs    {proc}       {ws_file} {ws_name}:data_obs
 bin                {proc}
 observation        {obs:d}
 --------------------------------------------------------------------------------
-bin                                     {proc}              {proc}
-process                                 sig                 bkg
-process                                 0                   1
-rate                                    {signal:.4f}        {bkg:.4f}
+bin                              {proc}              {proc}
+process                          sig                 bkg
+process                          0                   1
+rate                             {signal:.4f}        {bkg:.4f}
 --------------------------------------------------------------------------------
-bkg_norm rateParam                   {proc}      bkg     1. 
-slope    param  {slopeval:.4f} {slopeerr:.4f}
-'''.format(
-         proc     = process_name, 
-         ws_file  = wspace_filename, 
-         ws_name  = wspace_name, 
-         bkg_model= expo.GetName(),
-         sig_model= gaus.GetName(),
-         obs      = fulldata.numEntries() if runblind==False else -1, # number of observed events
-         signal   = fullmc.sumEntries(), # number of EXPECTED signal events, INCLUDES the a priori normalisation. Combine fit results will be in terms of signal strength relative to this inistial normalisation
-         bkg      = nbkg.getVal(), # number of expected background events **over the full mass range** using the exponential funciton fitted in the sidebands 
-         slopeval = slope.getVal(),
-         slopeerr = slope.getError()
-         )
-)
-
+lumi               lnN           1.022               -
+#bkg_norm rateParam              {proc}      bkg     1. 
+#slope    param  {slopeval:.4f} {slopeerr:.4f}
+    '''.format(
+            proc     = process_name, 
+            ws_file  = os.path.basename(wspace_filename), 
+            ws_name  = wspace_name, 
+            bkg_model= expo.GetName(),
+            sig_model= gaus.GetName() if not args.double_gaussian else gsum.GetName(),
+            obs      = fulldata.numEntries() if runblind==False else -1, # number of observed events
+            signal   = nsig.getVal(), #number of EXPECTED signal events, INCLUDES the a priori normalisation. Combine fit results will be in terms of signal strength relative to this inistial normalisation
+            bkg      = nbkg.getVal(), # number of expected background events **over the full mass range** using the exponential funciton fitted in the sidebands 
+            slopeval = slope.getVal(),
+            slopeerr = slope.getError()
+            )
+        )
+#if (ROOT.gROOT.GetVersion() == '6.22/09' ): exit(-1)
+if args.optim_bdt:
+    tree_dict = dict(zip(df_columns, np.array([bdt_cut, sig_Nexp, sig_eff, bkg_Nexp, bkg_Nexp_Sregion, bkg_eff, PunziS_val, PunziS_err, AMS_val])))
+    out_rdf = ROOT.RDF.MakeNumpyDataFrame(tree_dict).Snapshot('sensitivity_tree', out_data_filename)
+    print(f'[o] output tree saved in {out_data_filename}')
+    print(tree_dict)
 
 
