@@ -62,7 +62,7 @@ mass.setRange('fit_range', fit_range_lo,fit_range_hi)
 mass.setRange('full_range', mass_window_lo, mass_window_hi)
 # Ds mass resolution
 mass_err = ROOT.RooRealVar('%s_fit_mass_err'%('Ds' if not args.fake_cand else 'tau'), '#sigma_{M(3 #mu)}/ M(3 #mu)'  , 0.0,  0.03, 'GeV' )
-dspl_sig = ROOT.RooRealVar('%s_Lxy_sign_BS'%('Ds' if not args.fake_cand else 'tau'), ''  , 5.0,  1000)
+dspl_sig = ROOT.RooRealVar('%s_Lxy_sign_BS'%('Ds' if not args.fake_cand else 'tau'), ''  , 0.0,  1000)
 sv_prob  = ROOT.RooRealVar('%s_fit_vprob'%('Ds' if not args.fake_cand else 'tau'), ''  , 0.01,  1.0)
 phi_mass = ROOT.RooRealVar('phi_fit_mass' if not args.fake_cand else 'tau_phiMuMu_mass', ''  , 0.99,  1.05, 'GeV')
 
@@ -181,7 +181,7 @@ massDp   = ROOT.RooRealVar('massDp' , 'mass_Dp' , D_mass)
 widthDp  = ROOT.RooRealVar('widthDp' , 'width_Dp' , 0.01, 0.008, 0.05)
 gaus_Dp  = ROOT.RooGaussian('gaus_Dp', '', mass, massDp, widthDp)
 # + falling expo
-a  = ROOT.RooRealVar("a", "",  -1.0, -5, -0.1);
+a  = ROOT.RooRealVar("a", "",  -1.0, -5, -0.1)
 comb_bkg = ROOT.RooExponential('model_bkg_Ds', 'model_bkg_Ds', mass, a)
 
 Dp_f     = ROOT.RooRealVar("Dp_f", "", 0.1, 0.0, 1.0)

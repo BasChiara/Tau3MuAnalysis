@@ -43,9 +43,10 @@ parser.add_argument('--data_outdir',    default= '/eos/user/c/cbasile/Tau3MuRun3
 parser.add_argument('--tag',            default= 'emulateRun2',                                         help='tag to the training')
 parser.add_argument('--debug',          action = 'store_true' ,                                         help='set it to have useful printout')
 parser.add_argument('--save_output',    action = 'store_true' ,                                         help='set it to save the bdt output')
-parser.add_argument('--process',        choices=['WTau3Mu', 'W3MuNu', 'data', 'DsPhiMuMuPi', 'fake_rate'],   help='what process is in the input sample')
+parser.add_argument('--process',        choices= ['WTau3Mu', 'W3MuNu', 'data', 'DsPhiMuMuPi', 'fake_rate'],   help='what process is in the input sample')
 parser.add_argument('--isMC',           action = 'store_true' ,                                         help='set if running on MonteCarlo')
 parser.add_argument('--isMulticlass',   action = 'store_true' ,                                         help='set if applying a multiclass classifier')
+parser.add_argument('--LxySign_cut',    default=  0.05,  type = float,                               help='cut over 3muons SV displacement significance')
 parser.add_argument('-d', '--data',     action = 'append',                                              help='dataset to apply BDT weights')
 
 args = parser.parse_args()
@@ -53,10 +54,10 @@ tag = '_'.join([args.process, 'MC' if args.isMC else 'DATA']) + ( ('_' + args.ta
 removeNaN = False 
 
  # ------------ DEFINE SELECTIONS ------------ # 
-if(args.process == 'DsPhiPi'):
+if(args.process == 'DsPhiMuMuPi'):
     base_selection = '&'.join([
                             '(Ds_fit_mass > %.2f & Ds_fit_mass < %.2f )'%(Ds_mass_range_lo,Ds_mass_range_hi),
-                            '(Ds_Lxy_sign_BS > 5.0)',
+                            '(Ds_Lxy_sign_BS > %.2f)'%args.LxySign_cut,
                             '(Ds_fit_vprob > 0.01)',
                             '(phi_fit_mass > 0.98 & phi_fit_mass < 1.05)'
                         ])
@@ -95,7 +96,7 @@ if(args.data is None):
 else:
     dataset = args.data
 
-tree_name = 'WTau3Mu_tree' if not args.process == 'DsPhiPi' else 'DsPhiMuMuPi_tree' 
+tree_name = 'WTau3Mu_tree' if not args.process == 'DsPhiMuMuPi' else 'DsPhiMuMuPi_tree' 
 
 data_rdf = ROOT.RDataFrame(tree_name, dataset, branches).Filter(data_selection).Define('weight', 'lumi_factor')
 dat = pd.DataFrame( data_rdf.AsNumpy() )
@@ -106,7 +107,8 @@ print('---------------------------------------------')
 
 ## ETA BINS
 bdt_inputs = features + ['tauEta']
-if(args.process == 'DsPhiPi'): 
+if (args.LxySign_cut > 1.0): bdt_inputs.remove('tau_Lxy_sign_BS')
+if(args.process == 'DsPhiMuMuPi'): 
     if(args.debug): print(features_DsPhiPi_to_Tau3Mu)
     # rename Ds branches to match BDT structure 
     dat.rename( columns= features_DsPhiPi_to_Tau3Mu, inplace=True) 
@@ -149,7 +151,7 @@ for i, iclas in classifiers.items():
         dat.loc[:,'bdt_fold%d_score' %i] = iclas.predict_proba(dat[bdt_inputs])[:, 1]
         dat.loc[:,'bdt_score'] += iclas.predict_proba(dat[bdt_inputs])[:, 1] / n_class
 
-newfile_base = '%s/XGBout_'%(args.data_outdir) + ('DsPhiMuMuPi_' if args.process == 'DsPhiPi' else 'WTau3Mu_')
+newfile_base = '%s/XGBout_'%(args.data_outdir) + ('DsPhiMuMuPi_' if args.process == 'DsPhiMuMuPi' else 'WTau3Mu_')
 #newfile_tail = ('MC_' if args.isMC else 'DATA_') + args.tag + ".root"
 newfile      = '%s/XGBout_'%(args.data_outdir) + tag + '.root' 
 

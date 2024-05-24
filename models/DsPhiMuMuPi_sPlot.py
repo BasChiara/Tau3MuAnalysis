@@ -13,7 +13,7 @@ import math
 import argparse
 import sys
 sys.path.insert(0, '../plots/')
-from plotting_tools import ratio_plot 
+from plotting_tools import ratio_plot, ratio_plot_CMSstyle
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input_workspace',default= 'DsPhiPi2022_wspace_reMini.root', help=' RooWorkSpace with signal and background model')
@@ -29,6 +29,7 @@ ROOT.gROOT.SetBatch(True)
 ROOT.gStyle.SetOptStat(0)
 ROOT.gStyle.SetPadTickX(True)
 ROOT.gStyle.SetPadTickY(True)
+ROOT.gStyle.SetHistMinimumZero()
 ROOT.TH1.SetDefaultSumw2()
 ROOT.RooMsgService.instance().setSilentMode(True)
 
@@ -58,7 +59,8 @@ mass = wspace_data['Ds_fit_mass']
 # *** RooFit VARIABLES *** # 
 # Ds variables 
 mass_err = ROOT.RooRealVar('Ds_fit_mass_err', '#sigma_{M(3 #mu)}/ M(3 #mu)'  , 0.0,  0.03, 'GeV' )
-dspl_sig = ROOT.RooRealVar('tau_Lxy_sign_BS', ''  , 5.0,  1000)
+eta      = ROOT.RooRealVar('Ds_fit_eta', '#eta_{M(3 #mu)}'  , -3.5,  3.5)
+dspl_sig = ROOT.RooRealVar('tau_Lxy_sign_BS', ''  , 1.5,  1000)
 sv_prob  = ROOT.RooRealVar('tau_fit_vprob', ''  , 0.01,  1.0)
 phi_mass = ROOT.RooRealVar('phi_fit_mass', ''  , 0.98,  1.05, 'GeV')
 # MET variables
@@ -73,6 +75,7 @@ weight = ROOT.RooRealVar('weight', 'weight'  , 0.0,  1.0, '' )
 thevars = ROOT.RooArgSet()
 thevars.add(mass)
 thevars.add(mass_err)
+thevars.add(eta)
 thevars.add(dspl_sig)
 thevars.add(sv_prob)
 thevars.add(phi_mass)
@@ -85,9 +88,9 @@ thevars.add(raw_met)
 # *** INPUT DATA AND MONTE CARLO *** #
 sgn_selection  = '' 
 base_selection = ''
-input_tree_name = 'DsPhiMuMuPi_tree'
-mc_file = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data//XGBout_DsPhiMuMuPi_MC_kFold_2024Feb02.root' ]
-data_file = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data//XGBout_DsPhiMuMuPi_DATA_kFold_2024Feb02.root' ]
+input_tree_name = 'tree_w_BDT'
+mc_file = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_DsPhiMuMuPi_MC_HLT_overlap_LxyS150_2024Apr29.root' ]
+data_file = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_DsPhiMuMuPi_DATA_HLT_overlap_LxyS150_2024Apr29.root ' ]
 
 # signal MC 
 mc_tree = ROOT.TChain(input_tree_name)
@@ -163,7 +166,7 @@ sDataSet = ROOT.RooDataSet(sData.GetName(), sData.GetTitle(), sData.GetSDataSet(
 frame_sw = mass.frame(Title=" ", Bins= nbins)
 sMcSet.plotOn(frame_sw, ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2), ROOT.RooFit.MarkerColor(ROOT.kRed))
 sDataSet.plotOn(frame_sw, ROOT.RooFit.DataError(ROOT.RooAbsData.SumW2) )
-sc = ROOT.TCanvas("c", "c", 800, 800)
+sc = ROOT.TCanvas("canv", "canv", 800, 800)
 ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
 frame_sw.Draw()
 sc.SaveAs('%s/DsPhiPi_SWmass_%s.png'%(args.plot_outdir, tag)) 
@@ -181,12 +184,14 @@ h_mcBDT.SetFillStyle(3004)
 h_mcBDT.Sumw2()
 h_mcBDT.Scale(fnorm_mc.evaluate())
 h_mcBDT.GetYaxis().SetTitle('Events/%.2f'%(1.0/20))
+h_mcBDT.GetYaxis().SetRangeUser(0,4000)
 h_mcBDT.GetXaxis().SetTitle('BDT score')
 # MC sWeighted
 h_sMc_BDT = sMcSet.createHistogram("sMc_BDT", bdt, ROOT.RooFit.Binning(20))
 h_sMc_BDT.Scale(fnorm_mc.evaluate())
 h_sMc_BDT.SetFillColor(ROOT.kRed)
 h_sMc_BDT.SetFillStyle(3004)
+h_sMc_BDT.SetMarkerStyle(0)
 h_sMc_BDT.SetLineColor(ROOT.kRed)
 h_sMc_BDT.SetLineWidth(2)
 h_sMc_BDT.Sumw2()
@@ -200,21 +205,31 @@ h_sData_BDT.Sumw2()
 h_sMc_BDT.GetYaxis().SetRangeUser(0,1.2*np.max([frameBDT_sw.GetMaximum(),h_mcBDT.GetMaximum()]))
 
 # build legend
-leg = ROOT.TLegend(0.30, 0.65, 0.75, 0.80)
-leg.AddEntry(h_mcBDT, "MC (norm. to D_{s} #rightarrow #phi(#mu #mu) #pi yield in data)", "F");
+leg = ROOT.TLegend(0.40, 0.50, 0.80, 0.65)
+leg.AddEntry(h_mcBDT, "MC (norm. to D_{s}#rightarrow#phi(#mu#mu)#pi in data)", "F")
 leg.AddEntry(h_sData_BDT, "data (background subtracted)");
 leg.SetBorderSize(0)
-leg.SetTextSize(0.025)
+leg.SetTextSize(0.04)
 leg.SetFillStyle(0)
 
 # draw
-ratio_plot(h_sData_BDT, h_mcBDT, to_ploton = [leg], file_name = '%s/DsPhiPi_SWbdt_score_%s'%(args.plot_outdir, tag))
+h_mcBDT.SetMaximum(1.3 * np.max([h_mcBDT.GetMaximum(), h_sData_BDT.GetMaximum()]))
+ratio_plot_CMSstyle([h_sData_BDT], 
+h_mcBDT, 
+to_ploton = [leg], 
+file_name = '%s/DsPhiPi_SWbdt_score_%s'%(args.plot_outdir, tag),
+draw_opt_num = 'pe',
+draw_opt_den = 'histe',
+)
 
 # -- split by category
 cat_selection_dict = {
-    'A' : '(Ds_fit_mass_err/Ds_fit_mass < 0.007)',
-    'B' : '(Ds_fit_mass_err/Ds_fit_mass >= 0.007 & Ds_fit_mass_err/Ds_fit_mass < 0.012)',
-    'C' : '(Ds_fit_mass_err/Ds_fit_mass >= 0.012)'
+    #'A' : '(Ds_fit_mass_err/Ds_fit_mass < 0.007)',
+    #'B' : '(Ds_fit_mass_err/Ds_fit_mass >= 0.007 & Ds_fit_mass_err/Ds_fit_mass < 0.012)',
+    #'C' : '(Ds_fit_mass_err/Ds_fit_mass >= 0.012)',
+    'A' : '(fabs(Ds_fit_eta) < 0.9)',
+    'B' : '(fabs(Ds_fit_eta) > 0.9 & fabs(Ds_fit_eta) < 1.9)',
+    'C' : '(fabs(Ds_fit_eta) > 1.9)'
 }
 # text on plot
 CAT_txt = ROOT.TText()
@@ -226,12 +241,12 @@ CAT_txt.SetTextAlign(11)
 for i, cat in enumerate(cat_selection_dict.keys()):
     print(' - category %d %s'%(i,cat))
     max_fixed = 2000
-    CAT_txt.SetText(0.30, 0.90*max_fixed, "CAT %s"%cat)
+    CAT_txt.SetText(0.30, 0.95*max_fixed, "CAT %s"%cat)
     # MC sWeighted
     #h_mcBDT = sMcSet.reduce(cat_selection_dict[cat]).createHistogram("sMc_BDT", bdt, ROOT.RooFit.Binning(20))
     # MC matched
-    mc_tree.Draw('bdt_score>>h_BDT(20, 0.0, 1.0)', sWeigths_selection + ' & isMCmatching & '+cat_selection_dict[cat]) 
-    h_mcBDT = ROOT.gDirectory.Get("h_BDT")
+    mc_tree.Draw(f'bdt_score>>h_BDT_{cat}(20, 0.0, 1.0)', sWeigths_selection + ' & isMCmatching & '+cat_selection_dict[cat]) 
+    h_mcBDT = ROOT.gDirectory.Get(f'h_BDT_{cat}')
     h_mcBDT.Scale(fnorm_mc.evaluate())
     h_mcBDT.SetFillColor(ROOT.kRed)
     h_mcBDT.SetFillStyle(3004)
@@ -239,14 +254,15 @@ for i, cat in enumerate(cat_selection_dict.keys()):
     h_mcBDT.SetLineWidth(2)
     h_mcBDT.Sumw2()
     # DATA sWeighted
-    h_sData_BDT = sDataSet.reduce(cat_selection_dict[cat]).createHistogram("sData_BDT", bdt, ROOT.RooFit.Binning(20))
+    h_sData_BDT = sDataSet.reduce(cat_selection_dict[cat]).createHistogram(f'sData_BDT_{cat}', bdt, ROOT.RooFit.Binning(20))
     h_sData_BDT.SetMarkerColor(ROOT.kBlack)
     h_sData_BDT.SetMarkerStyle(20)
     h_sData_BDT.SetLineColor(ROOT.kBlack)
     h_sData_BDT.SetLineWidth(2)
     h_sData_BDT.Sumw2()
     h_mcBDT.GetYaxis().SetRangeUser(0,max_fixed)
-    ratio_plot(h_sData_BDT, h_mcBDT, to_ploton = [leg, CAT_txt], file_name = '%s/DsPhiPi_SWbdt_score_cat%s_%s'%(args.plot_outdir, cat, tag))
+
+    ratio_plot_CMSstyle([h_sData_BDT], h_mcBDT, to_ploton = [leg, CAT_txt], file_name = '%s/DsPhiPi_SWbdt_score_cat%s_%s'%(args.plot_outdir, cat, tag), draw_opt_num = 'pe', draw_opt_den = 'histe')
 
 # sPlot - MET
 METalgos = [puppi_met, deep_met, raw_met]
@@ -272,14 +288,15 @@ for met in METalgos:
     h_sData_MET.SetLineWidth(2)
     h_sData_MET.Sumw2()
     # build legend
-    leg = ROOT.TLegend(0.40, 0.65, 0.75, 0.80)
-    leg.AddEntry(h_mcMET, "MC (norm. to D_{s} #rightarrow #phi(#mu #mu) #pi yield in data)", "F");
-    leg.AddEntry(h_sData_MET, "data (background subtracted)");
+    leg = ROOT.TLegend(0.40, 0.70, 0.75, 0.90)
+    leg.AddEntry(h_mcMET, "MC (norm. to D_{s}#rightarrow#phi(#mu#mu)#pi in data)", "F")
+    leg.AddEntry(h_sData_MET, "data (bkg subtracted)")
     leg.SetBorderSize(0)
-    leg.SetTextSize(0.025)
+    leg.SetTextSize(0.04)
     leg.SetFillStyle(0)
     h_mcMET.GetXaxis().SetTitle(h_sData_MET.GetXaxis().GetTitle()) 
     h_mcMET.GetYaxis().SetTitle(h_sData_MET.GetYaxis().GetTitle()) 
-    ratio_plot(h_sData_MET, h_mcMET, to_ploton = [leg], file_name = '%s/DsPhiPi_SW%s_%s'%(args.plot_outdir, met.GetName(), tag))
+    h_mcMET.SetMaximum(1.3 * np.max([h_mcMET.GetMaximum(), h_sData_MET.GetMaximum()]))
+    ratio_plot_CMSstyle([h_sData_MET], h_mcMET, to_ploton = [leg], file_name = '%s/DsPhiPi_SW%s_%s'%(args.plot_outdir, met.GetName(), tag), draw_opt_num = 'pe', draw_opt_den = 'hist' )
 
 
