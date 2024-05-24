@@ -108,7 +108,7 @@ void histoSetUp(TH1* histo, const TString& category, const TString& x_name, bool
   histo->SetLineWidth(3);
   histo->SetLineColor(PtlColorMap(category));
   if (fill){
-    histo->SetFillColorAlpha(PtlColorMap(category), 0.3);
+    histo->SetFillColorAlpha(PtlColorMap(category), 0.5);
     histo->SetFillStyle(3004);
   }
   //NORMALIZATION
@@ -143,43 +143,43 @@ void CMSxxx(TCanvas* c){
 
 int draw_one_histo(const TString& histo_name, const TString& category, const TString& x_name, TString out_name = "", bool LogY = false, bool fill = true){
     
-    TFile* input_file = open_file();
+  TFile* input_file = open_file();
 
-    TH1F* h = (TH1F*)input_file->Get(histo_name);
-    if ( !h ){
-    std::cout<< "null pointer for histogram named " << histo_name << std::endl;
-    exit(-1);
-    }
-    if (out_name == "") out_name = histo_name;
+  TH1F* h = (TH1F*)input_file->Get(histo_name);
+  if ( !h ){
+  std::cout<< "null pointer for histogram named " << histo_name << std::endl;
+  exit(-1);
+  }
+  if (out_name == "") out_name = histo_name;
 
-    histoSetUp(h, category, x_name, fill);
-    h->SetMaximum(1.3*h->GetBinContent(h->GetMaximumBin()));
+  histoSetUp(h, category, x_name, fill);
+  float fMAX = 1.4;
+  if (LogY) fMAX = 3.0; 
+  h->SetMaximum(1.3*h->GetBinContent(h->GetMaximumBin()));
 
-    auto legend = new TLegend(0.60,0.75,.80,.80);
-    legend->SetBorderSize(0);
-    legend->SetTextSize(0.035);
-    legend->AddEntry(h,CategoryLegend(category),"f");
+  auto legend = new TLegend(0.60,0.75,.80,.80);
+  legend->SetBorderSize(0);
+  legend->SetTextSize(0.035);
+  legend->AddEntry(h,CategoryLegend(category),"f");
 
-    //STATISTICS
-    gStyle->SetOptStat(0);
+  //STATISTICS
+  gStyle->SetOptStat(0);
 
-    //TEXT
+  //TEXT
 
-    TCanvas* c1 = new TCanvas("c1","canvas", 1024,1024);
-    c1->DrawFrame(0,0,1,1);
-    h->Draw("HIST");
-    legend->Draw();
-    gPad->SetLeftMargin(0.13);
-    gPad->SetBottomMargin(0.13);
-    c1->Update(); 
-    if (out_name == "") out_name = histo_name;
-    if (LogY) c1->SetLogy();
-    else c1->SetLogy(0);
-    c1->SaveAs(pngName(out_name));
-    c1->SaveAs(pdfName(out_name));
+  TCanvas* c1 = new TCanvas("c1","canvas", 1024,1024);
+  c1->DrawFrame(0,0,1,1);
+  h->Draw("HIST");
+  legend->Draw();
+  c1->Update(); 
+  if (out_name == "") out_name = histo_name;
+  if (LogY) c1->SetLogy();
+  else c1->SetLogy(0);
+  c1->SaveAs(pngName(out_name));
+  c1->SaveAs(pdfName(out_name));
 
-    input_file->Close();
-    return 0;
+  input_file->Close();
+  return 0;
 
 }//draw_pT()
 

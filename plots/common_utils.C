@@ -119,7 +119,7 @@ void histoSetUp(TH1* histo, const TString& category, const TString& x_name, bool
   histo->SetLineWidth(3);
   histo->SetLineColor(PtlColorMap(category));
   if (fill){
-    histo->SetFillColorAlpha(PtlColorMap(category), 0.3);
+    histo->SetFillColorAlpha(PtlColorMap(category), 0.75);
     histo->SetFillStyle(3004);
   }
   //NORMALIZATION

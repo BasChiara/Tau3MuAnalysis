@@ -45,7 +45,7 @@ void setTDRStyle() {
   
 // For the histo:
   // tdrStyle->SetHistFillColor(1);
-  // tdrStyle->SetHistFillStyle(0);
+  tdrStyle->SetHistFillStyle(3004);
   tdrStyle->SetHistLineColor(1);
   tdrStyle->SetHistLineStyle(0);
   tdrStyle->SetHistLineWidth(1);
@@ -87,10 +87,12 @@ void setTDRStyle() {
 
 // Margins:
   float margin = 0.12;
-  tdrStyle->SetPadTopMargin(margin);
-  tdrStyle->SetPadBottomMargin(margin);
-  tdrStyle->SetPadLeftMargin(margin);
-  tdrStyle->SetPadRightMargin(margin);
+  float margin_bl = 0.14;
+  float margin_tr = 0.05;
+  tdrStyle->SetPadTopMargin(margin_tr);
+  tdrStyle->SetPadBottomMargin(margin_bl);
+  tdrStyle->SetPadLeftMargin(margin_bl);
+  tdrStyle->SetPadRightMargin(margin_tr);
 
 // For the Global title:
 
@@ -99,7 +101,7 @@ void setTDRStyle() {
   tdrStyle->SetTitleColor(1);
   tdrStyle->SetTitleTextColor(1);
   tdrStyle->SetTitleFillColor(10);
-  tdrStyle->SetTitleFontSize(0.05);
+  tdrStyle->SetTitleFontSize(0.04);
   // tdrStyle->SetTitleH(0); // Set the height of the title box
   // tdrStyle->SetTitleW(0); // Set the width of the title box
   // tdrStyle->SetTitleX(0); // Set the position of the title box
@@ -111,11 +113,11 @@ void setTDRStyle() {
 
   tdrStyle->SetTitleColor(1, "XYZ");
   tdrStyle->SetTitleFont(42, "XYZ");
-  tdrStyle->SetTitleSize(0.04, "XYZ");
-  // tdrStyle->SetTitleXSize(Float_t size = 0.02); // Another way to set the size?
-  // tdrStyle->SetTitleYSize(Float_t size = 0.02);
-  tdrStyle->SetTitleXOffset(1.25);
-  tdrStyle->SetTitleYOffset(1.25);
+  //tdrStyle->SetTitleSize(0.04, "XYZ");
+  tdrStyle->SetTitleXSize(0.05); // Another way to set the size?
+  tdrStyle->SetTitleYSize(0.045);
+  tdrStyle->SetTitleXOffset(1.30);
+  tdrStyle->SetTitleYOffset(1.40);
   // tdrStyle->SetTitleOffset(1.1, "Y"); // Another way to set the Offset
 
 // For the axis labels:
