@@ -9,8 +9,11 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import os
 import shutil
-
 sns.set(style="white")
+
+import warnings
+# Suppress the specific UserWarning
+warnings.filterwarnings("ignore", message="The value of the smallest subnormal for <class 'numpy.float64'> type is zero.")
 
 import xgboost
 from xgboost import XGBClassifier, plot_importance
@@ -31,31 +34,70 @@ from config import *
 ##########################################################################################
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--load_model',                                                              help='load pkl instead of training')
-parser.add_argument('--plot_outdir',default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/BDTtraining/', help=' output directory for plots')
-parser.add_argument('--tag',                                                                     help='tag to the training')
-parser.add_argument('-s','--seed',  default=  3872, type = int,                                  help='set random state for reproducible results')
-parser.add_argument('--LxySign_cut',default=  0.0,  type = float,                                help='set random state for reproducible results')
-parser.add_argument('--debug',      action = 'store_true' ,                                      help='set it to have useful printout')
-parser.add_argument('--save_output',action = 'store_true' ,                                      help='set it to save the bdt output')
-parser.add_argument('--unblind',    action = 'store_true' ,                                      help='set it to save data unblind')
+# I/O
+parser.add_argument('--load_model',                                                                 help='load pkl instead of training')
+parser.add_argument('--plot_outdir',    default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/BDTtraining/',help='output directory for plots')
+parser.add_argument('--save_output',    action = 'store_true',                                      help='set it to save the bdt output')
+parser.add_argument('--data_outdir',    default= '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/',   help='output directory for MVA data')
+parser.add_argument('--unblind',        action = 'store_true',                                      help='set it to save data unblind')
+parser.add_argument('--tag',                                                                        help='tag to the training')
+# training mode
+parser.add_argument('-s','--seed',      default=  3872, type = int,                                 help='set random state for reproducible results')
+parser.add_argument('--LxySign_cut',    default=  0.0,  type = float,                               help='cut over 3muons SV displacement significance')
+parser.add_argument('--useW3MuNu',      action = 'store_true' ,                                     help='use W->3MuNu (SM) MC in bkg training sample')
+parser.add_argument('--fracW3MuNu',     default = 1.0,  type = float,                               help='which fraction of the W3MuNu sample to use')
+parser.add_argument('--debug',          action = 'store_true' ,                                     help='set it to have useful printout')
 
 args    = parser.parse_args()
-tag     = 'kFold_' + (args.tag + '_' if args.tag else '') + 'LxyS%.0f_'%(args.LxySign_cut*100)+ datetime.date.today().strftime('%Y%b%d')
-removeNaN = False 
+print("\n")
+
+# [OUTPUT]
+# setup output tag
+tag = 'kFold_' + (f'{args.tag}_' if args.tag else '') + (f'LxyS{args.LxySign_cut*100}_' if args.LxySign_cut > 0 else '') + (f'enrichW3MuNu_' if args.useW3MuNu else '')+ datetime.date.today().strftime('%Y%b%d')
+# setup output directories
+# for plots
+plot_outpath = args.plot_outdir + '/Training_' + tag + '/'
+if not args.load_model:
+    try:
+        os.makedirs(plot_outpath)
+        shutil.copy2('/afs/cern.ch/user/c/cbasile/public/index.php', plot_outpath)
+        print(f'[OUT] created out-directory for plots {plot_outpath}')
+    except OSError as e:
+        if os.path.exists(plot_outpath) and os.path.isdir(plot_outpath):
+            print(f'[OUT] already existing out-directory for plots {plot_outpath}')
+        else:
+            print(f'[ERROR] cannot create plot-output directory {plot_outpath}')
+            exit(-1)
+# for data
+if args.save_output:
+    try:
+        os.makedirs(args.data_outdir)
+        print(f'[OUT] created out-directory for data {plot_outpath}')
+    except OSError as e:
+        if os.path.exists(args.data_outdir) and os.path.isdir(args.data_outdir):
+            print(f'[OUT] already existing out-directory for data {args.data_outdir}')
+        else:
+            print(f'[ERROR] cannot create out-directory for data {args.data_outdir}')
+            exit(-1)
+else :
+    print(f'[i] data with BDT applied will NOT be saved')
+
+removeNaN = False
 
 # ------------ DEFINE SELECTIONS ------------ # 
-base_selection = '(tau_fit_mass > %.2f & tau_fit_mass < %.2f ) & (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu) & (tau_Lxy_sign_BS > %.2f)'%(mass_range_lo,mass_range_hi, args.LxySign_cut) 
-sig_selection  = base_selection 
-bkg_selection  = base_selection + ('& (tau_fit_mass < %.2f | tau_fit_mass > %.2f)'%(blind_range_lo, blind_range_hi) if not (args.unblind) else '')
+base_selection = f'(tau_fit_mass > {mass_range_lo} & tau_fit_mass < {mass_range_hi} ) & (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu) & (tau_Lxy_sign_BS >{args.LxySign_cut})'
+sig_selection  = base_selection
+bkg_selection  = base_selection + (f'& (tau_fit_mass < {blind_range_lo} | tau_fit_mass > {blind_range_hi})' if not (args.unblind) else '')
 print('\n---------------------------------------------')
 print('[!] base-selection   : %s'%base_selection)
 print('[S] signal-selection : %s'%sig_selection)
 print('[B] data-selection   : %s'%bkg_selection)
 print('---------------------------------------------')
 
-# ------------ INPUT DATASET ------------ # 
+# ------------ INPUT DATASET ------------ #
+tree_name = 'WTau3Mu_tree'
 
+print('[+] adding WTau3Mu SIGNAL samples')
 signals     = [
     # 2022
     '../outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap.root',
@@ -64,10 +106,9 @@ signals     = [
     '../outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap.root',
     '../outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap.root '
 ]
+print('[+] adding data-sidebands backgrund samples')
 data_path = '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/'
-backgrounds  = [
-    #W3mu
-    '../outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_privW3MuNu.root',
+dataSB_background  = [
     #2022
     data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Cv1_HLT_overlap.root',
     data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv1_HLT_overlap.root',
@@ -84,42 +125,44 @@ backgrounds  = [
     data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv1_HLT_overlap.root',
     data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023D_HLT_overlap.root',
 ]
-
-tree_name = 'WTau3Mu_tree'
-print('[+] adding signal and backgrund samples')
-sig_rdf = ROOT.RDataFrame(tree_name, signals, branches).Filter(sig_selection).Define('weight', 'lumi_factor')
-sig = pd.DataFrame( sig_rdf.AsNumpy() )
-bkg_rdf = ROOT.RDataFrame(tree_name, backgrounds, branches).Filter(bkg_selection).Define('weight', '1.0')
-bkg = pd.DataFrame( bkg_rdf.AsNumpy() )
+if (args.useW3MuNu):
+    print(f'[+] adding W3MuNu MC samples')
+    W3MuNu_background = [
+        #2022
+        '../outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap_onW3MuNu.root',
+        '../outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_privW3MuNu.root',
+        #2023
+        '../outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap_onW3MuNu.root',
+        '../outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onW3MuNu.root',
+    ]
 
 print('... processing input ...')
-print(' SIGNAL      : %s entries passed selection' %sig_rdf.Count().GetValue())
-print(' BACKGROUND  : %s entries passed selection' %bkg_rdf.Count().GetValue())
+sig_rdf = ROOT.RDataFrame(tree_name, signals, branches).Filter(sig_selection).Define('weight', 'lumi_factor')
+sig = pd.DataFrame( sig_rdf.AsNumpy() )
+print(' SIGNAL      : %s entries passed selection' %len(sig.index))
+bkg_rdf = ROOT.RDataFrame(tree_name, dataSB_background, branches).Filter(bkg_selection).Define('weight', '1.0')
+bkg = pd.DataFrame( bkg_rdf.AsNumpy() )
+print(' DATA-SB BACKGROUND  : %s entries passed selection' %len(bkg.index))
+if (args.useW3MuNu):
+    W3MuNu_bkg_rdf = ROOT.RDataFrame(tree_name, W3MuNu_background, branches).Filter(bkg_selection).Define('weight', 'lumi_factor')
+    W3MuNu_bkg = pd.DataFrame( W3MuNu_bkg_rdf.AsNumpy() ) 
+    W3MuNu_bkg = W3MuNu_bkg.sample(frac = args.fracW3MuNu, random_state = args.seed).reset_index(drop=True)
+    print(' W3MuNu(MC) BACKGROUND  : %s entries passed selection' %len(W3MuNu_bkg.index))
 print('---------------------------------------------')
-
-## OUTPUT ##
-plot_outpath = args.plot_outdir + '/Training_' + tag + '/'
-if not (os.path.isdir(plot_outpath)):
-    os.mkdir(plot_outpath)
-    shutil.copy2('/afs/cern.ch/user/c/cbasile/public/index.php', plot_outpath)
-    print('[out] created output directory for plots :' + plot_outpath )
-else :
-    print('[out] already existing directory for plots :' + plot_outpath )
-
 
 ## DEFINE TARGETS
 sig.loc[:,'target'] = np.ones (sig.shape[0]).astype(int)
+if args.useW3MuNu :
+    bkg = pd.concat([bkg, W3MuNu_bkg]) 
 bkg.loc[:,'target'] = np.zeros(bkg.shape[0]).astype(int)
 
-## ETA BINS
-if(args.debug):print(sig['tau_fit_eta'])
-if(args.debug):print(tauEta(sig['tau_fit_eta'].values))
-
 ## BDT inputs
-#    remove displacement significance if cut Lxy/sigma
+#   rebin eta
+#   remove displacement significance if cut Lxy/sigma
 bdt_inputs = features + ['tauEta']
 if (args.LxySign_cut > 0 ) : bdt_inputs.remove('tau_Lxy_sign_BS')
-if(args.debug):print(bdt_inputs)
+print('[i] BDT inputs')
+[print(f'  - {f}') for f in bdt_inputs]
 sig.loc[:,'tauEta'] = tauEta(sig['tau_fit_eta'])
 bkg.loc[:,'tauEta'] = tauEta(bkg['tau_fit_eta'])
 
@@ -145,7 +188,6 @@ if(removeNaN):
         data = data.dropna()
         check_for_nan = data.isnull().values.any()
         print ("[!] check again for NaN " + str(check_for_nan))
-
 
 # ------------ K-FOLD TRAINING ------------ # 
 kfold = 5
@@ -178,7 +220,7 @@ if args.load_model is None:
         kdataset = train[train.id.isin(train_index)]
         print('  using %.2f percent of the full dataset'% (kdataset.shape[0]/train.shape[0]*100.))    
         
-        # split the train set in training and validation
+        # split the train set in training and validation + select SB
         ktrain, kvalid = train_test_split(
                 kdataset[(kdataset.target == 1) | ((kdataset.target == 0) & ((kdataset.tau_fit_mass < blind_range_lo) | (kdataset.tau_fit_mass > blind_range_hi)))], 
                 test_size=0.2, 
@@ -204,7 +246,7 @@ if args.load_model is None:
             max_depth        = 5,
             learning_rate    = 0.01, 
             n_estimators     = 10000, #10000,
-            verbosity        = 1,
+            verbosity        = 0,
             subsample        = 0.7,
             colsample_bytree = 0.7,
             min_child_weight = 50, #1E-6 * np.sum(train[train.id.isin(train_index)].weight),
@@ -214,7 +256,7 @@ if args.load_model is None:
             reg_alpha        = 5.0,
             reg_lambda       = 5.0,
             use_label_encoder=False,
-            eval_metric      = 'auc',
+            eval_metric      ='auc',
             objective        ='binary:logistic',
             early_stopping_rounds = 100, #100
         )
@@ -223,7 +265,7 @@ if args.load_model is None:
             X_train, 
             y_train,
             eval_set              = [(X_train, y_train),(X_valid, y_valid)],
-            verbose               = True,
+            verbose               = False,
             #sample_weight         = ktrain['weight'],
         )
         
@@ -243,7 +285,7 @@ if args.load_model is None:
         ax.plot(x_axis, results['validation_1']['auc'], label='Validation')
         ax.set_yscale('log')
         ax.legend()
-        plt.ylabel('mlogloss')
+        plt.ylabel('AUC')
         plt.title('Fold number %d / %d'%(i+1, kfold))
         plt.savefig('%sevalMetricVSepochs_%s_fold%d.png' %(plot_outpath,tag, i+1))
 
@@ -294,11 +336,12 @@ if(args.save_output):
     print(data.columns)
     # convert data to dictionary with numpy arrays 
     out_data = {col: data[col].values for col in data.columns}
-
-    out_rdf = ROOT.RDF.MakeNumpyDataFrame(out_data).Filter('target == 0').Snapshot('tree_w_BDT', '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_data_%s_%s.root'%(tag, 'blind' if not args.unblind else 'open'))
-    out_rdf = ROOT.RDF.MakeNumpyDataFrame(out_data).Filter('target == 1').Snapshot('tree_w_BDT', '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_signal_%s.root'%(tag))
-    print('[o] output DATA saved in /eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_data_%s_%s.root'%(tag, 'blind' if     not args.unblind else 'open'))
-    print('[o] output SIGNAL saved in /eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_signal_%s.root'%tag)
+    out_data_filename = f'{args.data_outdir}/XGBout_data_{tag}.root'
+    out_rdf = ROOT.RDF.MakeNumpyDataFrame(out_data).Filter('target == 0').Snapshot('tree_w_BDT', out_data_filename)
+    print(f'[o] output DATA saved in {out_data_filename}')
+    out_data_filename = f'{args.data_outdir}/XGBout_signal_{tag}.root'
+    out_rdf = ROOT.RDF.MakeNumpyDataFrame(out_data).Filter('target == 1').Snapshot('tree_w_BDT', out_data_filename)
+    print(f'[o] output SIGNAL saved in {out_data_filename}')
 
 if(args.load_model): exit(-1) 
 
