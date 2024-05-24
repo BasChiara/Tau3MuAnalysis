@@ -1,4 +1,12 @@
 import ROOT
+import cmsstyle as CMS
+CMS.SetEnergy(13.6)
+
+import numpy as np
+# custom configuration
+import sys
+sys.path.append('..')
+from mva.config import LumiVal_plots
 
 def ratio_plot( histo_num = [], histo_den = [], to_ploton = [], file_name = 'ratio_plot', **kwargs):
 
@@ -7,8 +15,9 @@ def ratio_plot( histo_num = [], histo_den = [], to_ploton = [], file_name = 'rat
         print(f'{key} : {value}')
     ratio_w = kwargs['ratio_w'] if 'ratio_w' in kwargs else 0.5
     ratio_yname = kwargs['ratio_yname'] if 'ratio_yname' in kwargs else 'Data/MC' 
-
+    
     c = ROOT.TCanvas("c", "", 1024, 1248)
+
     #create upper TPad
     c.cd()
     up_pad = ROOT.TPad("up_pad", "", 0., 0.30, 1.0,1.0) #xlow, ylow, xup, yup (mother pad reference system)
@@ -77,9 +86,110 @@ def ratio_plot( histo_num = [], histo_den = [], to_ploton = [], file_name = 'rat
     h_ratio_den.Draw("PE2")
     [h_ratio.Draw("PE same") for h_ratio in h_ratio_list]
     
+    
     c.cd()
-    c.Update()
     c.SaveAs(file_name+'.png')
     c.SaveAs(file_name+'.pdf')
     return c
 
+def ratio_plot_CMSstyle(histo_num = [], histo_den = [], to_ploton = [], file_name = 'ratio_plot', **kwargs):
+    # parse argument
+    for key, value in kwargs.items():
+        print(f'{key} : {value}')
+    ratio_w      = kwargs['ratio_w'] if 'ratio_w' in kwargs else 0.5
+    ratio_yname  = kwargs['ratio_yname'] if 'ratio_yname' in kwargs else 'Data/MC'
+    draw_opt_num = kwargs['draw_opt_num'] if 'draw_opt_num' in kwargs else 'hist'
+    draw_opt_den = kwargs['draw_opt_den'] if 'draw_opt_den' in kwargs else 'hist'
+    CMSextraText = kwargs['CMSextraText'] if 'CMSextraText' in kwargs else 'Preliminary'
+    isMC         = kwargs['isMC'] if 'isMC' in kwargs else False
+    year         = kwargs['year'] if 'year' in kwargs else 2022
+    x_lim        = kwargs['x_lim'] if 'x_lim' in kwargs else [histo_den.GetBinLowEdge(histo_den.FindFirstBinAbove(0.)), histo_den.GetBinLowEdge(histo_den.FindLastBinAbove(0.)+1)] 
+    
+    # CMS style setting
+    CMS.SetExtraText(CMSextraText)
+    if not isMC : CMS.SetLumi(LumiVal_plots[str(year)])
+    CMS.SetEnergy(13.6)
+
+    
+    # CMS style canva
+    x_min = x_lim[0]
+    x_max = x_lim[1]
+    y_min = histo_den.GetMinimum()
+    y_max = histo_den.GetMaximum()
+    r_min = 1 - ratio_w 
+    r_max = 1 + ratio_w
+    #c = ROOT.TCanvas("c", "", 1024, 1248)
+    c = CMS.cmsDiCanvas('c', 
+                    x_min, 
+                    x_max, 
+                    y_min, 
+                    y_max,
+                    r_min,
+                    r_max,
+                    histo_den.GetXaxis().GetTitle(),
+                    histo_den.GetYaxis().GetTitle(),
+                    ratio_yname,
+                    square = CMS.kSquare, 
+                    extraSpace=0, 
+                    iPos=11
+    ) 
+    
+    # - histo manipulations
+    # remove title
+    [h_num.SetTitle("") for h_num in histo_num]
+    histo_den.SetTitle("")
+    # create ratio plot
+    h_ratio_den  = histo_den.Clone("h_ratio_den")
+    h_ratio_den.Sumw2()
+    h_ratio_den.Divide(histo_den)
+    h_ratio_den.SetFillColorAlpha(h_ratio_den.GetLineColor(), 0.3)
+    h_ratio_den.SetMarkerStyle(0)
+    # ratio plot style ...
+    
+
+    h_ratio_list = []
+    for h_num in histo_num:
+        h_ratio = h_num.Clone("h_ratio")
+        h_ratio.Sumw2()
+        h_ratio.Divide(histo_den)
+        h_ratio.SetMarkerStyle(20) 
+        h_ratio_list.append(h_ratio)
+
+    
+    # draw in the upper pad
+    c.cd(1)
+    #histo_den.Draw("HISTE")
+    CMS.cmsDraw(histo_den,
+        f'{draw_opt_den}',
+        lwidth = histo_den.GetLineWidth(), 
+        mcolor = histo_den.GetLineColor(),
+        marker = histo_den.GetMarkerStyle(),
+        fcolor = histo_den.GetFillColor(),
+        fstyle = histo_den.GetFillStyle(),
+    )           
+    for h_num in histo_num:
+        h_num.SetStats(0)          # No statistics on upper plot
+        CMS.cmsDraw(h_num, 
+        f'{draw_opt_num} same',
+        lwidth = h_num.GetLineWidth(), 
+        mcolor = h_num.GetLineColor(), 
+        marker = h_num.GetMarkerStyle(),
+        fcolor = h_num.GetFillColor(),
+        fstyle = h_num.GetFillStyle(),
+        ) 
+    [obj.Draw() for obj in to_ploton]
+    CMS.fixOverlay()
+    # draw in the ratio pad 
+    c.cd(2)
+    CMS.cmsDraw(h_ratio_den, 
+    'E2',
+    marker = 0,
+    lwidth = h_ratio_den.GetLineWidth(),
+    mcolor = h_ratio_den.GetLineColor(), 
+    fcolor = h_ratio_den.GetFillColor(),
+    )
+    [CMS.cmsDraw(h_ratio, f'{draw_opt_num} same', lwidth = h_ratio.GetLineWidth(),mcolor = h_ratio.GetLineColor(), fcolor = h_ratio.GetFillColor(), ) for h_ratio in h_ratio_list]
+    
+    c.SaveAs(file_name + '.png')
+    c.SaveAs(file_name + '.pdf')
+    c.SaveAs(file_name + '.root')
