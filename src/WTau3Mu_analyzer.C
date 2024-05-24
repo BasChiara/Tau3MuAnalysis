@@ -108,9 +108,13 @@ void WTau3Mu_analyzer::Loop(){
          tau_mu1_TightID_BS = Muon_isTight_BS[TauTo3Mu_mu1_idx[t]]; tau_mu2_TightID_BS = Muon_isTight_BS[TauTo3Mu_mu2_idx[t]]; tau_mu3_TightID_BS = Muon_isTight_BS[TauTo3Mu_mu3_idx[t]];
          // muons SF in MC
          tau_mu1_IDrecoSF=1.; tau_mu2_IDrecoSF=1.; tau_mu3_IDrecoSF=1.;
+         tau_mu1_IDrecoSF_sysUP = -1.; tau_mu1_IDrecoSF_sysDOWN = -1.;  
+         tau_mu2_IDrecoSF_sysUP = -1.; tau_mu2_IDrecoSF_sysDOWN = -1.;  
+         tau_mu3_IDrecoSF_sysUP = -1.; tau_mu3_IDrecoSF_sysDOWN = -1.;  
          if(isMC_){
             applyMuonSF(t);
          }
+         weight = lumi_factor * tau_mu1_IDrecoSF * tau_mu2_IDrecoSF * tau_mu3_IDrecoSF; 
 
          // muons kinematics
          tau_mu1_pt  = TauTo3Mu_mu1_pt[t];   tau_mu2_pt  = TauTo3Mu_mu2_pt[t];   tau_mu3_pt  = TauTo3Mu_mu3_pt[t];
@@ -267,8 +271,11 @@ void WTau3Mu_analyzer::outTreeSetUp(){
    outTree_->Branch("run", &Run, "run/i");
    outTree_->Branch("LumiBlock", &LumiBlock, "LumiBlock/i");
    outTree_->Branch("event", &Event, "Event/l");
+   //outTree_->Branch("year", &year_num, "year/i");
+   outTree_->Branch("year", year_char, "year/C"); 
    outTree_->Branch("nGoodPV", &nGoodPV, "nGoodPV/i");
    // lumi & scale factors
+   outTree_->Branch("weight",                   &weight,                   "weight/F");
    outTree_->Branch("lumi_factor",              &lumi_factor,              "lumi_factor/F");
    outTree_->Branch("tau_mu1_IDrecoSF",         &tau_mu1_IDrecoSF,         "tau_mu1_IDrecoSF/F");
    outTree_->Branch("tau_mu1_IDrecoSF_sysUP",   &tau_mu1_IDrecoSF_sysUP,   "tau_mu1_IDrecoSF_sysUP/F");

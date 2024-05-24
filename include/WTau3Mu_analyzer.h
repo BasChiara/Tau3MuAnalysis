@@ -14,6 +14,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
          if (isMC_) DATA_MC_tag = "MC";
          // which era is processed
          year_ = year;
+         year_char = (char*)year.Data();
          // set the simulated process
          process_ = process;
          TString process_tag = "";
@@ -58,7 +59,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       virtual ~WTau3Mu_analyzer(){}
 
       virtual void Loop();
-      void   fakeDs_mass(const int& cand_idx);
+      void    fakeDs_mass(const int& cand_idx);
       void    outTreeSetUp();
       void    saveOutput();
 
@@ -78,6 +79,8 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
 
       TString tag_;
       TString year_;
+      char * year_char;
+      //int year_num;
       TString process_;
 
       TString outFilePath_;
@@ -90,7 +93,8 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       ULong64_t Event;
       int nGoodPV;
       int isMCmatching;
-      // lumi and scale facors
+      // total weight : lumi and scale facors(in tools)
+      float weight;
       float lumi_factor;
       // HLT_bit
       int HLT_isfired_Tau3Mu, HLT_isfired_DoubleMu;
