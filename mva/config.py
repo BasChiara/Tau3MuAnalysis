@@ -1,70 +1,9 @@
-# WTau3Mu Run2 emulation
+# WTau3Mu Run3 developement
 # useful global variables for python code
 from collections import OrderedDict
 import numpy  as np
 import pandas as pd
 import ROOT
-
-###                        ###
-#  MONTECARLO NORMALIZATION  #
-###                        ###
-
-# Nexp = Lumi2022 * xs_Wmunu_X *Br(W->tau nu)/Br(W->mu nu) * r(POI) * Br(tau ->3mu)
-# factor = Lumi2022/LumiMC
-
-xs_Wmunu_X = 63199.9 /3.*1000 #[fb] [MADGRAPH] - from AN2022_153 [SMP-20-004]
-xs_Wmunu_X_err = 0.0 #[fb] don't know Madgraph unc.
-
-Br_WtauWnu_ratio = 1.008
-Br_WtauWnu_ratio_err = 0.031 
-
-Br_Tau3Mu_default = 1e-7
-# Lumi 2022
-Lumi2022_C =  4.979
-Lumi2022_D =  2.952
-Lumi2022_E =  5.80
-Lumi2022_F = 17.778
-Lumi2022_G =  3.071 
-
-Lumi2022_preEE  = Lumi2022_D
-Lumi2022_EE     = Lumi2022_E+Lumi2022_F+Lumi2022_G
-Lumi2022 = 34.7 
-
-Lumi2022_Serr = 0.022
-
-# Lumi 2023
-Lumi2023_B = 0.600 
-Lumi2023_C = 9.909
-Lumi2023_D = 1.669
-
-Lumi2023_preBPix = Lumi2023_B + Lumi2023_C
-Lumi2023_BPix = Lumi2023_D
-
-Lumi2023    = 27.9
-
-Lumi2023_Serr = 0.0
-
-# --- MC
-Nev_MC_2022preEE = 197789
-Nev_MC_2022EE    = 792640 
-Nev_MC_2023preBPix = 0 
-Nev_MC_2023BPix    = 0 
-Filter_eff       = 1.0
-
-# --- MC Luminosity
-Lumi_MC_2022preEE  = Nev_MC_2022preEE/(Filter_eff * xs_Wmunu_X * Br_Tau3Mu_default)
-Lumi_MC_2022EE  = Nev_MC_2022EE/(Filter_eff * xs_Wmunu_X * Br_Tau3Mu_default)
-Lumi_MC_2023preBPix  = Nev_MC_2023preBPix/(Filter_eff * xs_Wmunu_X * Br_Tau3Mu_default)
-Lumi_MC_2023BPix  = Nev_MC_2023BPix/(Filter_eff * xs_Wmunu_X * Br_Tau3Mu_default)
-
-
-# --- NORM FACTOR TO USE 
-
-LumiVal_plots = {
-   '2022' : "34.7", 
-   '2023' : "27.9",
-}
-
 
 ###                ###
 #  TAU MASS REGIONS  #
@@ -124,6 +63,45 @@ bdt_label_process ={
 ##############
 #    BDT     #
 ##############
+
+# ------------ INPUT DATASET ------------ #
+mc_path     = '/afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/'
+data_path   = '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/'
+WTau3Mu_signals  = [
+    # 2022
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap_onTau3Mu.root',
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_onTau3Mu.root',
+    # 2023
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap_onTau3Mu.root',
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onTau3Mu.root'
+]
+data_background  = [
+    #2022
+    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Cv1_HLT_overlap.root',
+    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv1_HLT_overlap.root',
+    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv2_HLT_overlap.root',
+    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Ev1_HLT_overlap.root',
+    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Fv1_HLT_overlap.root',
+    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Gv1_HLT_overlap.root',
+    #2023
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023B_HLT_overlap.root',
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv1_HLT_overlap.root',
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv2_HLT_overlap.root',
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv3_HLT_overlap.root',
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023C_HLT_overlap.root',
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv1_HLT_overlap.root',
+    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023D_HLT_overlap.root',
+]
+W3MuNu_background = [
+    #2022
+     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap_onW3MuNu.root',
+     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_privW3MuNu.root',
+    #2023
+     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap_onW3MuNu.root',
+     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onW3MuNu.root',
+]
+
+
 # give labels human readable names
 # IMPORTANT : same order as features!!!
 labels = OrderedDict()
@@ -217,7 +195,7 @@ features_NbinsXloXhiLabelLog = {
     'tau_mu12_dZ'       : [ 20, 0, 0.2, '#Delta z (#mu_1, #mu_2)',  0],
     'tau_mu13_dZ'       : [ 20, 0, 0.2, '#Delta z (#mu_1, #mu_3)',  0],
     'tau_mu23_dZ'       : [ 20, 0, 0.2, '#Delta z (#mu_2, #mu_3)',  0],
-    'tau_Lxy_sign_BS'   : [ 25, 0, 10,  'SV L_{xy}/#sigma',         0],
+    'tau_Lxy_sign_BS'   : [ 50, 0, 10,  'SV L_{xy}/#sigma',        0],
     'tau_fit_vprob'     : [ 20, 0,  1,  'SV probability',           0],
     'tau_cosAlpha_BS'   : [ 50, 0.9,1,  'cos_{#alpha}(SV, BS)',     1],
     'tau_mu1_TightID_PV': [  2,-0.5,1.5, '#mu_1 ID',                0],
