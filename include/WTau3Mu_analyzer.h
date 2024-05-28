@@ -14,7 +14,9 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
          if (isMC_) DATA_MC_tag = "MC";
          // which era is processed
          year_ = year;
-         year_char = (char*)year.Data();
+         auto search_id = yearID::year_era_code.find(year_);
+         if (search_id != yearID::year_era_code.end()) year_id_ = search_id->second;
+         else year_id_ = 0; 
          // set the simulated process
          process_ = process;
          TString process_tag = "";
@@ -79,7 +81,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
 
       TString tag_;
       TString year_;
-      char * year_char;
+      UInt_t year_id_;
       //int year_num;
       TString process_;
 

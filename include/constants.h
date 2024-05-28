@@ -43,6 +43,29 @@ enum MCsignals {
     MC_W3MuNu
 };
 
+namespace yearID
+{
+    inline std::map<TString, UInt_t> year_era_code{
+        {"2022preEE"      , 220}, 
+        {"2022EE"         , 220}, 
+        {"2023preBPix"    , 230}, 
+        {"2023BPix"       , 230},
+        {"ParkingDoubleMuonLowMass_2022Cv1"       , 223},
+        {"ParkingDoubleMuonLowMass_2022Dv1"       , 224},
+        {"ParkingDoubleMuonLowMass_2022Dv2"       , 224},
+        {"ParkingDoubleMuonLowMass_2022Ev1"       , 225},
+        {"ParkingDoubleMuonLowMass_2022Fv1"       , 226},
+        {"ParkingDoubleMuonLowMass_2022Gv1"       , 227},
+        {"ParkingDoubleMuonLowMass_2023B"         , 232},
+        {"ParkingDoubleMuonLowMass_2023C"         , 233},
+        {"ParkingDoubleMuonLowMass_2023Cv1"       , 233},
+        {"ParkingDoubleMuonLowMass_2023Cv2"       , 233},
+        {"ParkingDoubleMuonLowMass_2023Cv3"       , 233},
+        {"ParkingDoubleMuonLowMass_2023D"         , 234},
+        {"ParkingDoubleMuonLowMass_2023Dv1"       , 234},
+    };
+}
+
 // Lumi-normalization
 namespace LumiRun3
 {

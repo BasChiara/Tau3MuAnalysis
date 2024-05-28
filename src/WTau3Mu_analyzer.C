@@ -272,7 +272,7 @@ void WTau3Mu_analyzer::outTreeSetUp(){
    outTree_->Branch("LumiBlock", &LumiBlock, "LumiBlock/i");
    outTree_->Branch("event", &Event, "Event/l");
    //outTree_->Branch("year", &year_num, "year/i");
-   outTree_->Branch("year", year_char, "year/C"); 
+   outTree_->Branch("year_id", &year_id_, "year_id/i"); 
    outTree_->Branch("nGoodPV", &nGoodPV, "nGoodPV/i");
    // lumi & scale factors
    outTree_->Branch("weight",                   &weight,                   "weight/F");
