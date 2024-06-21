@@ -116,7 +116,7 @@ else:
 #data = ['/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_WTau3Mu_DATA_apply_bkgW3MuNu_LxyS0_2024May01.root']
 phi_mass = 1.020 #GeV
 phi_window = 0.020 #GeV
-phi_veto = '''(fabs(tau_mu12_fitM- {mass:.3f})> {window:.3f} & fabs(tau_mu23_fitM - {mass:.3f})> {window:.3f} & fabs(tau_mu13_fitM -  {mass:.3f})>{window:.3f})'''.format(mass =phi_mass , window = phi_window/2. )
+phi_veto = '''(fabs(tau_mu12_fitM- {mass:.3f})> {window:.3f} & fabs(tau_mu23_fitM - {mass:.3f})> {window:.3f} & fabs(tau_mu13_fitM -  {mass:.3f})>{window:.3f}) & (tau_Lxy_sign_BS > 1.5)'''.format(mass =phi_mass , window = phi_window/2. )
 base_selection = f'(tau_fit_mass > {mass_range_lo} & tau_fit_mass < {mass_range_hi} ) & (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu) & {phi_veto}'
 print('\n---------------------------------------------')
 print('[!] base-selection   : %s'%base_selection)

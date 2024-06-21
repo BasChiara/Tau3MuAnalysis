@@ -12,6 +12,14 @@ mass_range_lo  = 1.60 # GeV
 mass_range_hi  = 2.00 # GeV
 blind_range_lo = 1.72 # GeV
 blind_range_hi = 1.84 # GeV
+###                  ###
+#  DATASET LUMINOSITY  #
+###                  ###
+
+LumiVal_plots = {
+   '2022' : "34.7", 
+   '2023' : "27.9",
+}
 
 ###                     ###
 #  CATEGORIES DEFINITION  #
@@ -28,15 +36,18 @@ cat_color_dict = {
     'C' : ROOT.kGreen +1
 }
 
+eta_thAB = 0.9
+eta_thBC = 1.8
+
 cat_eta_selection_dict = {
-    'A' : '(tau_fit_absEta < 0.9)',
-    'B' : '(tau_fit_absEta > 0.9 & tau_fit_absEta < 1.9)', 
-    'C' : '(tau_fit_absEta > 1.9)',
+    'A' : f'(tau_fit_absEta < {eta_thAB})',
+    'B' : f'(tau_fit_absEta > {eta_thAB} & tau_fit_absEta < {eta_thBC})', 
+    'C' : f'(tau_fit_absEta > {eta_thBC})',
 }
 cat_eta_selection_dict_fit = {
-    'A' : '(fabs(tau_fit_eta) < 0.9)',
-    'B' : '(fabs(tau_fit_eta) > 0.9 & fabs(tau_fit_eta) < 1.9)', 
-    'C' : '(fabs(tau_fit_eta) > 1.9)',
+    'A' : f'(fabs(tau_fit_eta) < {eta_thAB})',
+    'B' : f'(fabs(tau_fit_eta) > {eta_thAB} & fabs(tau_fit_eta) < {eta_thBC})', 
+    'C' : f'(fabs(tau_fit_eta) > {eta_thBC})',
 }
 
 #########################
@@ -75,6 +86,16 @@ WTau3Mu_signals  = [
     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap_onTau3Mu.root',
     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onTau3Mu.root'
 ]
+
+DsPhiPi_signals = [
+    # 2022
+    mc_path + 'outRoot/DsPhiMuMuPi_MCanalyzer_2022preEE_HLT_overlap_onDsPhiPi.root',
+    mc_path + 'outRoot/DsPhiMuMuPi_MCanalyzer_2022EE_HLT_overlap_onDsPhiPi.root',
+    # 2023
+    mc_path + 'outRoot/DsPhiMuMuPi_MCanalyzer_2023preBPix_HLT_overlap_onDsPhiPi.root',
+    mc_path + 'outRoot/DsPhiMuMuPi_MCanalyzer_2023BPix_HLT_overlap_onDsPhiPi.root'
+]
+
 data_background  = [
     #2022
     data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Cv1_HLT_overlap.root',
@@ -100,6 +121,7 @@ W3MuNu_background = [
      mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap_onW3MuNu.root',
      mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onW3MuNu.root',
 ]
+
 
 
 # give labels human readable names
@@ -179,6 +201,27 @@ def tauEta(eta):
    elif abs(eta) > 0.5 : return 2
    elif abs(eta) > 0.2 : return 1
    else                : return 0
+
+
+###               ###
+#   COMBINE UTILS   #
+###               ###
+from statsmodels.stats.proportion import proportion_confint
+def cp_intervals(Nobs, Ntot, cl=0.68, verbose = False):
+
+    eff = 1.*Nobs/Ntot
+    lo, hi = proportion_confint(Nobs, Ntot, 1.-cl, method='beta')
+
+    lor = lo/eff if eff else -99
+    hir = hi/eff if eff else -99
+    if verbose :
+        print('-- Clopper Pearson --')
+        print('\n\t'.join([
+        'Ntot:  {T}','Nobs:  {O}','eff:  {E}','low:  {L}','high:  {H}'
+        ]).format(T=Ntot, O=Nobs, E=eff, L=lor, H=hir))
+
+    return lor, hir
+
 
 ### ----- features Nbins xlow xhigh ---- ###
 
