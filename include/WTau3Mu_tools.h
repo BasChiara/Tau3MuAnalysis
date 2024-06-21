@@ -21,7 +21,11 @@ class WTau3Mu_tools : public WTau3Mu_base{
    WTau3Mu_tools(TTree *tree=0, const bool& isMC = true) : WTau3Mu_base(tree, isMC){}
    virtual ~WTau3Mu_tools(){
       delete h_muonSF_lowpT;
+      delete h_muonSF_lowpT_sysUP;
+      delete h_muonSF_lowpT_sysDOWN;
       delete h_muonSF_medpT;
+      delete h_muonSF_medpT_sysUP;
+      delete h_muonSF_medpT_sysDOWN;
    }
 
    virtual void     Loop(){}

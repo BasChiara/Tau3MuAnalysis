@@ -7,26 +7,48 @@
 class DsPhiMuMuPi_analyzer : public DsPhiMuMuPi_tools{
 
    public :
-      DsPhiMuMuPi_analyzer(TTree *tree=0, const TString & outdir = "./outRoot", const TString & tag="2022", const bool isMC = false) : DsPhiMuMuPi_tools(tree, isMC){
-         // set the HLT tag
-         TString HLT_tag = "";
-         if(HLTconf_ == HLT_paths::HLT_Tau3Mu)   HLT_tag = "HLT_Tau3Mu"; 
-         if(HLTconf_ == HLT_paths::HLT_DoubleMu) HLT_tag = "HLT_DoubleMu"; 
-         if(HLTconf_ == HLT_paths::HLT_overlap)  HLT_tag = "HLT_overlap"; 
+      DsPhiMuMuPi_analyzer(TTree *tree=0, const TString & outdir = "./outRoot", const TString& year = "2022preEE", const TString process = "DsPhiPi", const TString & tag="", const bool isMC = false) : DsPhiMuMuPi_tools(tree, isMC){
          // running on DATA or MC ?
          isMC_ = isMC;
          TString DATA_MC_tag = "DATA";
          if (isMC_) DATA_MC_tag = "MC";
-         tag_ = tag + "_" + HLT_tag;
+         // which era is processed
+         year_ = year;
+         auto search_id = yearID::year_era_code.find(year_);
+         if (search_id != yearID::year_era_code.end()) year_id_ = search_id->second;
+         else year_id_ = 0;
+         // set simulated process
+         process_ = process;
+         TString process_tag = "";
+         if (process_ != "data" ) process_tag = "on" + process_;
+         // normalization --> data driven next steps
+         lumi_factor = 1.0; 
+         // set the HLT tag
+         TString HLT_tag = "";
+         if(HLTconf_ == HLT_paths::HLT_Tau3Mu)   HLT_tag = "HLT_Tau3Mu"; 
+         if(HLTconf_ == HLT_paths::HLT_DoubleMu) HLT_tag = "HLT_DoubleMu"; 
+         if(HLTconf_ == HLT_paths::HLT_overlap)  HLT_tag = "HLT_overlap";
+
+         //final tag
+         tag_ = DATA_MC_tag + "analyzer_" + year_ + "_"+ HLT_tag;
+         if (!process_tag.IsNull()) tag_ = tag_ + "_" + process_tag;
+         if (!tag.IsNull()) tag_ = tag_ + "_" + tag;
+
+         // parse the SF file for MonteCarlo
+         if (isMC_){
+            parseMuonSF(year_, "low"); 
+         }
 
          // name and setup the output
-         outFilePath_ = outdir + "/DsPhiMuMuPi_"+ DATA_MC_tag +"analyzer_"+ tag_ + ".root";
+         outFilePath_ = outdir + "/DsPhiMuMuPi_"+ tag_ + ".root";
+         std::cout << "[o] output file is " << outFilePath_ << std::endl; 
          outTreeSetUp();
 
          srand(123456);
 
          std::cout << "-------------------------------------------" << std::endl;
          std::cout << "[ Ds -> Phi(MuMu)Pi analyzer ]"<< std::endl;
+         std::cout << "> year/era  " << year_ << " [" << year_id_ << "]" << std::endl;
          std::cout << "> HLT path : " << HLT_tag << std::endl;
          std::cout << "> running on " << DATA_MC_tag << std::endl;
          std::cout << "-------------------------------------------" << std::endl;
@@ -41,12 +63,16 @@ class DsPhiMuMuPi_analyzer : public DsPhiMuMuPi_tools{
    private :
 
       TString tag_;
+      TString year_;
+      UInt_t  year_id_;
+      TString process_;
+
       // DATA or MC
-      int isMC_;
+      bool isMC_;
       // MC matching tau candidate
       int DsPhiPi_MCmatch_idx;
       // HLT paths
-      HLT_paths HLTconf_ = HLT_Tau3Mu; // HLT_DoubleMu, HLT_Tau3Mu, HLT_overlap
+      HLT_paths HLTconf_ = HLT_overlap; // HLT_DoubleMu, HLT_Tau3Mu, HLT_overlap
 
       // [OUTPUT]
       TString outFilePath_;
@@ -58,8 +84,9 @@ class DsPhiMuMuPi_analyzer : public DsPhiMuMuPi_tools{
       UInt_t LumiBlock, Run;
       ULong64_t Event;
       int nGoodPV;
-      // lumi factor
-      float lumi_factor = 1;
+      // total weight : lumi and scale factor
+      float weight;
+      float lumi_factor = 1.0;
       // HLT_bit
       int HLT_isfired_Tau3Mu, HLT_isfired_DoubleMu;
       // MC matching bool

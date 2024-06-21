@@ -52,7 +52,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
          outTreeSetUp();
 
          std::cout << "-------------------------------------------" << std::endl;
-         std::cout << "[ Tau 3 Mu analyzer ]"<< std::endl;
+         std::cout << "[ Tau -> 3 Mu analyzer ]"<< std::endl;
          std::cout << "> Lumi weight for " << year_ << " = " << lumi_factor << std::endl;
          std::cout << "> HLT path : " << HLT_tag << std::endl;
          std::cout << "> running on " << DATA_MC_tag << " - " << process_ << std::endl;
@@ -81,8 +81,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
 
       TString tag_;
       TString year_;
-      UInt_t year_id_;
-      //int year_num;
+      UInt_t  year_id_;
       TString process_;
 
       TString outFilePath_;

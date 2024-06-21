@@ -90,6 +90,7 @@ TChain* FileReader::xrootdTChain_loader(const int& Nfiles, const int& init_file)
         {
             sscanf(Buffer,"%s",MyRootFile);
             if (debug) std::cout << " [+] start adding "<< filesToAdd << " files from " << MyRootFile << std::endl;
+            
             for(int i = init_file; i < last_file; i++){
                 ChainPath = TString(MyRootFile);
                 if(ChainPath.EndsWith("_")) ChainPath.Append(Form("%d.root", i+1));

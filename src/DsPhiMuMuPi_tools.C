@@ -1,5 +1,11 @@
 #include "../include/DsPhiMuMuPi_tools.h"
 
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS
+#include <boost/bind/bind.hpp>
+#include "boost/property_tree/ptree.hpp"
+#include "boost/property_tree/json_parser.hpp"
+using namespace boost::placeholders;
+namespace pt = boost::property_tree;
 
 bool DsPhiMuMuPi_tools::GenPartFillP4(){
     
@@ -139,6 +145,28 @@ bool  DsPhiMuMuPi_tools::RecoPartFillP4(const int idx){
     return (muonsTrksQualityCheck && pionTrackQualityCheck);
 }// RecoPartFillP4
 
+std::vector<unsigned int> DsPhiMuMuPi_tools::sorted_cand_mT(){
+
+   if (debug) std::cout << " #cand " << nDsPhiPi << std::endl;
+   // initialize cand-idx vector 
+   std::vector<unsigned int> cand_idx(nDsPhiPi, 0);
+   iota(cand_idx.begin(), cand_idx.end(), 0);
+   // if more than one sort by mT
+   if (cand_idx.size() > 1){
+   
+      if(debug) std::cout << " sort by mT..." << std::endl;
+      std::vector<float> mT_v(DsPlusMET_Tau_mT, DsPlusMET_Tau_mT + nDsPhiPi); 
+      stable_sort(cand_idx.begin(), cand_idx.end(), [&mT_v](size_t i1, size_t i2) {return mT_v[i1] >  mT_v[i2];});
+      if(debug){
+         std::cout << " unsorted mT "<< std::endl;
+         for(float m : mT_v) std::cout << "\t" << m << std::endl;
+         std::cout << " sorted mT "<< std::endl;
+         for(float i : cand_idx) std::cout << "\t" << i << "\t" << mT_v[i] << std::endl;
+      }
+   }
+   return cand_idx;
+
+}//sorted_cand_mT()
 
 int   DsPhiMuMuPi_tools::MCtruthMatching(const bool verbose){
     
@@ -188,63 +216,64 @@ int   DsPhiMuMuPi_tools::MCtruthMatching(const bool verbose){
 }// MCtruthMatching
 
 bool DsPhiMuMuPi_tools::TriggerMatching(const int idx, const int config){
-    //int trigger_configuration = (config == -1 ? HLTconf_ : config);
-    int trigger_configuration =config; 
-    bool is_fired_trigger = false;
-    if(trigger_configuration == HLT_paths::HLT_Tau3Mu){
-        // check if the 3 muons + tau fired the trigger
-        bool is_fired_1 = HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 &&
-                            DsPhiPi_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[idx] &&
-                            DsPhiPi_mu2_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[idx] &&
-                            DsPhiPi_trk_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[idx] &&
-                            DsPhiPi_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[idx];
-        bool is_fired_2 = HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15 &&
-                            DsPhiPi_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[idx] &&
-                            DsPhiPi_mu2_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[idx] &&
-                            DsPhiPi_trk_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[idx]&&
-                            DsPhiPi_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[idx];
-        is_fired_trigger = (is_fired_1 || is_fired_2) && HLT_Tau3Mu_emulator(idx);
-    }
-    if(trigger_configuration == HLT_paths::HLT_DoubleMu){
-       is_fired_trigger = HLT_DoubleMu4_3_LowMass &&
-          (DsPhiPi_mu1_fired_DoubleMu4_3_LowMass[idx] && DsPhiPi_mu2_fired_DoubleMu4_3_LowMass[idx]) && 
-          HLT_DoubleMu_emulator(idx);
-    }
-    if(trigger_configuration == HLT_paths::HLT_overlap) is_fired_trigger = true;
-    return is_fired_trigger;
+   //int trigger_configuration = (config == -1 ? HLTconf_ : config);
+   int trigger_configuration =config; 
+   bool is_fired_trigger = false;
+   bool is_fired_Tau3Mu = false, is_fired_DoubleMu = false;
+   if(trigger_configuration == HLT_paths::HLT_Tau3Mu){
+      // check if the 3 muons + tau fired the trigger
+      bool is_fired_1 = HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 &&
+                           DsPhiPi_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[idx] &&
+                           DsPhiPi_mu2_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[idx] &&
+                           DsPhiPi_trk_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[idx] &&
+                           DsPhiPi_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[idx];
+      bool is_fired_2 = HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15 &&
+                           DsPhiPi_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[idx] &&
+                           DsPhiPi_mu2_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[idx] &&
+                           DsPhiPi_trk_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[idx]&&
+                           DsPhiPi_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[idx];
+      is_fired_Tau3Mu = (is_fired_1 || is_fired_2) && HLT_Tau3Mu_emulator(idx);
+   }
+   if(trigger_configuration == HLT_paths::HLT_DoubleMu){
+      is_fired_DoubleMu = HLT_DoubleMu4_3_LowMass &&
+         (DsPhiPi_mu1_fired_DoubleMu4_3_LowMass[idx] && DsPhiPi_mu2_fired_DoubleMu4_3_LowMass[idx]) && 
+         HLT_DoubleMu_emulator(idx);
+   }
+   is_fired_trigger = is_fired_Tau3Mu || is_fired_DoubleMu; 
+   return is_fired_trigger;
 }//TriggerMatching()
 
 bool DsPhiMuMuPi_tools::HLT_Tau3Mu_emulator(const int idx){
 
-    //** single muon
-    const float minPT_mu1 = 7.0, minPT_mu2 = 1.0, minPT_mu3 = 1.0;
-    const float maxEta_mu = 2.5;
-    if(RecoMu1_P4.Pt() < minPT_mu1 || RecoMu2_P4.Pt() < minPT_mu2 || RecoPi_P4.Pt() < minPT_mu3 ) return false;
-    if(fabs(RecoMu1_P4.Eta()) > maxEta_mu || fabs(RecoMu2_P4.Eta()) > maxEta_mu || fabs(RecoPi_P4.Eta()) > maxEta_mu ) return false;
+   //** single muon
+   const float minPT_mu1 = 7.0, minPT_mu2 = 1.0, minPT_mu3 = 1.0;
+   const float maxEta_mu = 2.5;
+   if(RecoMu1_P4.Pt() < minPT_mu1 || RecoMu2_P4.Pt() < minPT_mu2 || RecoPi_P4.Pt() < minPT_mu3 ) return false;
+   if(fabs(RecoMu1_P4.Eta()) > maxEta_mu || fabs(RecoMu2_P4.Eta()) > maxEta_mu || fabs(RecoPi_P4.Eta()) > maxEta_mu ) return false;
 
-    //** di-muon
-    const float minM_mumu = 2*Muon_MASS, maxM_mumu = 1.9;
-    const float maxDR_muBS = 0.5, maxDZ_mumu = 0.7;
-    if(!((DsPhiPi_dZmu12[idx] < maxDZ_mumu && DsPhiPi_mu1_dr[idx] < maxDR_muBS && DsPhiPi_mu2_dr[idx] < maxDR_muBS && (RecoMu1_P4+RecoMu2_P4).M() > minM_mumu && (RecoMu1_P4+RecoMu2_P4).M() < maxM_mumu ) ||  // mu_1, mu_2
-         (DsPhiPi_dZmu23[idx] < maxDZ_mumu && DsPhiPi_mu2_dr[idx] < maxDR_muBS && DsPhiPi_trk_dr[idx] < maxDR_muBS && (RecoMu2_P4+RecoPi_P4).M() > minM_mumu && (RecoMu2_P4+RecoPi_P4).M() < maxM_mumu ) ||  // mu_2, mu_3
-         (DsPhiPi_dZmu13[idx] < maxDZ_mumu && DsPhiPi_mu1_dr[idx] < maxDR_muBS && DsPhiPi_trk_dr[idx] < maxDR_muBS && (RecoMu1_P4+RecoPi_P4).M() > minM_mumu && (RecoMu1_P4+RecoPi_P4).M() < maxM_mumu) )  // mu_1, mu_3
-    ) return false;
+   //** di-muon
+   const float minM_mumu = 2*Muon_MASS, maxM_mumu = 1.9;
+   const float maxDR_muBS = 0.5, maxDZ_mumu = 0.7;
+   if(!((DsPhiPi_dZmu12[idx] < maxDZ_mumu && DsPhiPi_mu1_dr[idx] < maxDR_muBS && DsPhiPi_mu2_dr[idx] < maxDR_muBS && (RecoMu1_P4+RecoMu2_P4).M() > minM_mumu && (RecoMu1_P4+RecoMu2_P4).M() < maxM_mumu ) ||  // mu_1, mu_2
+      (DsPhiPi_dZmu23[idx] < maxDZ_mumu && DsPhiPi_mu2_dr[idx] < maxDR_muBS && DsPhiPi_trk_dr[idx] < maxDR_muBS && (RecoMu2_P4+RecoPi_P4).M() > minM_mumu && (RecoMu2_P4+RecoPi_P4).M() < maxM_mumu ) ||  // mu_2, mu_3
+      (DsPhiPi_dZmu13[idx] < maxDZ_mumu && DsPhiPi_mu1_dr[idx] < maxDR_muBS && DsPhiPi_trk_dr[idx] < maxDR_muBS && (RecoMu1_P4+RecoPi_P4).M() > minM_mumu && (RecoMu1_P4+RecoPi_P4).M() < maxM_mumu) )  // mu_1, mu_3
+   ) return false;
 
-    //** muon-Tau
-    const float maxDZ_muTau = 0.3, maxDR_muTau = 0.3;
-    //if(0) return false; // insert the selection on DZ(tau,mu)
-    if( ROOT::Math::VectorUtil::DeltaR( RecoMu1_P4 ,RecoDs_P4) > maxDR_muTau ||
-        ROOT::Math::VectorUtil::DeltaR( RecoMu2_P4 ,RecoDs_P4) > maxDR_muTau || 
-        ROOT::Math::VectorUtil::DeltaR( RecoPi_P4 ,RecoDs_P4) > maxDR_muTau) return false;
+   //** muon-Tau
+   const float maxDZ_muTau = 0.3, maxDR_muTau = 0.3;
+   //if(0) return false; // insert the selection on DZ(tau,mu)
+   if( ROOT::Math::VectorUtil::DeltaR( RecoMu1_P4 ,RecoDs_P4) > maxDR_muTau ||
+      ROOT::Math::VectorUtil::DeltaR( RecoMu2_P4 ,RecoDs_P4) > maxDR_muTau || 
+      ROOT::Math::VectorUtil::DeltaR( RecoPi_P4 ,RecoDs_P4) > maxDR_muTau) return false;
 
-    //** TAU
-    const float minPT_tau = 15.0, maxEta_tau = 2.5, minM_tau = 1.3, maxM_tau = 2.1;
-    if(RecoDs_P4.Pt() < minPT_tau || RecoDs_P4.M() < minM_tau || RecoDs_P4.M() > maxM_tau || fabs(RecoDs_P4.Eta()) > maxEta_tau) return false;
-    const float maxIsoCh_tau = 2.0, maxRelIsoCh_tau = 0.2;
-    // --> Iso @ HLT level not comparable with reco isolation offline 
-    //if(DsPhiPi_iso_ptChargedFromPV[idx] > maxIsoCh_tau || DsPhiPi_iso_ptChargedFromPV[idx]/RecoTau_P4.Pt() > maxRelIsoCh_tau) return false;
-    
-    return true;
+   //** TAU
+   const float minPT_tau = 15.0, maxEta_tau = 2.5, minM_tau = 1.3, maxM_tau = 2.1;
+   if(RecoDs_P4.Pt() < minPT_tau || RecoDs_P4.M() < minM_tau || RecoDs_P4.M() > maxM_tau || fabs(RecoDs_P4.Eta()) > maxEta_tau) return false;
+   const float maxIsoCh_tau = 2.0, maxRelIsoCh_tau = 0.2;
+   // --> Iso @ HLT level not comparable with reco isolation offline 
+   //if(DsPhiPi_iso_ptChargedFromPV[idx] > maxIsoCh_tau || DsPhiPi_iso_ptChargedFromPV[idx]/RecoTau_P4.Pt() > maxRelIsoCh_tau) return false;
+   
+   return true;
 
 }//HLT_emulator()
 
@@ -285,3 +314,148 @@ bool DsPhiMuMuPi_tools::HLT_DoubleMu_emulator(const int idx){
   return true;
 
 }//HLT_DoubleMu_emulator()
+
+bool DsPhiMuMuPi_tools::HLT_DoubleMu_reinforcement(const int idx){
+
+   const float minPT_mu1 = 7.0, minPT_mu3 = 1.0;
+   if(RecoMu1_P4.Pt() < minPT_mu1 || RecoPi_P4.Pt() < minPT_mu3 ) return false;
+   const float minPT_tau = 15.0;
+   if(RecoDs_P4.Pt() < minPT_tau) return false;
+   const float maxM_mumu  = 1.9;
+   const float maxDZ_mumu = 0.7;
+   if(!( DsPhiPi_dZmu12[idx] < maxDZ_mumu && (RecoMu1_P4+RecoMu2_P4).M() < maxM_mumu )) return false;
+
+   return true;
+
+}//HLT_DoubleMu_reinforcement()
+
+bool DsPhiMuMuPi_tools::applyMETfilters(const int& TauIdx){
+   
+   bool passed_filter = DsPlusMET_Flag_BadPFMuonDzFilter[TauIdx] &&
+                        DsPlusMET_Flag_BadPFMuonFilter[TauIdx] &&
+                        DsPlusMET_Flag_EcalDeadCellTriggerPrimitiveFilter[TauIdx] &&
+                        DsPlusMET_Flag_eeBadScFilter[TauIdx] &&
+                        DsPlusMET_Flag_globalSuperTightHalo2016Filter[TauIdx] &&
+                        DsPlusMET_Flag_goodVertices[TauIdx] &&
+                        DsPlusMET_Flag_hfNoisyHitsFilter[TauIdx];
+
+   return passed_filter;
+
+}//applyMETfilters()
+
+int DsPhiMuMuPi_tools::parseMuonSF(const TString & era, const TString & pTrange){
+   
+   // retrive json file from constants.h
+   std::string sf_json_name;
+   if (pTrange == "low") sf_json_name = scale_factor_src::IDsf_jsonfile_Jpsi[era]; 
+   if (pTrange == "medium") sf_json_name = scale_factor_src::IDsf_jsonfile_Z[era]; 
+   std::cout << "[+] parse Muon SF from \n " << sf_json_name << std::endl; 
+
+   // Load the JSON file
+   pt::ptree sf_json;
+   try {
+      pt::read_json(sf_json_name, sf_json);
+   } catch (pt::json_parser_error &e) {
+        std::cerr << " JSON parsing error: " << e.what() << std::endl;
+        return 1;
+   } catch (std::exception &e) {
+        std::cerr << " Error reading JSON file: " << e.what() << std::endl;
+        return 1;
+   }
+
+   // Accessing data
+   pt::ptree data_content; 
+   for (const auto& corr : sf_json.get_child("corrections")){
+      // look for the needed corrections-set
+      std::string current_sf_set = corr.second.get_child("name").data(); 
+      if(debug) std::cout <<  current_sf_set << std::endl;
+      if (current_sf_set != muons_IDsf_set_) continue;
+      // pick the desired SF set
+      data_content = corr.second.get_child("data");
+   }
+   // define eta-bins
+   std::vector<float> eta_edges;
+   for (const auto& edge : data_content.get_child("edges")) {
+      eta_edges.push_back(edge.second.get_value<float>());
+   }
+   int N_eta_bins = eta_edges.size() - 1;
+   if(debug) std::cout<< "> found " << N_eta_bins << " bins for eta " << std::endl; 
+   //define pT bins in each eta-bin
+   int ieta = 0;
+   // ** TH2F with SF
+   TH2Poly* h_muonSF_      = new TH2Poly();
+   TH2Poly* h_muonSF_sUP   = new TH2Poly(); 
+   TH2Poly* h_muonSF_sDOWN = new TH2Poly(); 
+   TString h_muonSF_name = "h_" + TString(muons_IDsf_set_) + "_" + era +"_" +pTrange;
+   h_muonSF_->SetNameTitle(h_muonSF_name + "_val", "ID/reco muon SF value");
+   h_muonSF_sUP->SetNameTitle(h_muonSF_name + "_sUP", "ID/reco muon SF +sys");
+   h_muonSF_sDOWN->SetNameTitle(h_muonSF_name + "_sDOWN", "ID/reco muon SF -sys");
+   float deta = 0.01, dpt = 0.01;
+   for (const auto& pT_binning : data_content.get_child("content")){
+      std::vector<float> pt_edges;
+      for(const auto& edge : pT_binning.second.get_child("edges")) pt_edges.push_back(edge.second.get_value<float>());
+      // if low-pT lower pT bin has edge at 0 GeV
+      if (pTrange == "low") pt_edges.front() = 0.0; 
+      int N_pt_bins = pt_edges.size() - 1;
+      if(debug) std::cout<< Form("> eta [%.1f, %.1f] with %d pT bins", eta_edges.at(ieta), eta_edges.at(ieta+1), N_pt_bins ) << std::endl; 
+      int ipT = 0;
+      // retrive SF in each bin
+      for (const auto& category : pT_binning.second.get_child("content")){
+         for (const auto& sf_val : category.second.get_child("content")){
+            float xlo = eta_edges.at(ieta), xhi = eta_edges.at(ieta+1), ylo = pt_edges.at(ipT), yhi =  pt_edges.at(ipT + 1); 
+            // SF nominal value
+            if (sf_val.second.get_child("key").data() == "nominal"){
+               if(debug) std::cout<< Form("> eta [%.1f, %.1f] pT [%.1f, %.1f] -> SF : %.3f", eta_edges.at(ieta), eta_edges.at(ieta+1),pt_edges.at(ipT), pt_edges.at(ipT + 1), sf_val.second.get<double>("value") ) << std::endl; 
+               h_muonSF_->AddBin(xlo, ylo, xhi, yhi); 
+               h_muonSF_->Fill(xlo+ deta, ylo + dpt, sf_val.second.get<double>("value"));
+            // SF nominal value + sys-err
+            } else if (sf_val.second.get_child("key").data() == "systup"){
+               h_muonSF_sUP->AddBin(xlo, ylo, xhi, yhi); 
+               h_muonSF_sUP->Fill(xlo+ deta, ylo + dpt, sf_val.second.get<double>("value"));
+            // SF nominal value - sys-err
+            } else if (sf_val.second.get_child("key").data() == "systdown"){
+               h_muonSF_sDOWN->AddBin(xlo, ylo, xhi, yhi); 
+               h_muonSF_sDOWN->Fill(xlo+ deta, ylo + dpt, sf_val.second.get<double>("value"));
+            }
+           
+         } 
+         ipT++;
+      }
+      ieta++;
+   }
+
+   // save histogram in the correct pointer
+   if (pTrange == "low"){
+      h_muonSF_lowpT = h_muonSF_;
+      h_muonSF_lowpT_sysUP = h_muonSF_sUP;
+      h_muonSF_lowpT_sysDOWN = h_muonSF_sDOWN;
+   }
+   else if (pTrange == "medium"){
+      h_muonSF_medpT = h_muonSF_;
+      h_muonSF_medpT_sysUP = h_muonSF_sUP;
+      h_muonSF_lowpT_sysDOWN = h_muonSF_sDOWN;
+   }
+   return 0;
+
+}// parseMuonSF()
+
+int DsPhiMuMuPi_tools::applyMuonSF(const int& idx){
+   
+   float cand_SF = 1.0;
+   int bin = -5;
+   // mu1
+   bin = h_muonSF_lowpT->FindBin(fabs(DsPhiPi_mu1_eta[idx]), DsPhiPi_mu1_pt[idx]);
+   Ds_mu1_IDrecoSF           = (bin > 0 ? h_muonSF_lowpT->GetBinContent(bin) : 1.0);
+   Ds_mu1_IDrecoSF_sysUP     = (bin > 0 ? h_muonSF_lowpT_sysUP->GetBinContent(bin) : 1.0);
+   Ds_mu1_IDrecoSF_sysDOWN   = (bin > 0 ? h_muonSF_lowpT_sysDOWN->GetBinContent(bin) : 1.0);
+   if(debug) std::cout << Form("> mu1 (pT, eta) = (%.2f,%.2f ) \t SF = %.3f", DsPhiPi_mu1_pt[idx], DsPhiPi_mu1_eta[idx], Ds_mu1_IDrecoSF ) << std::endl;
+   // mu2
+   bin = h_muonSF_lowpT->FindBin(fabs(DsPhiPi_mu2_eta[idx]), DsPhiPi_mu2_pt[idx]);
+   Ds_mu2_IDrecoSF           = (bin > 0 ? h_muonSF_lowpT->GetBinContent(bin) : 1.0);
+   Ds_mu2_IDrecoSF_sysUP     = (bin > 0 ? h_muonSF_lowpT_sysUP->GetBinContent(bin) : 1.0);
+   Ds_mu2_IDrecoSF_sysDOWN   = (bin > 0 ? h_muonSF_lowpT_sysDOWN->GetBinContent(bin) : 1.0);
+   if(debug) std::cout << Form("> mu2 (pT, eta) = (%.2f,%.2f ) \t SF = %.3f", DsPhiPi_mu2_pt[idx], DsPhiPi_mu2_eta[idx], Ds_mu2_IDrecoSF ) << std::endl;
+
+
+   return 0;
+}//applyMuonSF

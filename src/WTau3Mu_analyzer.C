@@ -23,13 +23,13 @@ void WTau3Mu_analyzer::Loop(){
       nb = fChain->GetEntry(jentry);   nbytes += nb;
       Nevents++;
 
-      // analyze only W Tau -> 3 Mui passing MET filters
+      // analyze only W Tau -> 3 Mu passing MET filters
       if(nTauTo3Mu == 0) continue;
       if(!applyMETfilters(0)) continue;
       if(debug && nTauTo3Mu > 1) std::cout << "++ new event with multiple cands" << std::endl;
       nEvTau3Mu++;
 
-      // --- HL TRIGGER BIT
+      // --- HLT TRIGGER BIT
       if((HLTconf_ == HLT_paths::HLT_Tau3Mu) &&
             !(HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 || HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15)) continue;
       if((HLTconf_ == HLT_paths::HLT_DoubleMu) &&
@@ -93,8 +93,7 @@ void WTau3Mu_analyzer::Loop(){
          nTauDiMuonVeto++;
          tau_dimuon_mass = ( TauTo3Mu_diMuVtxFit_bestProb[t] > 0 ? TauTo3Mu_diMuVtxFit_bestMass[t] : -1 );
 
-         // HLT_DoubleMuon reinforcement
-         //if (HLTconf_ == HLT_paths::HLT_DoubleMu && !HLT_DoubleMu_reinforcement(t)) continue;
+         // HLT_DoubleMuon reinforcement 
          if (flag_HLT_DoubleMu && !HLT_DoubleMu_reinforcement(t)) continue;
          if (flag_reinfHLT) nEvReinforcedHLT++;
          nTauReinforcedHLT++; 
@@ -197,10 +196,10 @@ void WTau3Mu_analyzer::Loop(){
 
    saveOutput();
    std::cout << " == summary == " << std::endl;
-   std::cout << " Events processed " << Nevents << std::endl;
-   std::cout << " Events whith Tau3Mu candidates " << nEvTau3Mu << std::endl;
-   std::cout << " Events whith HLT-bit ON " << nTriggerBit << std::endl;
-   std::cout << " Events which fully fired HLT_Tau3Mu " << nEvTriggerFired_Tau3Mu << std::endl;
+   std::cout << " Events processed "                     << Nevents << std::endl;
+   std::cout << " Events whith Tau3Mu candidates "       << nEvTau3Mu << std::endl;
+   std::cout << " Events whith HLT-bit ON "              << nTriggerBit << std::endl;
+   std::cout << " Events which fully fired HLT_Tau3Mu "  << nEvTriggerFired_Tau3Mu << std::endl;
    std::cout << " Events which fully fired HLT_DoubleMu " << nEvTriggerFired_DoubleMu << std::endl;
    std::cout << " Events which fully fired TOTAL " << nEvTriggerFired_Total << std::endl;
    std::cout << " Events after di-muon resonance veto " << nEvDiMuResVeto << std::endl;
@@ -208,9 +207,7 @@ void WTau3Mu_analyzer::Loop(){
    std::cout << " Tau candidates with 3 fired muons " << nTauFired3Mu << std::endl;
    std::cout << " Tau candidates after diMu veto " << nTauDiMuonVeto << std::endl;
    std::cout << " Tau candidates after HLT_DoubleMu reinforcement " << nTauReinforcedHLT << std::endl;
-   if(isMC_){
-      std::cout << " Tau candidates MC-matching " << nTauMCmatched << std::endl;
-   }
+   if(isMC_) std::cout << " Tau candidates MC-matching " << nTauMCmatched << std::endl;
 
 
 }//Loop()
@@ -265,13 +262,12 @@ void WTau3Mu_analyzer::saveOutput(){
 
 void WTau3Mu_analyzer::outTreeSetUp(){
     
-   outTree_ = new TTree(outTree_name_, "Tau3Mu candidates with HLT implemented");
+   outTree_ = new TTree(outTree_name_, "Tau3Mu candidates with HLT implemented and preselection");
    std::cout << " out tree setting up ... " << std::endl;
 
    outTree_->Branch("run", &Run, "run/i");
    outTree_->Branch("LumiBlock", &LumiBlock, "LumiBlock/i");
    outTree_->Branch("event", &Event, "Event/l");
-   //outTree_->Branch("year", &year_num, "year/i");
    outTree_->Branch("year_id", &year_id_, "year_id/i"); 
    outTree_->Branch("nGoodPV", &nGoodPV, "nGoodPV/i");
    // lumi & scale factors

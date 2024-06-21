@@ -81,7 +81,7 @@ bool WTau3Mu_tools::TriggerMatching(const int TauIdx, const int config){
    int trigger_configuration = config;
    bool is_fired_trigger = false;
    bool is_fired_Tau3Mu = false, is_fired_DoubleMu = false;
-   if(trigger_configuration == HLT_paths::HLT_Tau3Mu|| trigger_configuration == HLT_paths::HLT_overlap){
+   if(trigger_configuration == HLT_paths::HLT_Tau3Mu){
       // check if the 3 muons + tau fired the trigger
       bool is_fired_1 = HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1 &&
                            TauTo3Mu_mu1_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15_Charge1[TauIdx] &&
@@ -95,7 +95,7 @@ bool WTau3Mu_tools::TriggerMatching(const int TauIdx, const int config){
                            TauTo3Mu_fired_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15[TauIdx];
       is_fired_Tau3Mu = (is_fired_1 || is_fired_2) && HLT_Tau3Mu_emulator(TauIdx);
    }
-   if(trigger_configuration == HLT_paths::HLT_DoubleMu ){ //|| trigger_configuration == HLT_paths::HLT_overlap){
+   if(trigger_configuration == HLT_paths::HLT_DoubleMu ){
       is_fired_DoubleMu = HLT_DoubleMu4_3_LowMass &&
 	   (
 	   (TauTo3Mu_mu1_fired_DoubleMu4_3_LowMass[TauIdx] && TauTo3Mu_mu2_fired_DoubleMu4_3_LowMass[TauIdx]) ||
@@ -385,7 +385,7 @@ bool  WTau3Mu_tools::RecoPartFillP4(const int TauIdx){
 
 bool WTau3Mu_tools::applyMETfilters(const int& TauIdx){
    
-   bool passed_filter =  TauPlusMET_Flag_BadPFMuonDzFilter[TauIdx] &&
+   bool passed_filter = TauPlusMET_Flag_BadPFMuonDzFilter[TauIdx] &&
                         TauPlusMET_Flag_BadPFMuonFilter[TauIdx] &&
                         TauPlusMET_Flag_EcalDeadCellTriggerPrimitiveFilter[TauIdx] &&
                         TauPlusMET_Flag_eeBadScFilter[TauIdx] &&

@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
       ("help,h", "produce help message")
       ("input,i",      po::value<std::string>(&inputFileName),                               "input file list")
       ("output,o",     po::value<std::string>(&outputDir)->default_value("./outRoot"),       "output directory")
-      ("dataset,d",    po::value<std::string>(&dset),                                     "DATA - MC - file.root")
+      ("dataset,d",    po::value<std::string>(&dset),                                        "DATA - MC - file.root")
       ("year,y",       po::value<std::string>(&year),                                        "year-era")
       ("analyzer,a",   po::value<std::string>(&analyzer)->default_value("Tau3Mu"),           "analyzer : [Tau3Mu,DsPhiPi]")
       ("process,p",    po::value<std::string>(&process)->default_value("data"),              "process: [data, Tau3Mu, DsPhiPi, W3MuNu]")
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
 
       delete recoAnalyzer;
    }else if (analyzer == "DsPhiPi"){
-      DsPhiMuMuPi_analyzer* recoAnalyzer = new DsPhiMuMuPi_analyzer(chain, outputDir, year, isMC);
+      DsPhiMuMuPi_analyzer* recoAnalyzer = new DsPhiMuMuPi_analyzer(chain, outputDir, year, process, tag, isMC);
       recoAnalyzer->Loop();
 
       delete recoAnalyzer;
