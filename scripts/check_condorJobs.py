@@ -4,6 +4,9 @@ import os
 import glob
 import optparse
 
+from colorama import init
+from termcolor import colored
+
 ############# USAGE #############
 
 usage = '''usage: %prog [opts] dataset'''
@@ -49,7 +52,7 @@ for d in job_dir_list :
     Nsuccesful_jobs = 0
     Failed_jobID    = []
     if(opt.debug) : print(log_files)
-    print(f'+ found {Nlounched_jobs} jobs in {d}')
+    print(f'= {Nlounched_jobs} jobs in {d}')
     N_processed_events = 0
     N_saved_events = 0
     for ijob in range(Nlounched_jobs) :
@@ -92,14 +95,17 @@ for d in job_dir_list :
             else:
                 job_is_ok = False
                 Failed_jobID.append(ijob)
-                print(f' jobID {ijob} output not found :(')
+                print(f'[!] jobID {ijob} output not found :(')
             if job_is_ok : Nsuccesful_jobs += 1
 
     # ** final report
-    print(f'succesful jobs : {Nsuccesful_jobs}/{Nlounched_jobs}')
+    
+    print(colored(f' succesful jobs : {Nsuccesful_jobs}/{Nlounched_jobs}', 'red' if Nsuccesful_jobs/Nlounched_jobs < 1.0 else 'green' ))
+    
     if Failed_jobID :
         print(f'\tfound {len(Failed_jobID)}/{Nlounched_jobs} failed jobs')
         [print('\t%d'%j) for j in Failed_jobID]
     print(f'\ttotal processed events : {N_processed_events}')
     print(f'\ttotal saved events     : {N_saved_events}')
+    print('\n')
     

@@ -156,8 +156,10 @@ def main():
 
             # temporary output location
             outdirtmp = '/tmp/'
-            job_tag = dataset+'_'+str(abs_job_id)
-            rootoutputfile =  outdirtmp + ("WTau3Mu" if not opt.isDsPhiPi else "DsPhiMuMuPi")+ "_DATAanalyzer_" + job_tag + "_" + opt.HLT_path + ".root"  
+            #job_tag = dataset+'_'+str(abs_job_id)
+            job_tag = '_'.join([dataset, opt.HLT_path, str(abs_job_id)])
+            #rootoutputfile =  outdirtmp + ("WTau3Mu" if not opt.isDsPhiPi else "DsPhiMuMuPi")+ "_DATAanalyzer_" + job_tag + "_" + opt.HLT_path + ".root"  
+            rootoutputfile =  outdirtmp + ("WTau3Mu" if not opt.isDsPhiPi else "DsPhiMuMuPi")+ "_DATAanalyzer_" + job_tag + ".root"  
             
             print('  [OUT] output saved temporarly as : ' + rootoutputfile)
             # script to run
@@ -166,7 +168,7 @@ def main():
             srcfile.write('#!/bin/bash\n')
             srcfile.write('cd '+pwd+'\n')
             srcfile.write('echo $PWD\n')
-            srcfile.write(opt.application+' '+icfgfilename+' '+outdirtmp+' DATA '+ job_tag +' '+ ("Tau3Mu" if not opt.isDsPhiPi else "DsPhiPi") + ' ' + str(root_files_job)+' ' + str(init_file) +'\n')
+            srcfile.write(opt.application+' -i '+icfgfilename+' -o '+outdirtmp+' -d DATA -y '+ dataset +' -a '+ ("Tau3Mu" if not opt.isDsPhiPi else "DsPhiPi") + ' -N ' + str(root_files_job)+' -f ' + str(init_file) + ' -t ' + str(abs_job_id) + '\n')
             if(opt.eos!=''):    
                 outdireos = opt.eos+dataset+'/'
                 if not (os.path.isdir(outdireos)): os.system('mkdir -p '+outdireos)
@@ -191,7 +193,7 @@ def main():
         files_to_submit -= files_in_this_dir
 
     if opt.scheduler=='condor':
-        cf = makeCondorFile(jobdir, srcfiles, job_tag, opt)
+        cf = makeCondorFile(jobdir, srcfiles, dataset, opt)
         subcmd = 'condor_submit {rf} '.format(rf = cf) #lunch jobs
         if opt.create:
             print('running dry, printing the commands...')
