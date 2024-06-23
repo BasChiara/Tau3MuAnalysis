@@ -56,11 +56,11 @@ ROOT.TH1.SetDefaultSumw2()
 mass_window = 0.060 # GeV
 tau_mass = 1.777 # GeV
 fit_range_lo  , fit_range_hi   = 1.68, 1.87 # GeV
-mass_window_lo, mass_window_hi = mass_range_lo, mass_range_hi # GeV #tau_mass-mass_window, tau_mass+mass_window
+mass_window_lo, mass_window_hi = 1.60, 2.00 #mass_range_lo, mass_range_hi # GeV #tau_mass-mass_window, tau_mass+mass_window
 
 bin_w = 0.01
-nbins = (int)((mass_range_hi-mass_range_lo)/bin_w) # needed just for plotting, fits are all unbinned
-
+nbins = int(np.rint((mass_window_hi-mass_window_lo)/bin_w)) # needed just for plotting, fits are all unbinned
+if (args.debug): print(f'[INFO] binning {nbins} of type {type(nbins)}')
 runblind = not args.unblind # don't show (nor fit!) data in the signal mass window
 blind_region_lo, blind_region_hi = 1.72, 1.84
 # phi
@@ -262,11 +262,12 @@ for cut in set_bdt_cut:
     c = ROOT.TCanvas("c", "c", 800, 800)
     ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
     frame.Draw()
-    c.SaveAs('%s/signal_mass_%s.png'%(args.plot_outdir, point_tag)) 
-    c.SaveAs('%s/signal_mass_%s.pdf'%(args.plot_outdir, point_tag)) 
-    c.SetLogy(1)
-    c.SaveAs('%s/signal_mass_Log_%s.png'%(args.plot_outdir, point_tag)) 
-    c.SaveAs('%s/signal_mass_Log_%s.pdf'%(args.plot_outdir, point_tag)) 
+    if not args.optim_bdt :
+        c.SaveAs('%s/signal_mass_%s.png'%(args.plot_outdir, point_tag)) 
+        c.SaveAs('%s/signal_mass_%s.pdf'%(args.plot_outdir, point_tag)) 
+        c.SetLogy(1)
+        c.SaveAs('%s/signal_mass_Log_%s.png'%(args.plot_outdir, point_tag)) 
+        c.SaveAs('%s/signal_mass_Log_%s.pdf'%(args.plot_outdir, point_tag)) 
 
     # -- plot pulls
     h_pullMC = frame.pullHist()
@@ -276,8 +277,9 @@ for cut in set_bdt_cut:
     cp = ROOT.TCanvas("cp", "cp", 800, 800)
     ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
     frame_pull.Draw()
-    cp.SaveAs('%s/pull_signal_mass_%s.png'%(args.plot_outdir, point_tag)) 
-    cp.SaveAs('%s/pull_signal_mass_%s.pdf'%(args.plot_outdir, point_tag))
+    if not args.optim_bdt:
+        cp.SaveAs('%s/pull_signal_mass_%s.png'%(args.plot_outdir, point_tag)) 
+        cp.SaveAs('%s/pull_signal_mass_%s.pdf'%(args.plot_outdir, point_tag))
 
     frame_b = mass.frame()
     frame_b.SetTitle('#tau -> 3 #mu signal+bkg - CAT %s BDTscore > %.3f'%(args.category, cut))
