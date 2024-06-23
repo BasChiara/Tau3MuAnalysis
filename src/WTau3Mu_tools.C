@@ -518,3 +518,30 @@ int WTau3Mu_tools::applyMuonSF(const int& TauIdx){
 
    return 0;
 }//applyMuonSF
+
+int WTau3Mu_tools::parsePUweights(const TString & era){
+
+   TFile * file_weights = new TFile(scale_factor_src::PUweight_rootfile);
+   std::cout << "[+] parse PU weights from \n " << file_weights->GetName() << std::endl; 
+   h_PUweights          = (TH1D*)((file_weights->Get(scale_factor_src::PUweights_hist[era]+"_nominal"))->Clone());
+   h_PUweights->SetDirectory(0);
+   h_PUweights_sysUP    = (TH1D*)((file_weights->Get(scale_factor_src::PUweights_hist[era]+"_up"))->Clone());
+   h_PUweights_sysUP->SetDirectory(0);
+   h_PUweights_sysDOWN  = (TH1D*)((file_weights->Get(scale_factor_src::PUweights_hist[era]+"_down"))->Clone());
+   h_PUweights_sysDOWN->SetDirectory(0);
+
+   file_weights->Close(); 
+    
+   return 0;
+}//parsePUweights
+
+int WTau3Mu_tools::applyPUreweight(){
+   
+   int bin = h_PUweights->FindBin(Pileup_nTrueInt); 
+   if (bin < 0 ) std::cout << "[ERROR] Pileup_nTrueInt outside PU-weights range" << std::endl;
+   PU_weight      = (bin > 0 ? h_PUweights->GetBinContent(bin) : 1.0 ); 
+   PU_weight_up   = (bin > 0 ? h_PUweights_sysUP->GetBinContent(bin) : 1.0 ); 
+   PU_weight_down = (bin > 0 ? h_PUweights_sysDOWN->GetBinContent(bin) : 1.0 ); 
+
+   return 0;
+}//applyPUreweight

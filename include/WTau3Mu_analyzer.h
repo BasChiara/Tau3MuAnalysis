@@ -42,8 +42,8 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
 
          // parse the SF file for MonteCarlo
          if (isMC_){
-            parseMuonSF(year_, "low");         
-            //parseMuonSF(year_, "medium");         
+            parseMuonSF(year_, "low");
+            parsePUweights(year_);
          }
 
          // name and setup the output

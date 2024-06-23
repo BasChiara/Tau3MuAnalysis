@@ -37,6 +37,7 @@ class DsPhiMuMuPi_analyzer : public DsPhiMuMuPi_tools{
          // parse the SF file for MonteCarlo
          if (isMC_){
             parseMuonSF(year_, "low"); 
+            parsePUweights(year_);
          }
 
          // name and setup the output

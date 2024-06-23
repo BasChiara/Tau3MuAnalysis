@@ -98,8 +98,9 @@ void DsPhiMuMuPi_analyzer::Loop(){
          Ds_mu2_IDrecoSF_sysUP = -1.; Ds_mu2_IDrecoSF_sysDOWN = -1.;
          if(isMC_){
             applyMuonSF(t);
+            applyPUreweight();
          }
-         weight = lumi_factor * Ds_mu1_IDrecoSF * Ds_mu2_IDrecoSF; 
+         weight = lumi_factor * PU_weight * Ds_mu1_IDrecoSF * Ds_mu2_IDrecoSF; 
          // muons kinematics
          phi_mu1_pt  = DsPhiPi_mu1_pt[t];   phi_mu2_pt  = DsPhiPi_mu2_pt[t];
          phi_mu1_eta = DsPhiPi_mu1_eta[t];  phi_mu2_eta = DsPhiPi_mu2_eta[t];
@@ -232,6 +233,9 @@ void DsPhiMuMuPi_analyzer::outTreeSetUp(){
    outTree_->Branch("Ds_mu2_IDrecoSF",          &Ds_mu2_IDrecoSF,          "Ds_mu2_IDrecoSF/F");
    outTree_->Branch("Ds_mu2_IDrecoSF_sysUP",    &Ds_mu2_IDrecoSF_sysUP,    "Ds_mu2_IDrecoSF_sysUP/F");
    outTree_->Branch("Ds_mu2_IDrecoSF_sysDOWN",  &Ds_mu2_IDrecoSF_sysDOWN,  "Ds_mu2_IDrecoSF_sysDOWN/F");
+   outTree_->Branch("PU_weight",                &PU_weight,                "PU_weight/F");
+   outTree_->Branch("PU_weight_up",             &PU_weight_up,             "PU_weight_up/F");
+   outTree_->Branch("PU_weight_down",           &PU_weight_down,           "PU_weight_down/F");
    outTree_->Branch("isMCmatching",             &isMCmatching,             "isMCmatching/I");
    // * HLT
    outTree_->Branch("HLT_isfired_Tau3Mu",     &HLT_isfired_Tau3Mu,   "HLT_isfired_Tau3Mu/I");

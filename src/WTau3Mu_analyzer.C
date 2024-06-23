@@ -55,6 +55,11 @@ void WTau3Mu_analyzer::Loop(){
          Nu_gen_pt = GenNu_P4.Pt(); Nu_gen_eta = GenNu_P4.Eta(); Nu_gen_phi = GenNu_P4.Phi();
          gen_met_pt = GenMET_pt; gen_met_phi = GenMET_phi;
       }
+
+      // --- PU weights
+      PU_weight = 1.0; PU_weight_down = 1.0; PU_weight_up = 1.0;
+      if (isMC_) applyPUreweight();
+
       // --- loop on TAU candidates
       flag_HLT_Tau3mu = false; flag_HLT_DoubleMu = false;
       flag_reinfHLT = true; flag_diMuResVeto = true;
@@ -110,10 +115,9 @@ void WTau3Mu_analyzer::Loop(){
          tau_mu1_IDrecoSF_sysUP = -1.; tau_mu1_IDrecoSF_sysDOWN = -1.;  
          tau_mu2_IDrecoSF_sysUP = -1.; tau_mu2_IDrecoSF_sysDOWN = -1.;  
          tau_mu3_IDrecoSF_sysUP = -1.; tau_mu3_IDrecoSF_sysDOWN = -1.;  
-         if(isMC_){
-            applyMuonSF(t);
-         }
-         weight = lumi_factor * tau_mu1_IDrecoSF * tau_mu2_IDrecoSF * tau_mu3_IDrecoSF; 
+         if(isMC_) applyMuonSF(t);
+
+         weight = lumi_factor * PU_weight * tau_mu1_IDrecoSF * tau_mu2_IDrecoSF * tau_mu3_IDrecoSF; 
 
          // muons kinematics
          tau_mu1_pt  = TauTo3Mu_mu1_pt[t];   tau_mu2_pt  = TauTo3Mu_mu2_pt[t];   tau_mu3_pt  = TauTo3Mu_mu3_pt[t];
@@ -193,6 +197,7 @@ void WTau3Mu_analyzer::Loop(){
       if(flag_HLT_DoubleMu || flag_HLT_Tau3mu) nEvTriggerFired_Total++;
 
    }// loop on events
+   
 
    saveOutput();
    std::cout << " == summary == " << std::endl;
@@ -252,7 +257,10 @@ void WTau3Mu_analyzer::saveOutput(){
       h_muonSF_lowpT->Write();
       h_muonSF_lowpT_sysUP->Write();
       h_muonSF_lowpT_sysDOWN->Write();
-      //make h_muonSF_medpT->Write();
+      h_PUweights->Write();
+      h_PUweights_sysUP->Write();
+      h_PUweights_sysDOWN->Write();
+
    }
    outFile_->Close();
    std::cout << " [OUTPUT] root file saved in " << outFilePath_ << std::endl;
@@ -282,6 +290,9 @@ void WTau3Mu_analyzer::outTreeSetUp(){
    outTree_->Branch("tau_mu3_IDrecoSF",         &tau_mu3_IDrecoSF,         "tau_mu3_IDrecoSF/F");
    outTree_->Branch("tau_mu3_IDrecoSF_sysUP",   &tau_mu3_IDrecoSF_sysUP,   "tau_mu3_IDrecoSF_sysUP/F");
    outTree_->Branch("tau_mu3_IDrecoSF_sysDOWN", &tau_mu3_IDrecoSF_sysDOWN, "tau_mu3_IDrecoSF_sysDOWN/F");
+   outTree_->Branch("PU_weight",                &PU_weight,                "PU_weight/F");
+   outTree_->Branch("PU_weight_up",             &PU_weight_up,             "PU_weight_up/F");
+   outTree_->Branch("PU_weight_down",           &PU_weight_down,           "PU_weight_down/F");
    outTree_->Branch("isMCmatching",             &isMCmatching,             "isMCmatching/I");
    // * HLT
    outTree_->Branch("HLT_isfired_Tau3Mu",     &HLT_isfired_Tau3Mu,   "HLT_isfired_Tau3Mu/I");

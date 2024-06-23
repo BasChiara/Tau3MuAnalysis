@@ -14,18 +14,24 @@
 #include "Math/GenVector/VectorUtil.h"
 #include "Math/GenVector/PtEtaPhiM4D.h"
 #include "TH2Poly.h"
+#include "TH1D.h"
 
 class WTau3Mu_tools : public WTau3Mu_base{
 
    public:
    WTau3Mu_tools(TTree *tree=0, const bool& isMC = true) : WTau3Mu_base(tree, isMC){}
    virtual ~WTau3Mu_tools(){
+
       delete h_muonSF_lowpT;
       delete h_muonSF_lowpT_sysUP;
       delete h_muonSF_lowpT_sysDOWN;
       delete h_muonSF_medpT;
       delete h_muonSF_medpT_sysUP;
       delete h_muonSF_medpT_sysDOWN;
+      delete h_PUweights;
+      delete h_PUweights_sysUP;
+      delete h_PUweights_sysDOWN;
+
    }
 
    virtual void     Loop(){}
@@ -45,6 +51,8 @@ class WTau3Mu_tools : public WTau3Mu_base{
    // scale factors
    int    parseMuonSF(const TString & era = "2022preEE", const TString & pTrange = "low" );
    int    applyMuonSF(const int& TauIdx);
+   int    parsePUweights(const TString & era = "2022preEE");
+   int    applyPUreweight();
 
    const std::string muons_IDsf_set_ = "NUM_MediumID_DEN_TrackerMuons";
 
@@ -65,9 +73,17 @@ class WTau3Mu_tools : public WTau3Mu_base{
    TH2Poly* h_muonSF_medpT          = 0; // NOT used 
    TH2Poly* h_muonSF_medpT_sysUP    = 0; //  " 
    TH2Poly* h_muonSF_medpT_sysDOWN  = 0; //  "
+
    float tau_mu1_IDrecoSF, tau_mu2_IDrecoSF, tau_mu3_IDrecoSF;
    float tau_mu1_IDrecoSF_sysUP, tau_mu2_IDrecoSF_sysUP, tau_mu3_IDrecoSF_sysUP;
    float tau_mu1_IDrecoSF_sysDOWN, tau_mu2_IDrecoSF_sysDOWN, tau_mu3_IDrecoSF_sysDOWN;
+
+   // PU weights
+   TH1D* h_PUweights             =0;
+   TH1D* h_PUweights_sysUP       =0;
+   TH1D* h_PUweights_sysDOWN     =0;
+
+   float PU_weight, PU_weight_up, PU_weight_down; 
 
    private:
    bool debug = false; 

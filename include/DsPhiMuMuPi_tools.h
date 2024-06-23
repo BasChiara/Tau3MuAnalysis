@@ -26,6 +26,9 @@ class DsPhiMuMuPi_tools : public DsPhiMuMuPi_base{
       delete h_muonSF_medpT;
       delete h_muonSF_medpT_sysUP;
       delete h_muonSF_medpT_sysDOWN;
+      delete h_PUweights;
+      delete h_PUweights_sysUP;
+      delete h_PUweights_sysDOWN;
    }
 
    virtual void     Loop(){}
@@ -45,6 +48,8 @@ class DsPhiMuMuPi_tools : public DsPhiMuMuPi_base{
    // scale factors
    int    parseMuonSF(const TString & era = "2022preEE", const TString & pTrange = "low" );
    int    applyMuonSF(const int& TauIdx);
+   int    parsePUweights(const TString & era = "2022preEE");
+   int    applyPUreweight();
 
    const std::string muons_IDsf_set_ = "NUM_MediumID_DEN_TrackerMuons";
 
@@ -69,7 +74,14 @@ class DsPhiMuMuPi_tools : public DsPhiMuMuPi_base{
    float Ds_mu1_IDrecoSF, Ds_mu2_IDrecoSF;
    float Ds_mu1_IDrecoSF_sysUP, Ds_mu2_IDrecoSF_sysUP;
    float Ds_mu1_IDrecoSF_sysDOWN, Ds_mu2_IDrecoSF_sysDOWN;
-   
+
+   // PU weights
+   TH1D* h_PUweights             =0;
+   TH1D* h_PUweights_sysUP       =0;
+   TH1D* h_PUweights_sysDOWN     =0;
+
+   float PU_weight, PU_weight_up, PU_weight_down; 
+
    private:
    bool debug = false;
    

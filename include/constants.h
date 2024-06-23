@@ -10,7 +10,7 @@ constexpr int isW       = 24;
 constexpr int isTau     = 15;
 constexpr int isNuTau   = 16;
 constexpr int isMuon    = 13;
-constexpr int isDs_p   = 431;
+constexpr int isDs_p    = 431;
 constexpr int isPion_p  = 211;
 constexpr int isPhi1020 = 333;
 
@@ -189,6 +189,13 @@ namespace scale_factor_src
         {"2022EE"         , base_dir + "/include/scale_factors/"}, 
         {"2023preBPix"    , base_dir + "/include/scale_factors/ScaleFactors_Muon_Z_ID_ISO_2023_schemaV2.json"}, 
         {"2023BPix"       , base_dir + "/include/scale_factors/"}, 
+    };
+    inline TString PUweight_rootfile = base_dir + "corrections/pileup/puWeights_CollisionsRun3_GoldenJson_2024Jun23.root"; 
+    inline std::map<TString, TString> PUweights_hist{
+        {"2022preEE"      , "Collisions2022_355100_357900_eraBCD_GoldenJson"},
+        {"2022EE"         , "Collisions2022_359022_362760_eraEFG_GoldenJson"},
+        {"2023preBPix"    , "Collisions2023_366403_369802_eraBC_GoldenJson"},
+        {"2023BPix"       , "Collisions2023_369803_370790_eraD_GoldenJson"},
     };
 }
 #endif
