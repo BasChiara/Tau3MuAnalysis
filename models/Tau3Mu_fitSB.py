@@ -4,6 +4,7 @@
 
 import ROOT
 ROOT.RooMsgService.instance().setGlobalKillBelow(ROOT.RooFit.ERROR)
+ROOT.Math.MinimizerOptions.SetDefaultMinimizer("Minuit")
 import os
 from math import pi, sqrt
 import numpy as np
@@ -56,7 +57,7 @@ ROOT.TH1.SetDefaultSumw2()
 mass_window = 0.060 # GeV
 tau_mass = 1.777 # GeV
 fit_range_lo  , fit_range_hi   = 1.68, 1.87 # GeV
-mass_window_lo, mass_window_hi = 1.60, 2.00 #mass_range_lo, mass_range_hi # GeV #tau_mass-mass_window, tau_mass+mass_window
+mass_window_lo, mass_window_hi = mass_range_lo, mass_range_hi # GeV #tau_mass-mass_window, tau_mass+mass_window
 
 bin_w = 0.01
 nbins = int(np.rint((mass_window_hi-mass_window_lo)/bin_w)) # needed just for plotting, fits are all unbinned
@@ -189,10 +190,10 @@ for cut in set_bdt_cut:
     dMtau  = ROOT.RooRealVar('dM', 'dM', 0, -0.04, 0.04)
     mean   = ROOT.RooFormulaVar('mean','mean', '(@0+@1)', ROOT.RooArgList(Mtau,dMtau) )
     width  = ROOT.RooRealVar('width',  'width',  0.01,    0.005, 0.05)
-    width2 = ROOT.RooRealVar('width2', 'width2', 0.05,    0.005, 0.05)
+    width2 = ROOT.RooRealVar('width2', 'width2', 0.025,    0.005, 0.05)
 
     f      = ROOT.RooRealVar('f', 'f', 0.5, 0., 1.0)
-    nsig   = ROOT.RooRealVar('model_sig_%s_norm'%process_name, 'model_sig_%s_norm'%process_name, fullmc.sumEntries(), 0., 3*fullmc.sumEntries())
+    nsig   = ROOT.RooRealVar('model_sig_%s_norm'%process_name, 'model_sig_%s_norm'%process_name, fullmc.sumEntries(), 0.001, 3*fullmc.sumEntries())
     gaus   = ROOT.RooGaussian('gaus1_%s'%process_name, 'gaus1_%s'%process_name, mass, mean, width)
     gaus2  = ROOT.RooGaussian('gaus2_%s'%process_name, 'gaus2_%s'%process_name, mass, mean, width2)
     gsum   = ROOT.RooAddModel(f'model_sig_{process_name}', f'model_sig_{process_name}', ROOT.RooArgList(gaus, gaus2), ROOT.RooArgList(f))
@@ -219,7 +220,8 @@ for cut in set_bdt_cut:
         print('[i] fit background with 1st order polynimial')
     else : print('[i] fit background with exponential')
     # number of background events
-    nbkg = ROOT.RooRealVar('model_bkg_%s_norm'%process_name, 'model_bkg_%s_norm'%process_name, datatofit.numEntries(), 0., 3*datatofit.numEntries())
+    nbkg = ROOT.RooRealVar('model_bkg_%s_norm'%process_name, 'model_bkg_%s_norm'%process_name, datatofit.numEntries(), 0.1*datatofit.numEntries(), 10*datatofit.numEntries())
+    print(f'[debug] entries in data {datatofit.numEntries()}')
     ext_bkg_model = ROOT.RooAddPdf("toy_add_model_bkg_WTau3Mu", "add background pdf", ROOT.RooArgList(b_model),  ROOT.RooArgList(nbkg))
 
     # **** TIME TO FIT ****
@@ -230,7 +232,7 @@ for cut in set_bdt_cut:
         ROOT.RooFit.Save(),
         ROOT.RooFit.Extended(ROOT.kTRUE),
         ROOT.RooFit.SumW2Error(True),
-        ROOT.RooFit.PrintLevel(-1),
+        ROOT.RooFit.PrintLevel(1),
     )
     # * draw & save
     frame = mass.frame()
@@ -451,11 +453,13 @@ bkgNorm_{proc}     flatParam
             activator= '' if args.bkg_func == 'expo' else '#'
             )
         )
-#if (ROOT.gROOT.GetVersion() == '6.22/09' ): exit(-1)
-if args.optim_bdt:
-    tree_dict = dict(zip(df_columns, np.array([bdt_cut, sig_Nexp, sig_eff, bkg_Nexp, bkg_Nexp_Sregion, bkg_eff, PunziS_val, PunziS_err, AMS_val])))
-    out_rdf = ROOT.RDF.MakeNumpyDataFrame(tree_dict).Snapshot('sensitivity_tree', out_data_filename)
-    print(f'[o] output tree saved in {out_data_filename}')
-    print(tree_dict)
+if not args.optim_bdt: exit()
+tree_dict = dict(zip(df_columns, np.array([bdt_cut, sig_Nexp, sig_eff, bkg_Nexp, bkg_Nexp_Sregion, bkg_eff, PunziS_val, PunziS_err, AMS_val])))
+#if (ROOT.gROOT.GetVersion() == '6.22/09' ):
+out_rdf = ROOT.RDF.MakeNumpyDataFrame(tree_dict).Snapshot('sensitivity_tree', out_data_filename)
+#elif (ROOT.gROOT.GetVersion() == '6.30/07' ):
+#    out_rdf = ROOT.RDF.FromNumpy(tree_dict).Snapshot('sensitivity_tree', out_data_filename)
+print(f'[o] output tree saved in {out_data_filename}')
+print(tree_dict)
 
 

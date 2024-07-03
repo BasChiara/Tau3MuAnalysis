@@ -28,12 +28,11 @@ error      = {jd}/out/$(ProcId).error
 
 getenv       = True
 environment  = "LS_SUBCWD={here}"
-requirements = (OpSysAndVer =?= "CentOS7")
 
 request_memory = 5M 
 +MaxRuntime = {rt}\n
 +JobBatchName = "{bn}"\n
-'''.format(de=os.path.abspath(dummy_exec.name), jd=os.path.abspath(jobdir), rt=int(options.runtime*3600), bn=batch_name,here=options.workdir))#os.environ['PWD'] ) )
+'''.format(de=os.path.abspath(dummy_exec.name), jd=os.path.abspath(jobdir), rt=int(options.runtime*3600), bn=batch_name,here=os.environ['PWD'] ) )
 
     for sf in srcFiles:
         condor_file.write('arguments = {sf} \nqueue 1 \n\n'.format(sf=os.path.abspath(sf)))
@@ -41,31 +40,7 @@ request_memory = 5M
     condor_file.close()
     return condor_file_name
 
-def zip_jobScripts(options):
-
-    fit_script = "/afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/models/Tau3Mu_fitSB.py"
-    opt_script = "/eos/user/c/cbasile/CombineTools/CMSSW_11_3_4/src/WTau3Mu_limits/models/runBDTOptimCombine.py"
-    plt_script = "/eos/user/c/cbasile/CombineTools/CMSSW_11_3_4/src/WTau3Mu_limits/models/compareLimitScan.py"
-
-    # zip the scripts
-    print(f'[...] compressing the scripts')
-    tar_ball_name = f'{options.workdir}/scripts.tar.gz'
-    if not os.path.exists(tar_ball_name):
-        os.system(f'cp {fit_script} {opt_script} {plt_script} .')
-        os.system(f'tar -czvf {tar_ball_name} {os.path.basename(fit_script)} {os.path.basename(opt_script)} {os.path.basename(plt_script)}')
-        if os.path.exists(tar_ball_name):
-            print(f'   OK - tarball created : {tar_ball_name}')
-            os.system(f'rm {os.path.basename(fit_script)} {os.path.basename(opt_script)} {os.path.basename(plt_script)}')
-        else:
-            print(f'[ERROR] problem in creating tarball {tar_ball_name}')
-            exit()
-    else:
-        print('  tarball with scripts already in workdir')
-    
-    return tar_ball_name
-
-
-def setup_executable(exe_file, tar_scripts, category, options):
+def setup_executable(exe_file, category, options):
 
     # dump the text datacard
     with open(exe_file, 'w') as exe:
@@ -74,9 +49,8 @@ def setup_executable(exe_file, tar_scripts, category, options):
 #! /usr/bin/bash
 
 WORK_DIR="{workdir}"
-BASE_DIR="/eos/user/c/cbasile/CombineTools/CMSSW_11_3_4/src/WTau3Mu_limits/models/"
+BASE_DIR="{basedir}/models/"
 cd {workdir}
-#tar -xvzf {scripts} -C $BASE_DIR
 
 TAG="{tag}"
 
@@ -94,17 +68,17 @@ echo    "|  CATEGORY $CATEGORY  |"
 echo -e "\n"
 echo 'TIME TO FIT'
 python3 $BASE_DIR/Tau3Mu_fitSB.py --plot_outdir $EOS_DIR --combine_dir $COMBINE_DIR -s $SIGNAL -d $DATA --category $CATEGORY -y $YEAR --tag $TAG --optim_bdt --save_ws --bkg_func dynamic --BDTmin 0.9900 --BDTmax 0.9995 --BDTstep 0.0005
-echo 'TIME TO CALCULATE LIMITS'
+#echo 'TIME TO CALCULATE LIMITS'
 # with AsymptoticLimits
-python3 $BASE_DIR/runBDTOptimCombine.py -i $COMBINE_DIR -o $EOS_DIR --scan_sensitivity input_combine/sensitivity_tree_bdt_scan_{full_tag}.root -d {full_tag} -n {full_tag} --BDTmin 0.9900 --BDTmax 0.9995 --BDTstep 0.0005 -s all
+#python3 $BASE_DIR/runBDTOptimCombine.py -i $COMBINE_DIR -o $EOS_DIR --scan_sensitivity input_combine/sensitivity_tree_bdt_scan_{full_tag}.root -d {full_tag} -n {full_tag} --BDTmin 0.9900 --BDTmax 0.9995 --BDTstep 0.0005 -s all
 # with HybridNew 
-python3 $BASE_DIR/runBDTOptimCombine.py -i $COMBINE_DIR -o $EOS_DIR --scan_sensitivity input_combine/sensitivity_tree_bdt_scan_WTau3Mu_{full_tag}.root -d {full_tag} -n {full_tag} -M HybridNew --BDTmin 0.9900 --BDTmax 0.9995 --BDTstep 0.0005 -s all
-echo 'TIME TO COMPARE THE METHODS'
+#python3 $BASE_DIR/runBDTOptimCombine.py -i $COMBINE_DIR -o $EOS_DIR --scan_sensitivity input_combine/sensitivity_tree_bdt_scan_WTau3Mu_{full_tag}.root -d {full_tag} -n {full_tag} -M HybridNew --BDTmin 0.9900 --BDTmax 0.9995 --BDTstep 0.0005 -s all
+#echo 'TIME TO COMPARE THE METHODS'
 # compare the methods
-python3 $BASE_DIR/compareLimitScan.py --inputs input_combine/Tau3MuCombine.{full_tag}_BDTscan.AsymptoticLimits.root --labels AsymptoticLimits --inputs input_combine/Tau3MuCombine.{full_tag}_BDTscan.HybridNew.root --labels HybridNew -o $EOS_DIR -d {full_tag} -n {full_tag} -y 20$YEAR
+python3 $BASE_DIR/compareLimitScan.py --inputs input_combine/Tau3MuCombine.{full_tag}_BDTscan.AsymptoticLimits.root --labels AsymptoticLimits --inputs input_combine/Tau3MuCombine.{full_tag}_BDTscan.HybridNew.root --labels HybridNew -o $EOS_DIR -d {full_tag} -n {full_tag} -y 20$YEAR -c $CATEGORY
     '''.format(
         workdir = os.path.abspath(options.workdir),
-        scripts = tar_scripts,
+        basedir = os.getcwd(),
         tag     = options.tag,
         eos     = options.plot_outdir,
         year    = options.year,
@@ -171,11 +145,11 @@ def main():
         print(f'[+] working-directory created : {opt.workdir}')
     else:
         print(f'[+] working-directory aleardy exists : {opt.workdir}')
-    # --> tarball with scripts to run
-    scripts = zip_jobScripts(opt)
+    
     # --> setup the ouput directory
     if not os.path.isdir(opt.plot_outdir):
         os.system(f'mkdir -p {opt.plot_outdir}')
+        os.system(f'cp ~/public/index.php {opt.plot_outdir}')
         print(f'[+] plot-directory created : {opt.plot_outdir}')
     else:
         print(f'[+] plot-directory already exists : {opt.plot_outdir}')
@@ -200,14 +174,14 @@ def main():
     
         # --> setup the executable
         executable_file_path = f'{opt.workdir}/{opt.application}_{cat}.sh'
-        setup_executable(executable_file_path, scripts, cat, opt)
+        setup_executable(executable_file_path, cat, opt)
         # --> setup the command sequence to run
         src_filename = f'{jobdir}/src/submit_{str(i)}.src'
         with open(src_filename, 'w') as src:
             src.write(
             '''
 #!/bin/bash\n
-cd /eos/user/c/cbasile/CombineTools/CMSSW_11_3_4/src/
+cd $T3M_ANA 
 cmsenv
 cd {workdir}
 echo $PWD\n
