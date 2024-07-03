@@ -8,10 +8,21 @@ import ROOT
 ###                ###
 #  TAU MASS REGIONS  #
 ###                ###
-mass_range_lo  = 1.60 # GeV
-mass_range_hi  = 2.00 # GeV
+mass_range_lo  = 1.40 # GeV
+mass_range_hi  = 2.10 # GeV
 blind_range_lo = 1.72 # GeV
 blind_range_hi = 1.84 # GeV
+
+###                ###
+#   EVENT SELECTION  #
+###  at mva level  ###
+Phi_mass_, Phi_window_ = 1.020, 0.020
+
+base_selection      = f'(tau_fit_mass > {mass_range_lo} & tau_fit_mass < {mass_range_hi} ) & (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu)'
+phi_veto            = '''(fabs(tau_mu12_fitM- {mass:.3f})> {window:.3f} & fabs(tau_mu23_fitM - {mass:.3f})> {window:.3f} & fabs(tau_mu13_fitM -  {mass:.3f})>{window:.3f})'''.format(mass =Phi_mass_ , window = Phi_window_/2. )
+sidebands_selection = f'((tau_fit_mass < {blind_range_lo} )|| (tau_fit_mass > {blind_range_hi}))'
+
+
 ###                  ###
 #  DATASET LUMINOSITY  #
 ###                  ###
@@ -45,9 +56,10 @@ cat_eta_selection_dict = {
     'C' : f'(tau_fit_absEta > {eta_thBC})',
 }
 cat_eta_selection_dict_fit = {
-    'A' : f'(fabs(tau_fit_eta) < {eta_thAB})',
-    'B' : f'(fabs(tau_fit_eta) > {eta_thAB} & fabs(tau_fit_eta) < {eta_thBC})', 
-    'C' : f'(fabs(tau_fit_eta) > {eta_thBC})',
+    'ABC': f'(fabs(tau_fit_eta) > 0.)',
+    'A'  : f'(fabs(tau_fit_eta) < {eta_thAB})',
+    'B'  : f'(fabs(tau_fit_eta) > {eta_thAB} & fabs(tau_fit_eta) < {eta_thBC})', 
+    'C'  : f'(fabs(tau_fit_eta) > {eta_thBC})',
 }
 
 #########################
@@ -187,6 +199,7 @@ branches = features + [
     'tau_mu1_SoftID_PV', 'tau_mu2_SoftID_BS', 'tau_mu2_LooseID',
     'tau_mu1_SoftID_PV', 'tau_mu3_SoftID_BS', 'tau_mu3_LooseID',
 ]
+
 
 ###        ##
 #  ETA BINS #
