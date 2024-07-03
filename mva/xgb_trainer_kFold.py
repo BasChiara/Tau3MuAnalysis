@@ -3,6 +3,7 @@ ROOT.EnableImplicitMT()
 import argparse
 import datetime 
 import pickle
+import json
 import numpy  as np
 import pandas as pd
 import seaborn as sns
@@ -11,11 +12,11 @@ import os
 import shutil
 sns.set(style="white")
 
-import warnings
-# Suppress the specific UserWarning
-warnings.filterwarnings("ignore", message="The value of the smallest subnormal for <class 'numpy.float64'> type is zero.")
+#import warnings
+## Suppress the specific UserWarning
+#warnings.filterwarnings("ignore", message="The value of the smallest subnormal for <class 'numpy.float64'> type is zero.")
 
-import xgboost
+#import xgboost
 from xgboost import XGBClassifier, plot_importance
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics         import roc_curve, roc_auc_score, accuracy_score
@@ -41,6 +42,7 @@ parser.add_argument('--preprocess',     action = 'store_true',                  
 parser.add_argument('--prep_sig',                                                                   help='preprocessed signal input')
 parser.add_argument('--prep_bkg',                                                                   help='preprocessed background input')
 parser.add_argument('--plot_outdir',    default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/BDTtraining/',help='output directory for plots')
+parser.add_argument('--plot_only',      action = 'store_true',                                      help='output directory for plots')
 parser.add_argument('--save_output',    action = 'store_true',                                      help='set it to save the bdt output')
 parser.add_argument('--data_outdir',    default= '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/',   help='output directory for MVA data')
 parser.add_argument('--tag',                                                                        help='tag to the training')
@@ -49,10 +51,20 @@ parser.add_argument('-s','--seed',      default=  3872, type = int,             
 parser.add_argument('--LxySign_cut',    default=  0.0,  type = float,                               help='cut over 3muons SV displacement significance')
 parser.add_argument('--useW3MuNu',      action = 'store_true' ,                                     help='use W->3MuNu (SM) MC in bkg training sample')
 parser.add_argument('--fracW3MuNu',     default = 1.0,  type = float,                               help='which fraction of the W3MuNu sample to use')
+parser.add_argument('--opt_parameters',                                                             help='.json file with optimized parameters')
 parser.add_argument('--debug',          action = 'store_true' ,                                     help='set it to have useful printout')
 
 args    = parser.parse_args()
+if (args.plot_only and not args.load_model):
+    print('[ERROR] you have to specify a the model to load to make plots')
+    exit()
 print("\n")
+
+# [INPUT]
+if args.opt_parameters and not os.path.exists(args.opt_parameters) :
+    print(f'[ERROR] specified file for BDT params does not exist')
+    exit()
+
 
 # [OUTPUT]
 # setup output tag
@@ -72,6 +84,8 @@ if not args.load_model:
             print(f'[ERROR] cannot create plot-output directory {plot_outpath}')
             exit(-1)
 # ...for data
+out_data_filename = f'{args.data_outdir}/XGBout_data_{tag}.root'
+out_signal_filename = f'{args.data_outdir}/XGBout_signal_{tag}.root'
 if args.save_output:
     try:
         os.makedirs(args.data_outdir)
@@ -107,44 +121,6 @@ print('[i] BDT inputs')
 
 # ------------ INPUT DATASET ------------ #
 tree_name = 'WTau3Mu_tree'
-#print('[+] adding WTau3Mu SIGNAL samples')
-#signals     = [
-#    # 2022
-#    '../outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap.root',
-#    '../outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap.root',
-#    # 2023
-#    '../outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap.root',
-#    '../outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap.root '
-#]
-#print('[+] adding data-sidebands background samples')
-#data_path = '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/'
-#dataSB_background  = [
-#    #2022
-#    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Cv1_HLT_overlap.root',
-#    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv1_HLT_overlap.root',
-#    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv2_HLT_overlap.root',
-#    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Ev1_HLT_overlap.root',
-#    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Fv1_HLT_overlap.root',
-#   data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Gv1_HLT_overlap.root',
-#   #2023
-#   data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023B_HLT_overlap.root',
-#   data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv1_HLT_overlap.root',
-#   data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv2_HLT_overlap.root',
-#   data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv3_HLT_overlap.root',
-#   data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023C_HLT_overlap.root',
-#   data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv1_HLT_overlap.root',
-#    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023D_HLT_overlap.root',
-#]
-#if (args.useW3MuNu):
-    #print(f'[+] adding W3MuNu MC samples')
-    #W3MuNu_background = [
-    #    #2022
-    #    '../outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap_onW3MuNu.root',
-    #    '../outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_privW3MuNu.root',
-    #    #2023
-    #    '../outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap_onW3MuNu.root',
-    #    '../outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onW3MuNu.root',
-    #]
 
 if args.preprocess:
     print('[i] run data preprocessing')
@@ -163,13 +139,14 @@ else :
     if not os.path.exists(backgrounds):
         print(f'[ERROR] cannot find preprocessed background input {backgrounds}')
         exit(-1)
+
 print('... processing input ...')
 print('[+] adding WTau3Mu SIGNAL samples')
 print('[+] adding data-sidebands background samples')
-sig_rdf = ROOT.RDataFrame(tree_name, signals, branches).Filter(sig_selection)#.Define('weight', 'lumi_factor')
+sig_rdf = ROOT.RDataFrame(tree_name, signals, branches).Filter(sig_selection)
 sig = pd.DataFrame( sig_rdf.AsNumpy() )
 print(' SIGNAL      : %s entries passed selection' %len(sig.index))
-bkg_rdf = ROOT.RDataFrame(tree_name, backgrounds, branches).Filter(bkg_selection)#.Define('weight', '1.0').Define('year_id', '0')
+bkg_rdf = ROOT.RDataFrame(tree_name, backgrounds, branches).Filter(bkg_selection)
 bkg = pd.DataFrame( bkg_rdf.AsNumpy() )
 print(' DATA-SB BACKGROUND  : %s entries passed selection' %len(bkg.index))
 if (args.useW3MuNu):
@@ -179,14 +156,25 @@ if (args.useW3MuNu):
     W3MuNu_bkg = W3MuNu_bkg.sample(frac = args.fracW3MuNu, random_state = args.seed).reset_index(drop=True)
     print(' W3MuNu(MC) BACKGROUND  : %s entries passed selection' %len(W3MuNu_bkg.index))
 print('---------------------------------------------')
-if(args.debug):print(sig)
-if(args.debug):print(bkg)
+
+# ------------ DATA PREPROCESSING ------------ #
 if args.preprocess:
-    ## DEFINE TARGETS
-    sig.loc[:,'target'] = np.ones (sig.shape[0]).astype(int)
+    # DEFINE TARGETS
+    sig.loc[:,'target'] = np.ones(sig.shape[0]).astype(int)
     if args.useW3MuNu :
         bkg = pd.concat([bkg, W3MuNu_bkg]) 
     bkg.loc[:,'target'] = np.zeros(bkg.shape[0]).astype(int)
+
+    # DEFINE WEIGHTS FOR TRAINING
+    # charge unbalance
+    sig.loc[:,'tau_charge_weight'] = np.ones(sig.shape[0]).astype(float)
+    Nplus  = sig[sig.tau_fit_charge>0].shape[0]
+    Nminus = sig[sig.tau_fit_charge<0].shape[0]
+    sig.loc[sig.tau_fit_charge<0,'tau_charge_weight'] = Nplus/Nminus #* np.ones(sig[sig.tau_fit_charge<0].shape[0]).astype(float)
+    print(f' N+ = {Nplus} \t N- = {Nminus} -> weight = {Nplus/Nminus}')
+
+    sig.loc[:,'train_weight'] = sig.PU_weight * sig.tau_charge_weight * sig.tau_mu1_IDrecoSF * sig.tau_mu2_IDrecoSF * sig.tau_mu3_IDrecoSF
+    bkg.loc[:,'train_weight'] = np.ones(bkg.shape[0]).astype(float)
 
     # REBIN ETA
     sig.loc[:,'tauEta'] = tauEta(sig['tau_fit_eta'])
@@ -206,7 +194,7 @@ if args.preprocess:
             check_for_nan = data.isnull().values.any()
             print ("[!] check again for NaN " + str(check_for_nan))
 
-    # ------------ K-FOLD TRAINING ------------ # 
+    # K-FOLD SPLITTING & SAVE TRAINING SAMPLES 
     kFold_splitting(
         data = data, 
         bdt_inputs = bdt_inputs, 
@@ -216,32 +204,54 @@ if args.preprocess:
         rnd_seed = args.seed,
         debug = args.debug,
     )
-    #exit(-1)
+
+    if(args.debug):print(sig)
+    if(args.debug):print(bkg)
+    exit()  
 else:
     ## CONCATENATE & SHUFFLE SIGNAL AND BACKGROUND
     data = pd.concat([sig, bkg])
     if(args.debug) : print(data)
     data = data.sample(frac = 1, random_state = args.seed).reset_index(drop=True)
 
-## define the bdt score related columns 
-#data.loc[:,'id'] = np.arange(len(data))
-#for i in range(kfold):
-#    data.loc[:,'bdt_fold%d_isTrainSet' %i]  = np.zeros(data.shape[0]).astype(int)
-#    data.loc[:,'bdt_fold%d_score' %i]       = -1 * np.ones(data.shape[0]).astype(int)
-#data.loc[:,'bdt_to_apply']  = -1 * np.ones(data.shape[0]).astype(int)
-#data.loc[:,'bdt_score']     = -1 * np.ones(data.shape[0]).astype(int)
-#data.loc[:,'bdt_training']  = np.zeros(data.shape[0]).astype(int)
-
-# keep only the input features in train set
-#train = data[bdt_inputs+['tau_fit_mass','weight','target','id']]
-#if(args.debug) : print(train)
-#skf = StratifiedKFold(n_splits=kfold, random_state=args.seed, shuffle=True)
-if args.load_model is None:
+if (args.load_model is None) or (args.plot_only is None):
     
     # .pkl file to save BDT weights
     classifier_file = open('classifiers/classifiers_%s.pck' % tag, 'wb')
     classifiers = OrderedDict()
     
+    # hyperparameters of the model
+    # - default -
+    parameters = {
+        'booster'               :  'gbtree',
+        'n_estimators'          :  10000,   # number of sequential trees to be modeled
+        'max_depth'             :  5,       # max depth of a single tree
+        'eta'                   :  0.01,    # step size shrinkage used in update to prevent overfitting (learning rate) 
+        'subsample'             :  0.7,     # subsample ratio of the training instance at every boosting iteration
+        'colsample_bytree'      :  0.7,     # subsample ratio of columns when constructing each tree
+        'min_child_weight'      :  50,      # min sum of instance weight (hessian) needed in a child
+        'gamma'                 :  5,       # min loss reduction required to make a further partition on a leaf node of the tree
+        # scale_pos_weight      :  0.5,     # control the balance of positive and negative weights
+        'reg_alpha'             :  5.0,     # L1 regularization term on weights [0, inf)
+        'reg_lambda'            :  5.0,     # L2 regularization term on weights [0, inf)
+        'early_stopping_rounds' :  100,
+        'use_label_encoder'     :  False,
+        'eval_metric'           :  'auc',
+        'objective'             :  'binary:logistic',
+        'seed'                  :  args.seed,
+        'verbosity'             :  0,
+    }
+    # - load optimized parameters if any
+    if not (args.opt_parameters):
+        print(f'[i] using default parameters {parameters}')
+    else :
+        print(f'[i] loading optimized parameters from {args.opt_parameters}')
+        with open(args.opt_parameters) as fj:
+            opt_parameters = json.load(fj)
+        if args.debug : [print(f'{key} : {opt_parameters[key]}') for key in opt_parameters]
+        parameters.update(opt_parameters)
+
+    [print(f' - {key} : {parameters[key]}') for key in parameters]
     
     # https://www.kaggle.com/sudosudoohio/stratified-kfold-xgboost-eda-tutorial-0-281
     # (K-1)/K to train 1/K to use in the analysis
@@ -249,12 +259,10 @@ if args.load_model is None:
     for i in range(kfold):
 
         print('[fold %d/%d]' % (i + 1, kfold))
-        #kdataset = train[train.id.isin(train_index)]
         kdataset        = data[data[f'bdt_fold{i}_isTrainSet'] == 1]
         print('  using %.2f percent of the full dataset'% (kdataset.shape[0]/data.shape[0]*100.))    
         # create a copy of the apply-dataset to check the performance 
-        #sub = train[train.id.isin(apply_index)] #pd.DataFrame()
-        sub = data[data[f'bdt_to_apply'] == i].copy() #pd.DataFrame()
+        sub = data[data[f'bdt_to_apply'] == i].copy()
         sub.loc[:, 'score']  = np.zeros_like(sub.id)
         
         # split the train set in training and validation + select SB
@@ -266,33 +274,10 @@ if args.load_model is None:
         y_train, y_valid = (ktrain['target']).values.astype(int), (kvalid['target']).values.astype(int)
         if(args.debug) : print(max(y_train))
         if(args.debug) : print(min(y_train))
-        
-        
-        # save the training information 
-        #data.loc[train.id.isin(train_index)&((data.target == 1) | ((data.target == 0) & ((data.tau_fit_mass < blind_range_lo) | (data.tau_fit_mass > blind_range_hi)))), 'bdt_fold%d_isTrainSet' %i] = 1
-        #data.loc[train.id.isin(apply_index), 'bdt_to_apply'] = i
-
-        #if(args.debug):print(data)
 
         # classifier definition
         clf = XGBClassifier(
-            booster          = 'gbtree',
-            max_depth        = 5,
-            learning_rate    = 0.01, 
-            n_estimators     = 10000, #10000,
-            verbosity        = 0,
-            subsample        = 0.7,
-            colsample_bytree = 0.7,
-            min_child_weight = 50, #1E-6 * np.sum(train[train.id.isin(train_index)].weight),
-            gamma            = 5, 
-            seed             = args.seed,
-            # scale_pos_weight = 0.5,
-            reg_alpha        = 5.0,
-            reg_lambda       = 5.0,
-            use_label_encoder=False,
-            eval_metric      ='auc',
-            objective        ='binary:logistic',
-            early_stopping_rounds = 100, #100
+            **parameters
         )
 
         clf.fit(
@@ -300,7 +285,7 @@ if args.load_model is None:
             y_train,
             eval_set              = [(X_train, y_train),(X_valid, y_valid)],
             verbose               = False,
-            #sample_weight         = ktrain['weight'],
+            sample_weight         = ktrain.train_weight,
         )
         
         best_iteration = clf.get_booster().best_iteration
@@ -339,45 +324,40 @@ if args.load_model is None:
     # save the models
     pickle.dump(classifiers, classifier_file)
     classifier_file.close()
-else :
+else:
     print('[+] load model from %s'%args.load_model)
     with open(args.load_model, 'rb') as f:
         classifiers = pickle.load(f)
 
-    #for i, (train_index, apply_index) in enumerate(skf.split(train[bdt_inputs].values, train['target'].values)):
-    #    data.loc[train.id.isin(train_index)&((data.target == 1) | ((data.target == 0) & ((data.tau_fit_mass < blind_range_lo) | (data.tau_fit_mass > blind_range_hi)))), 'bdt_fold%d_isTrainSet' %i] = 1
-    #    data.loc[train.id.isin(apply_index), 'bdt_to_apply'] = i
 
 # ------------ FINALLY SAVE BDT SCORES ------------ # 
-print('-----------------------------')
-print('SAVE the scores')
-n_class = len(classifiers)
-print(f' Number of splits : {n_class}')
+if not args.plot_only:
+    print('-----------------------------')
+    print('SAVE the scores')
+    n_class = len(classifiers)
+    print(f' Number of splits : {n_class}')
 
-for i, iclas in classifiers.items():
-    
-    print (f' evaluating {i+1}/{n_class} classifier')
-    
-    best_iteration = iclas.get_booster().best_iteration
-    print(f'\tbest iteration {best_iteration}')  
-    
-    data.loc[:,'bdt_fold%d_score' %i] = iclas.predict_proba(data[bdt_inputs])[:, 1]
-    data.loc[data['bdt_to_apply'] == i,'bdt_score'] = iclas.predict_proba(data.loc[data['bdt_to_apply'] == i, bdt_inputs])[:, 1]
-    data.loc[data['bdt_fold%d_isTrainSet' %i] == 1,'bdt_training'] += iclas.predict_proba(data.loc[data['bdt_fold%d_isTrainSet' %i] == 1, bdt_inputs])[:, 1]/(n_class-1)
+    for i, iclas in classifiers.items():
+        
+        print (f' evaluating {i+1}/{n_class} classifier')
+        
+        best_iteration = iclas.get_booster().best_iteration
+        print(f'\tbest iteration {best_iteration}')  
+        
+        data.loc[:,'bdt_fold%d_score' %i] = iclas.predict_proba(data[bdt_inputs])[:, 1]
+        data.loc[data.bdt_to_apply == i,'bdt_score'] = iclas.predict_proba(data.loc[data.bdt_to_apply == i, bdt_inputs])[:, 1]
+        data.loc[data['bdt_fold%d_isTrainSet' %i] == 1,'bdt_training'] += iclas.predict_proba(data.loc[data['bdt_fold%d_isTrainSet' %i] == 1, bdt_inputs])[:, 1]/(n_class-1)
 
-# save data & MC as root trees
-if(args.save_output):
-    print(data.columns)
-    # convert data to dictionary with numpy arrays 
-    out_data = {col: data[col].values for col in data.columns}
-    out_data_filename = f'{args.data_outdir}/XGBout_data_{tag}.root'
-    out_rdf = ROOT.RDF.MakeNumpyDataFrame(out_data).Filter('target == 0').Snapshot('tree_w_BDT', out_data_filename)
-    print(f'[o] output DATA saved in {out_data_filename}')
-    out_data_filename = f'{args.data_outdir}/XGBout_signal_{tag}.root'
-    out_rdf = ROOT.RDF.MakeNumpyDataFrame(out_data).Filter('target == 1').Snapshot('tree_w_BDT', out_data_filename)
-    print(f'[o] output SIGNAL saved in {out_data_filename}')
+    # save data & MC as root trees
+    if(args.save_output):
+        print(data.columns)
+        # convert data to dictionary with numpy arrays 
+        out_data = {col: data[col].values for col in data.columns}
+        out_rdf = ROOT.RDF.MakeNumpyDataFrame(out_data).Filter('target == 0').Snapshot('tree_w_BDT', out_data_filename)
+        print(f'[o] output DATA saved in {out_data_filename}')
+        out_rdf = ROOT.RDF.MakeNumpyDataFrame(out_data).Filter('target == 1').Snapshot('tree_w_BDT', out_signal_filename)
+        print(f'[o] output SIGNAL saved in {out_signal_filename}')
 
-if(args.load_model): exit(-1) 
 
 
 ###              ###
@@ -401,7 +381,7 @@ plt.yticks(fontsize=16)
 
 plt.xscale('log')
 
-fpr, tpr, wps = roc_curve(plot_data.target, plot_data.bdt_score, sample_weight=plot_data.weight)
+fpr, tpr, wps = roc_curve(plot_data.target, plot_data.bdt_score, sample_weight=plot_data.train_weight)
 plt.plot(fpr, tpr, label='analysis set', color='b', linewidth=2)
 
 wp_x = []
@@ -416,7 +396,7 @@ plt.scatter(wp_x, wp_y)
 #for i, note in enumerate(cuts_to_display):
     #plt.annotate(note, (wp_x[i], wp_y[i]))
 
-fpr, tpr, wps = roc_curve(plot_data.target, plot_data.bdt_training, sample_weight=plot_data.weight)
+fpr, tpr, wps = roc_curve(plot_data.target, plot_data.bdt_training, sample_weight=plot_data.train_weight)
 plt.plot(fpr, tpr, label='train set', color='r', linewidth=2)
 
 wp_x = []
@@ -432,20 +412,17 @@ dx = 0.1
 for i, note in enumerate(cuts_to_display):
     plt.annotate(note, (wp_x[i], wp_y[i]),horizontalalignment='left')
 
-print ('ROC AUC train ', roc_auc_score(plot_data.target,  plot_data.bdt_training, sample_weight=plot_data.weight))
-print ('ROC AUC test  ', roc_auc_score(plot_data.target , plot_data.bdt_score , sample_weight=plot_data.weight))
+print ('ROC AUC train ', roc_auc_score(plot_data.target,  plot_data.bdt_training, sample_weight=plot_data.train_weight))
+print ('ROC AUC test  ', roc_auc_score(plot_data.target , plot_data.bdt_score , sample_weight=plot_data.train_weight))
 
 plt.legend(loc='best')
 plt.grid()
 plt.tight_layout()
-plt.savefig('%sroc_%s.png' %(plot_outpath,tag))
-plt.savefig('%sroc_%s.pdf' %(plot_outpath,tag))
+plot_name = '%sroc_%s' %(plot_outpath,tag)
+plt.savefig(f'{plot_name}.png')
+plt.savefig(f'{plot_name}.pdf')
+print(f'[OUT] saved ROC curve in {plot_name}.png/pdf')
 plt.clf()
-
-roc_file = open('roc_%s.pck' % tag, 'wb')
-pickle.dump((tpr, fpr), roc_file)
-roc_file.close()
-
 
 # ------------ OVERTRAINING TEST ------------ # 
 train_sig = plot_data[plot_data.target==1].bdt_training
@@ -457,71 +434,44 @@ test_bkg = plot_data[plot_data.target==0].bdt_score
 low  = 0
 high = 1
 low_high = (low,high)
-bins = 50
+bins = 40
+binning = np.linspace(low, high, bins)
 
-# signal sample
-hist, bins = np.histogram(
-    test_sig,
-    bins=bins, 
-#     range=low_high, 
-#    normed=True
-)
-hist_norm = hist / len(test_sig)
-width  = (bins[1] - bins[0])
-center = (bins[:-1] + bins[1:]) / 2
-scale  = len(test_sig) / sum(hist)
-err    = np.sqrt(hist)/len(test_sig) #np.sqrt(hist * scale) / scale
+# SIGNAL
 
-plt.errorbar(
-    center, 
-    hist_norm, 
-    yerr=err, 
-    fmt='o', 
-    c='r', 
-    label='S (analysis)'
-)
+fig, (ax, rax)  = plt.subplots(2, 1, figsize=(8, 10), tight_layout = True)
+hist_test_sig   = ax.hist(test_sig, bins = binning, density = False)
+err_test_sig    = np.sqrt(hist_test_sig[0])
+hist_test_bkg   = ax.hist(test_bkg, bins = binning, density = False) 
+err_test_bkg    = np.sqrt(hist_test_sig[0])
+plt.clf()
+fig, (ax, rax) = plt.subplots(2, 1, figsize=(8, 10), gridspec_kw={'height_ratios': [3, 1]}, tight_layout = True)
 
-sns.histplot(train_sig, bins=bins, kde=False, stat='probability', alpha = 0.5, color = "r", label='S (train)')
+hist_train_sig = ax.hist(train_sig, bins = binning, alpha = 0.5, color = 'r', label = 'signal MC (train)')
+ax.errorbar((binning[:-1]+binning[1:])/2, hist_test_sig[0], yerr = err_test_sig, fmt = 'ro', ls='none', label = 'signal MC (test)')
+hist_train_bkg = ax.hist(train_bkg, bins = binning, alpha = 0.5, color = 'b', label = 'data SB (train)')
+ax.errorbar((binning[:-1]+binning[1:])/2, hist_test_bkg[0], yerr = err_test_bkg, fmt = 'bo', ls='none', label = 'data SB (test)')
+#ratio
+ratio_sig     = hist_test_sig[0]/hist_train_sig[0]
+err_ratio_sig = ratio_sig * np.sqrt( 1./hist_test_sig[0] + 1./ hist_train_sig[0]) 
+rax.errorbar((binning[:-1]+binning[1:])/2, ratio_sig, yerr = err_ratio_sig , fmt = 'ro', ls='none')
+ratio_bkg     = hist_test_bkg[0]/hist_train_bkg[0]
+err_ratio_bkg = ratio_bkg * np.sqrt( 1./hist_test_bkg[0] + 1./ hist_train_bkg[0]) 
+rax.errorbar((binning[:-1]+binning[1:])/2, ratio_bkg, yerr = err_ratio_bkg, fmt = 'bo', ls='none')
 
-# background sample
-hist, bins = np.histogram(
-    test_bkg,
-    bins=bins, 
-#     range=low_high, 
-#    normed=True
-)
-
-hist_norm = hist / len(test_bkg)
-width  = (bins[1] - bins[0])
-center = (bins[:-1] + bins[1:]) / 2
-scale  = len(test_bkg) / sum(hist)
-err    = np.sqrt(hist)/len(test_bkg) #np.sqrt(hist * scale) / scale
-
-plt.errorbar(
-    center, 
-    hist_norm, 
-    yerr=err, 
-    fmt='o', 
-    c='b', 
-    label='B (test)'
-)
-
-sns.histplot(train_bkg, bins=bins, kde=False, stat='probability', alpha = 0.5, color = "b", label='B (train)')
-
-plt.xlabel('BDT output')
-plt.ylabel('Arbitrary units')
-plt.legend(loc='best')
+rax.set_xlabel('BDT output')
+rax.set_ylabel('test / training')
+rax.set_ylim(0.75, 2.0)
+ax.set_ylabel('Counts')
+ax.legend(loc='best')
+ax.set_yscale('log')
 ks_sig = ks_2samp(train_sig, test_sig)
 ks_bkg = ks_2samp(train_bkg, test_bkg)
-plt.suptitle('KS p-value: sig = %.3f%s - bkg = %.2f%s' %(ks_sig.pvalue * 100., '%', ks_bkg.pvalue * 100., '%'))
-
-plt.savefig('%sovertrain_%s.pdf' %(plot_outpath,tag))
-plt.savefig('%sovertrain_%s.png' %(plot_outpath,tag))
-
-plt.yscale('log')
-
-plt.savefig('%sovertrain_log_%s.pdf' %(plot_outpath, tag))
-plt.savefig('%sovertrain_log_%s.png' %(plot_outpath, tag))
+#ax.suptitle('KS p-value: sig = %.3f%s - bkg = %.2f%s' %(ks_sig.pvalue * 100., '%', ks_bkg.pvalue * 100., '%'))
+plot_name = '%sovertrain_%s' %(plot_outpath,tag)
+plt.savefig(f'{plot_name}.png')
+plt.savefig(f'{plot_name}.pdf')
+print(f'[OUT] saved OVERTRAIN plot in {plot_name}.png/pdf')
 
 plt.clf()
 
@@ -551,7 +501,9 @@ plt.barh(y_pos, orderedfscores.values())
 # Create names on the y-axis
 plt.yticks(y_pos, bars)
 plt.tight_layout()
-plt.savefig('%sfeat_importance_%s.pdf' %(plot_outpath,tag))
-plt.savefig('%sfeat_importance_%s.png' %(plot_outpath,tag))
+plot_name = '%sfeat_importance_%s' %(plot_outpath,tag)
+plt.savefig(f'{plot_name}.png')
+plt.savefig(f'{plot_name}.pdf')
+print(f'[OUT] saved FEATURE IMPRTANCE plot in {plot_name}.png/pdf')
 plt.clf()
 

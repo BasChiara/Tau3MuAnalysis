@@ -34,7 +34,8 @@ parser.add_argument('--category'   ,                                            
 parser.add_argument('--tag',            default= 'app_emulateRun2',                                  help='tag to the training')
 parser.add_argument('--LxySign_cut',    default=  0.0,  type = float,                                help='set random state for reproducible results')
 parser.add_argument('--debug',          action = 'store_true' ,                                      help='set it to have useful printout')
-parser.add_argument('--unblind',        action = 'store_true' ,                                      help='set it to unblind the data')
+parser.add_argument('--training_plots', action = 'store_true' ,                                      help='set it to produce also training/test plots')
+parser.add_argument('--load_model',                                                                  help='load pkl instead of training')
 parser.add_argument('-s', '--signal',   action = 'append',                                           help='file with signal events with BDT applied')
 parser.add_argument('-d', '--data',     action = 'append',                                           help='file with data events with BDT applied')
 
@@ -45,13 +46,11 @@ removeNaN = False
  # ------------ APPLY SELECTIONS ------------ # 
 base_selection = '(tau_fit_mass > %.2f & tau_fit_mass < %.2f ) & (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu) & (tau_Lxy_sign_BS > %.2f)'%(mass_range_lo,mass_range_hi, args.LxySign_cut) 
 sig_selection  = base_selection 
-bkg_selection  = base_selection + ('& (tau_fit_mass < %.2f | tau_fit_mass > %.2f)'%(blind_range_lo, blind_range_hi) if not (args.unblind) else '')
+bkg_selection  = base_selection + '& (tau_fit_mass < %.2f | tau_fit_mass > %.2f)'%(blind_range_lo, blind_range_hi) 
 
 print('[!] base-selection : %s'%base_selection)
 print('[S] signal-selection : %s'%sig_selection)
 print('[B] background-selection : %s'%bkg_selection)
-
-tag += '_cat%s_%s'%(args.category if (args.category) else 'ABC', 'open' if (args.unblind) else 'blind')
 
 #  ------------ PICK SIGNAL & BACKGROUND -------------- #
 if(args.signal is None):
@@ -249,9 +248,9 @@ print('[=] save BDT vs tau charge in %s.png(pdf) '%currentPlot_name)
 
 # background
 
-h_bdt_chp1_bkg = bkg_rdf.Filter('tau_fit_charge==1').Histo1D(('h_bdt_chp1_bkg', '', 50, 0.0, 1.0), 'bdt_score').GetPtr()
+h_bdt_chp1_bkg = bkg_rdf.Filter('tau_fit_charge==1').Histo1D(('h_bdt_chp1_bkg', '', 50, 0.0, 1.0), 'bdt_score', 'train_weight').GetPtr()
 h_bdt_chp1_bkg.Scale(1./bkg_rdf.Count().GetValue())
-h_bdt_chm1_bkg = bkg_rdf.Filter('tau_fit_charge==-1').Histo1D(('h_bdt_chm1_bkg', '', 50, 0.0, 1.0), 'bdt_score').GetPtr()
+h_bdt_chm1_bkg = bkg_rdf.Filter('tau_fit_charge==-1').Histo1D(('h_bdt_chm1_bkg', '', 50, 0.0, 1.0), 'bdt_score', 'train_weight').GetPtr()
 h_bdt_chm1_bkg.Scale(1./bkg_rdf.Count().GetValue())
 
 c3_bkg = ROOT.TCanvas('c3_bkg', '', 1000, 800)
@@ -316,6 +315,7 @@ h_LxySig_sig.Draw('hist same')
 currentPlot_name = '%sSVdisplacement_significance_BDT0p%d%s' %(args.plot_outdir, cut*1000,tag)
 c4.SaveAs(currentPlot_name+'.png')
 c4.SaveAs(currentPlot_name+'.pdf')
+
 # ------------ ROC CURVE inclusive ------------ # 
 cuts_to_display = [0.600, 0.990, 0.995, 0.998]
 
@@ -331,7 +331,7 @@ plt.yticks(fontsize=16)
 plt.xscale('log')
 
 # analysis set
-fpr, tpr, wps = roc_curve(plot_data.target, plot_data.bdt_score, sample_weight=plot_data.weight)
+fpr, tpr, wps = roc_curve(plot_data.target, plot_data.bdt_score, sample_weight=plot_data.train_weight)
 plt.plot(fpr, tpr, label='analysis set', color='b', linewidth=2)
 
 wp_x = []
@@ -344,7 +344,7 @@ for icut in cuts_to_display:
 plt.scatter(wp_x, wp_y)
 
 # train set
-fpr, tpr, wps = roc_curve(plot_data.target, plot_data.bdt_training, sample_weight=plot_data.weight)
+fpr, tpr, wps = roc_curve(plot_data.target, plot_data.bdt_training, sample_weight=plot_data.train_weight)
 plt.plot(fpr, tpr, label='train set', color='r', linewidth=2)
 
 wp_x = []
@@ -359,8 +359,8 @@ plt.scatter(wp_x, wp_y)
 for i, note in enumerate(cuts_to_display):
     plt.annotate(note, (wp_x[i], wp_y[i]), horizontalalignment='left')
 
-print ('ROC AUC train ', roc_auc_score(plot_data.target,  plot_data.bdt_training, sample_weight=plot_data.weight))
-print ('ROC AUC test  ', roc_auc_score(plot_data.target , plot_data.bdt_score , sample_weight=plot_data.weight))
+print ('ROC AUC train ', roc_auc_score(plot_data.target,  plot_data.bdt_training, sample_weight=plot_data.train_weight))
+print ('ROC AUC test  ', roc_auc_score(plot_data.target , plot_data.bdt_score , sample_weight=plot_data.train_weight))
 
 plt.legend(loc='best', fontsize='18')
 plt.grid()
@@ -380,16 +380,17 @@ plt.ylabel('signal efficiency $\\epsilon_{S}$', fontsize = 18)
 plt.yticks(fontsize=16)
 plt.xscale('log')
 
-resol_limit_category = {
-    'A' : [0.0,   0.007],
-    'B' : [0.007, 0.012],
-    'C' : [0.012, 10]
+eta_limit_category = {
+    'A' : [0.0,   eta_thAB],
+    'B' : [eta_thAB, eta_thBC],
+    'C' : [eta_thBC, 3.5]
 }
 
 for cat in ['A', 'B', 'C']:
-    data_cat = plot_data.loc[(plot_data['tau_fit_mass_err']/plot_data['tau_fit_mass'] > resol_limit_category[cat][0]) & (plot_data['tau_fit_mass_err']/plot_data['tau_fit_mass'] < resol_limit_category[cat][1])]
-    fpr, tpr, wps = roc_curve(data_cat.target, data_cat.bdt_score, sample_weight=data_cat.weight)
-    auc = roc_auc_score(data_cat.target,  data_cat.bdt_training, sample_weight=data_cat.weight)
+    #data_cat = plot_data.loc[(plot_data['tau_fit_mass_err']/plot_data['tau_fit_mass'] > resol_limit_category[cat][0]) & (plot_data['tau_fit_mass_err']/plot_data['tau_fit_mass'] < resol_limit_category[cat][1])]
+    data_cat = plot_data.loc[(np.abs(plot_data['tau_fit_eta']) > eta_limit_category[cat][0]) & (np.abs(plot_data['tau_fit_eta']) < eta_limit_category[cat][1])]
+    fpr, tpr, wps = roc_curve(data_cat.target, data_cat.bdt_score, sample_weight=data_cat.train_weight)
+    auc = roc_auc_score(data_cat.target,  data_cat.bdt_training, sample_weight=data_cat.train_weight)
     plt.plot(fpr, tpr, label='category %s AUC= %.3f'%(cat, auc), linewidth=2)
     
     wp_x = []
@@ -460,5 +461,99 @@ plt.savefig('%scorr_bkg_%s.png' %(args.plot_outdir, tag))
 plt.savefig('%scorr_bkg_%s.pdf' %(args.plot_outdir, tag))
 print('[=] save background correlation in %scorr_bkg_%s'%(args.plot_outdir, tag))
 
+if not args.training_plots : exit()
 
+# load model for feature importance
+if not args.load_model:
+    print('[ERROR] you have to specify a the model to load to make plots')
+    exit()
+else :
+    print('[+] load model from %s'%args.load_model)
+    with open(args.load_model, 'rb') as f:
+        classifiers = pickle.load(f)
+
+
+# ------------ OVERTRAINING TEST ------------ # 
+train_sig = plot_data[plot_data.target==1].bdt_training
+train_bkg = plot_data[plot_data.target==0].bdt_training
+
+test_sig = plot_data[plot_data.target==1].bdt_score  
+test_bkg = plot_data[plot_data.target==0].bdt_score  
+
+low  = 0
+high = 1
+low_high = (low,high)
+bins = 40
+binning = np.linspace(low, high, bins)
+
+# SIGNAL
+
+fig, (ax, rax)  = plt.subplots(2, 1, figsize=(8, 10), tight_layout = True)
+hist_test_sig   = ax.hist(test_sig, bins = binning, density = False)
+err_test_sig    = np.sqrt(hist_test_sig[0])
+hist_test_bkg   = ax.hist(test_bkg, bins = binning, density = False) 
+err_test_bkg    = np.sqrt(hist_test_sig[0])
+plt.clf()
+fig, (ax, rax) = plt.subplots(2, 1, figsize=(8, 10), gridspec_kw={'height_ratios': [3, 1]}, tight_layout = True)
+
+hist_train_sig = ax.hist(train_sig, bins = binning, alpha = 0.5, color = 'r', label = 'signal MC (train)')
+ax.errorbar((binning[:-1]+binning[1:])/2, hist_test_sig[0], yerr = err_test_sig, fmt = 'ro', ls='none', label = 'signal MC (test)')
+hist_train_bkg = ax.hist(train_bkg, bins = binning, alpha = 0.5, color = 'b', label = 'data SB (train)')
+ax.errorbar((binning[:-1]+binning[1:])/2, hist_test_bkg[0], yerr = err_test_bkg, fmt = 'bo', ls='none', label = 'data SB (test)')
+#ratio
+ratio_sig     = hist_test_sig[0]/hist_train_sig[0]
+err_ratio_sig = ratio_sig * np.sqrt( 1./hist_test_sig[0] + 1./ hist_train_sig[0]) 
+rax.errorbar((binning[:-1]+binning[1:])/2, ratio_sig, yerr = err_ratio_sig , fmt = 'ro', ls='none')
+ratio_bkg     = hist_test_bkg[0]/hist_train_bkg[0]
+err_ratio_bkg = ratio_bkg * np.sqrt( 1./hist_test_bkg[0] + 1./ hist_train_bkg[0]) 
+rax.errorbar((binning[:-1]+binning[1:])/2, ratio_bkg, yerr = err_ratio_bkg, fmt = 'bo', ls='none')
+
+rax.set_xlabel('BDT output')
+rax.set_ylabel('test / training')
+rax.set_ylim(0.75, 2.0)
+ax.set_ylabel('Counts')
+ax.legend(loc='best')
+ax.set_yscale('log')
+ks_sig = ks_2samp(train_sig, test_sig)
+ks_bkg = ks_2samp(train_bkg, test_bkg)
+#ax.suptitle('KS p-value: sig = %.3f%s - bkg = %.2f%s' %(ks_sig.pvalue * 100., '%', ks_bkg.pvalue * 100., '%'))
+plot_name = '%sovertrain_%s' %(args.plot_outdir,tag)
+plt.savefig(f'{plot_name}.png')
+plt.savefig(f'{plot_name}.pdf')
+print(f'[OUT] saved OVERTRAIN plot in {plot_name}.png/pdf')
+
+plt.clf()
+
+# ------------ FEATURES IMPORTANCE ------------ # 
+bdt_inputs = features + ['tauEta']
+
+fscores = OrderedDict(zip(bdt_inputs, np.zeros(len(bdt_inputs))))
+for i, iclas in classifiers.items():
+    myscores = iclas.get_booster().get_fscore()
+    for jj in myscores.keys():
+        fscores[jj] += myscores[jj]
+
+totalsplits = sum(float(value) for value in fscores.values())
+for k, v in fscores.items():
+    fscores[k] = float(v)/float(totalsplits) 
+
+plt.xlabel('relative F-score')
+plt.ylabel('feature')
+
+orderedfscores = OrderedDict(sorted(fscores.items(), key=lambda x : x[1], reverse=False ))
+
+bars = [labels[k] for k in orderedfscores.keys()]
+y_pos = np.arange(len(bars))
+ 
+# Create horizontal bars
+plt.barh(y_pos, orderedfscores.values())
+ 
+# Create names on the y-axis
+plt.yticks(y_pos, bars)
+plt.tight_layout()
+plot_name = '%sfeat_importance_%s' %(args.plot_outdir,tag)
+plt.savefig(f'{plot_name}.png')
+plt.savefig(f'{plot_name}.pdf')
+print(f'[OUT] saved FEATURE IMPRTANCE plot in {plot_name}.png/pdf')
+plt.clf()
 
