@@ -1,4 +1,22 @@
-# Preliminary Analysis Tau -> 3 Mu
+# Analysis (W) Tau -> 3 Mu Run3 
+Analysis framework for tau3mu in W channel for Run3.\
+This analysis uses CMS `nanoAOD` privately produced from CMS `miniAOD` and runs with `lxplus9`.
+
+**Set up CMSSW release**
+Download the CMSSW release and compile
+```
+cmsrel CMSSW_13_0_13
+CMSSW_13_0_13/src/
+cmsenv
+git cms-init
+scram b -j 8
+```
+**Clone this repository**
+```
+git init
+git clone ...
+```
+**Running the code**
 before compiling 
 ```
 mkdir lib
