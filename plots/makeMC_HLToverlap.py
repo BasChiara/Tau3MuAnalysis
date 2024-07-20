@@ -77,6 +77,7 @@ eff_by_year_Dm.GetYaxis().SetTitle("fraction [%]")
 eff_by_year_Dm.GetYaxis().SetRangeUser(50, 100)
 eff_by_year_Dm.SetTitle("N(HLT_Tau3Mu* & HLT_DoubleMu4_3_LowMass)/N(HLT_DoubleMu4_3_LowMass)")
 
+# yields per year
 for i, year in enumerate(year_id_dict.keys()) :
     print(f'[i] process year {year}')
     sub_rdf = tree_rdf.Filter(f'year_id == {year_id_dict[year]}')
@@ -106,17 +107,24 @@ c.SaveAs(f'{args.outdir}/HLT_eff_DoubleMu_over_Tau3Mu_on{args.process}.png')
 c.SaveAs(f'{args.outdir}/HLT_eff_DoubleMu_over_Tau3Mu_on{args.process}.pdf')
 
 
-exit()
-
+# ------ HLT OPVERLAP ------ #
 c = ROOT.TCanvas("c", "", 800, 800)
+margin = 0.12
+ROOT.gPad.SetMargin(margin, margin, margin, margin)
+ROOT.gStyle.SetPaintTextFormat("3.2f %")
 legend = ROOT.TLegend(0.60, 0.75, 0.90, 0.90)
 legend.SetBorderSize(0)
 legend.SetTextSize(0.035)
 
-intree.Draw("HLT_isfired_Tau3Mu:HLT_isfired_DoubleMu>>h_overlap(2, -0.5, 1.5, 2, -0.5, 1.5)", '', 'colz')
-h_overlap = ROOT.gPad.GetPrimitive('h_overlap')
-h_overlap.SetMarkerSize(1.5)
+for i, year in enumerate(year_id_dict.keys()) :
+    h_overlap = tree_rdf.Filter(f'year_id == {year_id_dict[year]}').Histo2D((f'HLT_overlap_{year}', '', 2, -0.5, 1.5, 2, -0.5, 1.5), "HLT_isfired_Tau3Mu", "HLT_isfired_DoubleMu").GetPtr()
+    #h_overlap = ROOT.gPad.GetPrimitive('h_overlap')
+    h_overlap.SetMarkerSize(1.5)
+    h_overlap.Scale(100./h_overlap.Integral())
+    h_overlap.GetXaxis().SetTitle("HLT_Tau3Mu_Mu7_Mu1_TkMu1_IsoTau15*")
+    h_overlap.GetYaxis().SetTitle("HLT_DoubleMu4_3_LowMass")
+    h_overlap.GetZaxis().SetRangeUser(0.0, 100.0)
 
-h_overlap.Draw("colz text0")
-c.SaveAs('%s/HLToverlap_%s.png'%(args.outdir, tag))
-c.SaveAs('%s/HLToverlap_%s.pdf'%(args.outdir, tag))
+    h_overlap.Draw("colz text0")
+    c.SaveAs(f'{args.outdir}/HLToverlap_{year}_{tag}.png')
+    c.SaveAs(f'{args.outdir}/HLToverlap_{year}_{tag}.pdf')
