@@ -1,7 +1,6 @@
 import ROOT
 import argparse
 import pickle
-import numpy  as np
 import pandas as pd
 import seaborn as sns
 from sklearn.metrics import accuracy_score
@@ -23,7 +22,8 @@ from itertools import product
 from pdb import set_trace
 
 # from my config
-from config import * 
+#from config import * 
+import config
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -44,9 +44,9 @@ tag = args.tag
 removeNaN = False 
 
  # ------------ APPLY SELECTIONS ------------ # 
-base_selection = '(tau_fit_mass > %.2f & tau_fit_mass < %.2f ) & (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu) & (tau_Lxy_sign_BS > %.2f)'%(mass_range_lo,mass_range_hi, args.LxySign_cut) 
+base_selection = '(tau_fit_mass > %.2f & tau_fit_mass < %.2f ) & (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu) & (tau_Lxy_sign_BS > %.2f)'%(config.mass_range_lo,config.mass_range_hi, args.LxySign_cut) 
 sig_selection  = base_selection 
-bkg_selection  = base_selection + '& (tau_fit_mass < %.2f | tau_fit_mass > %.2f)'%(blind_range_lo, blind_range_hi) 
+bkg_selection  = base_selection + '& (tau_fit_mass < %.2f | tau_fit_mass > %.2f)'%(config.blind_range_lo, config.blind_range_hi) 
 
 print('[!] base-selection : %s'%base_selection)
 print('[S] signal-selection : %s'%sig_selection)
@@ -96,12 +96,12 @@ ROOT.gStyle.SetOptStat(0)
 ROOT.gStyle.SetLineWidth(1)
 ROOT.gStyle.SetPadTickX(1)
 
-plot_data = data[(data.target == 1) | ((data.target == 0) & ((data.tau_fit_mass < blind_range_lo) | (data.tau_fit_mass > blind_range_hi)))]
+plot_data = data[(data.target == 1) | ((data.target == 0) & ((data.tau_fit_mass < config.blind_range_lo) | (data.tau_fit_mass > config.blind_range_hi)))]
 
 # ------------ BDT VS MASS ------------ # 
 bdt_th = 0.5 
 
-h_BDTmass = bkg_rdf.Histo2D(('h_BDTmass', 'bdt score in data vs reco tau candidate mass', 50, bdt_th , 1.0, 40, mass_range_lo, mass_range_hi), 'bdt_score', 'tau_fit_mass')
+h_BDTmass = bkg_rdf.Histo2D(('h_BDTmass', 'bdt score in data vs reco tau candidate mass', 50, bdt_th , 1.0, 40, config.mass_range_lo, config.mass_range_hi), 'bdt_score', 'tau_fit_mass')
 c = ROOT.TCanvas('c1', '', 800,800)
 h_BDTmass.Draw('colz')
 h_BDTmass.GetXaxis().SetTitle('BDT score')
@@ -166,15 +166,15 @@ print('[=] save BDT score vs folds in %s.png(pdf) '%currentPlot_name)
 # ------------ EFFICIENCY vs Mtau ------------ # 
 
 bdt_cuts = [0.300, 0.600, 0.800, 0.900, 0.950, 0.990, 0.995]
-h_bdt0_sig = sig_rdf.Histo1D(('h_bdt0_sig', '', 40, mass_range_lo, mass_range_hi), 'tau_fit_mass').GetPtr()
+h_bdt0_sig = sig_rdf.Histo1D(('h_bdt0_sig', '', 40,config.mass_range_lo,config.mass_range_hi), 'tau_fit_mass').GetPtr()
 h_bdt0_sig.Sumw2()
-h_bdt0_bkg = bkg_rdf.Histo1D(('h_bdt0_bkg', '', 40, mass_range_lo, mass_range_hi), 'tau_fit_mass').GetPtr()
+h_bdt0_bkg = bkg_rdf.Histo1D(('h_bdt0_bkg', '', 40,config.mass_range_lo,config.mass_range_hi), 'tau_fit_mass').GetPtr()
 h_bdt0_bkg.Sumw2()
 h_bdtSel_sig = []
 h_bdtSel_bkg = []
 for cut in bdt_cuts:
-    h_bdtSel_sig.append( sig_rdf.Filter('bdt_score>%.3f'%cut).Histo1D(('h_bdtSel%d_sig'%cut*1000, '', 40, mass_range_lo, mass_range_hi), 'tau_fit_mass').GetPtr() )
-    h_bdtSel_bkg.append( bkg_rdf.Filter('bdt_score>%.3f'%cut).Histo1D(('h_bdtSel%d_bkg'%cut*1000, '', 40, mass_range_lo, mass_range_hi), 'tau_fit_mass').GetPtr() )
+    h_bdtSel_sig.append( sig_rdf.Filter('bdt_score>%.3f'%cut).Histo1D(('h_bdtSel%d_sig'%cut*1000, '', 40,config.mass_range_lo,config.mass_range_hi), 'tau_fit_mass').GetPtr() )
+    h_bdtSel_bkg.append( bkg_rdf.Filter('bdt_score>%.3f'%cut).Histo1D(('h_bdtSel%d_bkg'%cut*1000, '', 40,config.mass_range_lo,config.mass_range_hi), 'tau_fit_mass').GetPtr() )
 
 
 c2_sig = ROOT.TCanvas('c2_sig', '', 1000,800)
@@ -217,9 +217,9 @@ print('[=] save BDT efficiency vs tau mass in %s.png(pdf) '%currentPlot_name)
 
 # ------------ BDT score vs TAU CHARGE ------------ # 
 # signal
-h_bdt_chp1_sig = sig_rdf.Filter('tau_fit_charge==1').Histo1D(('h_bdt_chp1_sig', '', 50, 0.0, 1.0), 'bdt_score').GetPtr()
+h_bdt_chp1_sig = sig_rdf.Filter('tau_fit_charge==1').Histo1D(('h_bdt_chp1_sig', '', 50, 0.0, 1.0), 'bdt_score', 'train_weight').GetPtr()
 h_bdt_chp1_sig.Scale(1./sig_rdf.Count().GetValue())
-h_bdt_chm1_sig = sig_rdf.Filter('tau_fit_charge==-1').Histo1D(('h_bdt_chm1_sig', '', 50, 0.0, 1.0), 'bdt_score').GetPtr()
+h_bdt_chm1_sig = sig_rdf.Filter('tau_fit_charge==-1').Histo1D(('h_bdt_chm1_sig', '', 50, 0.0, 1.0), 'bdt_score', 'train_weight').GetPtr()
 h_bdt_chm1_sig.Scale(1./sig_rdf.Count().GetValue())
 
 c3_sig = ROOT.TCanvas('c3_sig', '', 1000, 800)

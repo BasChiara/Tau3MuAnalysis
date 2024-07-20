@@ -5,26 +5,14 @@ import datetime
 import pickle
 import numpy  as np
 import pandas as pd
-import seaborn as sns
-from sklearn.metrics import accuracy_score
-
-import matplotlib.pyplot as plt
-
-sns.set(style="white")
 
 import xgboost
 from xgboost import XGBClassifier, plot_importance
 from sklearn.preprocessing import LabelEncoder
 
 from sklearn.metrics         import roc_curve, roc_auc_score
-from sklearn.model_selection import train_test_split, StratifiedKFold
-
-from scipy.stats import ks_2samp
-
 from collections import OrderedDict
-from itertools import product
 
-from pdb import set_trace
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -51,6 +39,7 @@ parser.add_argument('-d', '--data',     action = 'append',                      
 args = parser.parse_args()
 tag = '_'.join([args.process, 'MC' if args.isMC else 'DATA']) + ( ('_' + args.tag)  if args.tag else '')
 removeNaN = False 
+print('\n')
 
  # ------------ DEFINE SELECTIONS ------------ # 
 if(args.process == 'DsPhiMuMuPi'):
@@ -74,17 +63,24 @@ print('---------------------------------------------')
  # ------------ INPUT DATASET ------------ # 
 
 if(args.data is None):
-    dataset = data_background
+    
+    dataset = analysis_samples[args.process]
 else:
     dataset = args.data
+print('[+] processing files :')
+[print(f' - {sample}') for sample in dataset]
 
 tree_name = 'WTau3Mu_tree' if not args.process == 'DsPhiMuMuPi' else 'DsPhiMuMuPi_tree' 
 
-data_rdf = ROOT.RDataFrame(tree_name, dataset, branches).Filter(data_selection).Define('weight', 'lumi_factor')
-dat = pd.DataFrame( data_rdf.AsNumpy() )
-
+data_rdf = ROOT.RDataFrame(tree_name, dataset, branches).Filter(data_selection)#.Define('weight', 'lumi_factor')
+input_branches = [str(name) for name in data_rdf.GetColumnNames()]
+if (args.debug) : print("[i] Extracted Column Names:", input_branches)
 print('... processing input ...')
 print('[+] input-dataset is %s : %s entries passed the selection' %( args.process ,data_rdf.Count().GetValue()))
+dat = pd.DataFrame( data_rdf.AsNumpy())
+dat.columns = input_branches
+if (args.debug): print(dat)
+
 print('---------------------------------------------')
 
 ## ETA BINS
@@ -133,9 +129,10 @@ for i, iclas in classifiers.items():
         dat.loc[:,'bdt_fold%d_score' %i] = iclas.predict_proba(dat[bdt_inputs])[:, 1]
         dat.loc[:,'bdt_score'] += iclas.predict_proba(dat[bdt_inputs])[:, 1] / n_class
 
-newfile_base = '%s/XGBout_'%(args.data_outdir) + ('DsPhiMuMuPi_' if args.process == 'DsPhiMuMuPi' else 'WTau3Mu_')
+#newfile_base = '%s/XGBout_'%(args.data_outdir) + args.process
 #newfile_tail = ('MC_' if args.isMC else 'DATA_') + args.tag + ".root"
 newfile      = '%s/XGBout_'%(args.data_outdir) + tag + '.root' 
 
 print('[OUT] output file saved in %s'%newfile)
+print("[i] Final data branches : ",dat.columns)
 data_out_rdf = ROOT.RDF.MakeNumpyDataFrame({col: dat[col].values for col in dat.columns}).Snapshot('tree_w_BDT', newfile)

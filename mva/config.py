@@ -128,13 +128,18 @@ data_background  = [
 W3MuNu_background = [
     #2022
      mc_path + 'outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap_onW3MuNu.root',
-     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_privW3MuNu.root',
+     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_onW3MuNu.root',
     #2023
      mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap_onW3MuNu.root',
      mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onW3MuNu.root',
 ]
 
-
+analysis_samples = {
+    'data'      : data_background,
+    'Tau3Mu'    : WTau3Mu_signals,
+    'DsPhiMuMuPi': DsPhiPi_signals,
+    'W3MuNu'    : W3MuNu_background, 
+}
 
 # give labels human readable names
 # IMPORTANT : same order as features!!!

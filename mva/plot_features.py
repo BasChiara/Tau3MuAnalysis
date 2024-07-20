@@ -2,6 +2,7 @@ import ROOT
 import cmsstyle as CMS
 import argparse
 import pickle
+import os
 import numpy  as np
 import pandas as pd
 import seaborn as sns
@@ -40,17 +41,26 @@ parser.add_argument('--LxySign_cut',    default=  0.0,  type = float,           
 parser.add_argument('-p', '--process',  choices = ['Tau3Mu', 'W3MuNu', 'DsPhiPi'], default = 'Tau3Mu',help='which process in the simulation')
 parser.add_argument('-s', '--signal',   action = 'append',                                           help='file with signal events with BDT applied')
 parser.add_argument('-d', '--data',     action = 'append',                                           help='file with data events with BDT applied')
+parser.add_argument('-y', '--year',     choices= ['2022', '2023'],   default= '2022',                 help='data-taking year to process')
 
 args = parser.parse_args()
 tag = args.tag
-removeNaN = False 
+removeNaN = False
 
- # ------------ APPLY SELECTIONS ------------ # 
+# ------------ INPUT/OUTPUT ------------ # 
+if not os.path.isdir(args.plot_outdir):
+    os.makedirs(args.plot_outdir)
+    os.system(f'cp ~/public/index.php {args.plot_outdir}')
+    print(f'[i] created directory for output plots : {args.plot_outdir}')
+else:
+    print(f'[i] already existing directory for output plots : {args.plot_outdir}')
+
+# ------------ APPLY SELECTIONS ------------ # 
 base_selection = f'(tau_fit_mass > {mass_range_lo} & tau_fit_mass < {mass_range_hi} ) & (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu) & (tau_Lxy_sign_BS > {args.LxySign_cut})'
 sig_selection  = base_selection 
-bkg_selection  = base_selection + f'& (tau_fit_mass < {blind_range_lo} | tau_fit_mass > {blind_range_hi}) & (weight == 1.0)'
+bkg_selection  = base_selection + f'& (tau_fit_mass < {blind_range_lo} | tau_fit_mass > {blind_range_hi})'
 if (args.process == 'W3MuNu') : 
-    sig_selection += f'& (tau_fit_mass < {blind_range_lo} | tau_fit_mass > {blind_range_hi}) & (weight < 1.0) & (tau_Lxy_sign_BS > {args.LxySign_cut})'
+    sig_selection += f'& (tau_fit_mass < {blind_range_lo} | tau_fit_mass > {blind_range_hi}) & (tau_Lxy_sign_BS > {args.LxySign_cut})'
 
 print('[!] base-selection : %s'%base_selection)
 print('[S] signal-selection : %s'%sig_selection)
@@ -91,11 +101,11 @@ ROOT.gStyle.SetOptStat(0)
 ROOT.gStyle.SetLineWidth(2)
 ROOT.gStyle.SetPadTickX(1)
 ROOT.gStyle.SetPadTickY(1)
-ROOT.gStyle.SetHistMinimumZero()
+#ROOT.gStyle.SetHistMinimumZero()
 ROOT.gStyle.SetLegendBorderSize(0)
 ROOT.gStyle.SetLegendTextSize(0.035)
 CMS.SetExtraText("Preliminary")
-CMS.SetLumi(34.7)
+CMS.SetLumi(f'{args.year}, {LumiVal_plots[args.year]}')
 CMS.SetEnergy(13.6)
 
 observables = features + ['tau_fit_eta', 'tauEta', bdt_score, 'tau_fit_mass', 'tau_mu12_fitM', 'tau_mu23_fitM', 'tau_mu13_fitM']
@@ -151,7 +161,7 @@ for i,obs in enumerate(observables):
     c = CMS.cmsCanvas(f'c_{obs}', 
         features_NbinsXloXhiLabelLog[obs][1], 
         features_NbinsXloXhiLabelLog[obs][2], 
-        0.0,
+        max(min(h_bkg.GetMinimum(),h_sig.GetMinimum()), 1e-4) if features_NbinsXloXhiLabelLog[obs][4] else 0.0,
         1.4*max(h_bkg.GetMaximum(),h_sig.GetMaximum()), 
         features_NbinsXloXhiLabelLog[obs][3], 
         'Events', 
@@ -179,14 +189,14 @@ for i,obs in enumerate(observables):
     )
     legend.Draw()
     #ROOT.gPad.RedrawAxis()
-    plot_name = '%sBDTinput_%s'%(args.plot_outdir,obs)
+    plot_name = '%s/BDTinput_%s'%(args.plot_outdir,obs)
     c.SaveAs(plot_name+'.png')
     c.SaveAs(plot_name+'.pdf')
 
     c_cut = CMS.cmsCanvas(f'c_cut_{obs}', 
         features_NbinsXloXhiLabelLog[obs][1], 
         features_NbinsXloXhiLabelLog[obs][2], 
-        0.0,
+        max(min(h_bkg.GetMinimum(),h_sig.GetMinimum()), 1e-4) if features_NbinsXloXhiLabelLog[obs][4] else 0.0,
         h_sig_cut.GetMaximum(), 
         features_NbinsXloXhiLabelLog[obs][3], 
         'Events', 
@@ -217,7 +227,7 @@ for i,obs in enumerate(observables):
     #h_bkg_cut.Draw('pe same')
     legend_cut.Draw()
     ROOT.gPad.RedrawAxis()
-    plot_name = '%sBDTcut0p%d_%s'%(args.plot_outdir, args.bdt_cut*10000,obs)
+    plot_name = '%s/BDTcut0p%d_%s'%(args.plot_outdir, args.bdt_cut*10000,obs)
     c_cut.SaveAs(plot_name+'.png')
     c_cut.SaveAs(plot_name+'.pdf')
 
