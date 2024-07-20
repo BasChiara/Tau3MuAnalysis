@@ -29,11 +29,11 @@ def objective(trial):
         'device'                : 'cuda',       #to run on GPUs
         'tree_method'           :  'hist',      # should be same as default 'auto'
         'n_estimators'          :  trial.suggest_int('n_estimators', 5000, 20000, step=5000),       # number of sequential trees to be modeled
-        'max_depth'             :  trial.suggest_int('max_depth', 3, 9, step=2),                    # max depth of a single tree
+        'max_depth'             :  trial.suggest_int('max_depth', 3, 7, step=2),                    # max depth of a single tree
         'eta'                   :  trial.suggest_float("eta", 1e-3, 1.0, log=True),                 # step size shrinkage used in update to prevent overfitting 
         'subsample'             :  trial.suggest_float("subsample", 0.5, 1.0, step = 0.1),          # subsample ratio of the training instance at every boosting iteration
         'colsample_bytree'      :  trial.suggest_float('colsample_bytree', 0.5, 1.0, step = 0.1),   # subsample ratio of columns when constructing each tree
-        'min_child_weight'      :  trial.suggest_int('min_child_weight', 1, 100, step=10),          # min sum of instance weight (hessian) needed in a child
+        'min_child_weight'      :  trial.suggest_int('min_child_weight', 10, 100, step=10),         # min sum of instance weight (hessian) needed in a child
         'gamma'                 :  trial.suggest_float('gamma', 1e-8, 1.0, log = True),             # min loss reduction required to make a further partition on a leaf node of the tree
         # scale_pos_weight      :  0.5,                                                             # control the balance of positive and negative weights
         'reg_alpha'             :  trial.suggest_float('reg_alpha', 1e-8, 1.0, log = True),         # L1 regularization term on weights [0, inf)
@@ -120,7 +120,7 @@ out_dir = './optimization'
 if not os.path.isdir(out_dir):
     os.makedirs(out_dir)
     print(f'[i] created directory for optimization outputs : {out_dir}')
-job_tag = f'OptunaXGBopt_LxyS{round(args.LxySign_cut,1)}' + (f'_{tag}' if args.tag else '') + '_' + datetime.date.today().strftime('%Y%b%d')
+job_tag = f'OptunaXGBopt_LxyS{round(args.LxySign_cut,1)}' + (f'_{args.tag}' if args.tag else '') + '_' + datetime.date.today().strftime('%Y%b%d')
 
 # START OPTIMIZATION
 # add a stream handler of stdout for optuna

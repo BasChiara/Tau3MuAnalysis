@@ -115,7 +115,7 @@ print('---------------------------------------------')
 kfold = 5
 bdt_inputs = features + ['tauEta']
 # remove displacement significance if cut Lxy/sigma
-if (args.LxySign_cut > 0 ) : bdt_inputs.remove('tau_Lxy_sign_BS')
+#if (args.LxySign_cut > 0 ) : bdt_inputs.remove('tau_Lxy_sign_BS')
 print('[i] BDT inputs')
 [print(f'  - {f}') for f in bdt_inputs]
 
@@ -284,7 +284,7 @@ if (args.load_model is None) or (args.plot_only is None):
             X_train, 
             y_train,
             eval_set              = [(X_train, y_train),(X_valid, y_valid)],
-            verbose               = False,
+            verbose               = True,
             sample_weight         = ktrain.train_weight,
         )
         
@@ -476,7 +476,7 @@ print(f'[OUT] saved OVERTRAIN plot in {plot_name}.png/pdf')
 plt.clf()
 
 # ------------ FEATURES IMPORTANCE ------------ # 
-
+plt.figure(figsize=(8,6))
 fscores = OrderedDict(zip(bdt_inputs, np.zeros(len(bdt_inputs))))
 for i, iclas in classifiers.items():
     myscores = iclas.get_booster().get_fscore()
