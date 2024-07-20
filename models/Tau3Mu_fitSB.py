@@ -3,8 +3,8 @@
 #############################################
 
 import ROOT
-ROOT.RooMsgService.instance().setGlobalKillBelow(ROOT.RooFit.ERROR)
-ROOT.Math.MinimizerOptions.SetDefaultMinimizer("Minuit")
+#ROOT.RooMsgService.instance().setGlobalKillBelow(ROOT.RooFit.ERROR)
+#ROOT.Math.MinimizerOptions.SetDefaultMinimizer("Minuit")
 import os
 from math import pi, sqrt
 import numpy as np
@@ -26,7 +26,7 @@ parser.add_argument('--debug',          action = 'store_true' ,                 
 parser.add_argument('-u','--unblind',   action = 'store_true' ,                                                             help='set it to run UN-blind')
 parser.add_argument('--save_ws',        action = 'store_true' ,                                                             help='set it to save the workspace for combine')
 parser.add_argument('-b','--bkg_func',  choices = ['expo', 'const', 'poly1', 'dynamic'], default = 'expo',                  help='background model, \'dynamic\' : fit constant as Nb < --lowB_th')
-parser.add_argument('--lowB_th',        type= float,                default= 20.0,                                          help='if --const_lowB is given specyfies the min bkg events to fit with expo')
+parser.add_argument('--lowB_th',        type= float,                default= 35.0,                                          help='if --const_lowB is given specyfies the min bkg events to fit with expo')
 parser.add_argument('--category',       choices = ['A', 'B', 'C'],  default = 'A',                                          help='which categories to fit')
 parser.add_argument('-y','--year',      choices = ['22','23'],      default = '22',                                         help='which CMS dataset to use')
 parser.add_argument('--optim_bdt',      action = 'store_true',                                                              help='run BDT cut optimization')
@@ -203,7 +203,7 @@ for cut in set_bdt_cut:
     # **** BACKGROUND MODEL ****
     bkg_model_name = f'model_bkg_{process_name}' 
     # exponential
-    slope = ROOT.RooRealVar('slope', 'slope', -1.0, -10.0, 10.0)
+    slope = ROOT.RooRealVar('slope', 'slope', -1.0, -10.0, -0.001)
     expo  = ROOT.RooExponential(bkg_model_name, bkg_model_name, mass, slope)
     # constant
     const = ROOT.RooPolynomial(bkg_model_name,bkg_model_name, mass)
@@ -220,9 +220,11 @@ for cut in set_bdt_cut:
         print('[i] fit background with 1st order polynimial')
     else : print('[i] fit background with exponential')
     # number of background events
-    nbkg = ROOT.RooRealVar('model_bkg_%s_norm'%process_name, 'model_bkg_%s_norm'%process_name, datatofit.numEntries(), 0.1*datatofit.numEntries(), 10*datatofit.numEntries())
+    nbkg = ROOT.RooRealVar('model_bkg_%s_norm'%process_name, 'model_bkg_%s_norm'%process_name, datatofit.sumEntries(), 0.5*datatofit.sumEntries(), 5*datatofit.sumEntries())
     print(f'[debug] entries in data {datatofit.numEntries()}')
-    ext_bkg_model = ROOT.RooAddPdf("toy_add_model_bkg_WTau3Mu", "add background pdf", ROOT.RooArgList(b_model),  ROOT.RooArgList(nbkg))
+    #ext_bkg_model = ROOT.RooAddPdf("toy_add_model_bkg_WTau3Mu", "add background pdf", ROOT.RooArgList(b_model),  nbkg)
+    #ext_bkg_model = ROOT.RooAddPdf("toy_add_model_bkg_WTau3Mu", "add background pdf", [b_model],  [nbkg])
+    ext_bkg_model = ROOT.RooExtendPdf(f'ext_model_bkg{process_name}', f'ext_model_bkg{process_name}', b_model, nbkg, "full_range")
 
     # **** TIME TO FIT ****
     # signal fit
@@ -299,6 +301,7 @@ for cut in set_bdt_cut:
         ROOT.RooFit.Save(),
         ROOT.RooFit.PrintLevel(1)
     )
+    nbkg.Print()
     ext_bkg_model.plotOn(
         frame_b, 
         ROOT.RooFit.LineColor(ROOT.kBlue),
