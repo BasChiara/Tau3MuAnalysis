@@ -18,6 +18,7 @@ from mva.config import mass_range_lo, mass_range_hi, cat_selection_dict, cat_col
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--plot_outdir',    default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/SigBkg_models/Tau3Mu_massFit/reMini', help='output directory for plots')
+parser.add_argument('--goff',           action = 'store_true' ,                                                             help='set it to produce no plots')
 parser.add_argument('--combine_dir',                                default= 'input_combine/',                              help='output directory for combine datacards and ws')
 parser.add_argument('-s', '--signal',                                                                                       help='input Tau3Mu MC')
 parser.add_argument('-d', '--data',                                                                                         help='input DATA')
@@ -94,7 +95,7 @@ eta = ROOT.RooRealVar('tau_fit_eta', '#eta_{3 #mu}'  , -4.0,  4.0)
 # BDT score
 bdt = ROOT.RooRealVar('bdt_score', 'BDT score'  , 0.0,  1.0, '' )
 # data weights
-weight = ROOT.RooRealVar('weight', 'weight'  , 0.00005,  1.0, '' )
+weight = ROOT.RooRealVar('weight', 'weight'  , -10,  10, '' )
 # di-muon mass
 mu12_mass = ROOT.RooRealVar('tau_mu12_fitM', 'tau_mu12_fitM'  , -10.0,  10.0, 'GeV' )
 mu23_mass = ROOT.RooRealVar('tau_mu23_fitM', 'tau_mu23_fitM'  , -10.0,  10.0, 'GeV' )
@@ -266,7 +267,7 @@ for cut in set_bdt_cut:
     c = ROOT.TCanvas("c", "c", 800, 800)
     ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
     frame.Draw()
-    if not args.optim_bdt :
+    if not (args.optim_bdt or args.goff) :
         c.SaveAs('%s/signal_mass_%s.png'%(args.plot_outdir, point_tag)) 
         c.SaveAs('%s/signal_mass_%s.pdf'%(args.plot_outdir, point_tag)) 
         c.SetLogy(1)
@@ -281,7 +282,7 @@ for cut in set_bdt_cut:
     cp = ROOT.TCanvas("cp", "cp", 800, 800)
     ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
     frame_pull.Draw()
-    if not args.optim_bdt:
+    if not (args.optim_bdt or args.goff) :
         cp.SaveAs('%s/pull_signal_mass_%s.png'%(args.plot_outdir, point_tag)) 
         cp.SaveAs('%s/pull_signal_mass_%s.pdf'%(args.plot_outdir, point_tag))
 
@@ -342,11 +343,13 @@ for cut in set_bdt_cut:
     c2 = ROOT.TCanvas("c2", "c2", 800, 800)
     ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
     frame_b.Draw()
+    
     c2.SaveAs('%s/SigBkg_mass_%s.png'%(args.plot_outdir, point_tag)) 
-    c2.SaveAs('%s/SigBkg_mass_%s.pdf'%(args.plot_outdir, point_tag)) 
-    c2.SetLogy(1)
-    c2.SaveAs('%s/SigBkg_mass_Log_%s.png'%(args.plot_outdir, point_tag)) 
-    c2.SaveAs('%s/SigBkg_mass_Log_%s.pdf'%(args.plot_outdir, point_tag))
+    c2.SaveAs('%s/SigBkg_mass_%s.pdf'%(args.plot_outdir, point_tag))
+    if not args.goff :
+        c2.SetLogy(1)
+        c2.SaveAs('%s/SigBkg_mass_Log_%s.png'%(args.plot_outdir, point_tag)) 
+        c2.SaveAs('%s/SigBkg_mass_Log_%s.pdf'%(args.plot_outdir, point_tag))
 
     print('\n\n---------- SUMMARY ----------')
     print(' ** selection : \n%s'%base_selection)

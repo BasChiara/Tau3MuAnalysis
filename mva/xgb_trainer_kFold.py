@@ -224,8 +224,8 @@ if (args.load_model is None) or (args.plot_only is None):
     # - default -
     parameters = {
         'booster'               :  'gbtree',
-        'n_estimators'          :  10000,   # number of sequential trees to be modeled
-        'max_depth'             :  5,       # max depth of a single tree
+        'n_estimators'          :  15000,   # number of sequential trees to be modeled
+        'max_depth'             :  7,       # max depth of a single tree
         'eta'                   :  0.01,    # step size shrinkage used in update to prevent overfitting (learning rate) 
         'subsample'             :  0.7,     # subsample ratio of the training instance at every boosting iteration
         'colsample_bytree'      :  0.7,     # subsample ratio of columns when constructing each tree
@@ -434,7 +434,7 @@ test_bkg = plot_data[plot_data.target==0].bdt_score
 low  = 0
 high = 1
 low_high = (low,high)
-bins = 40
+bins = 20
 binning = np.linspace(low, high, bins)
 
 # SIGNAL
@@ -460,7 +460,7 @@ err_ratio_bkg = ratio_bkg * np.sqrt( 1./hist_test_bkg[0] + 1./ hist_train_bkg[0]
 rax.errorbar((binning[:-1]+binning[1:])/2, ratio_bkg, yerr = err_ratio_bkg, fmt = 'bo', ls='none')
 
 rax.set_xlabel('BDT output')
-rax.set_ylabel('test / training')
+rax.set_ylabel('test / train')
 rax.set_ylim(0.75, 2.0)
 ax.set_ylabel('Counts')
 ax.legend(loc='best')

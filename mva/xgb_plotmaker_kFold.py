@@ -2,6 +2,7 @@ import ROOT
 import argparse
 import pickle
 import pandas as pd
+import numpy as np
 import seaborn as sns
 from sklearn.metrics import accuracy_score
 import matplotlib.pyplot as plt
@@ -381,9 +382,9 @@ plt.yticks(fontsize=16)
 plt.xscale('log')
 
 eta_limit_category = {
-    'A' : [0.0,   eta_thAB],
-    'B' : [eta_thAB, eta_thBC],
-    'C' : [eta_thBC, 3.5]
+    'A' : [0.0,   config.eta_thAB],
+    'B' : [config.eta_thAB, config.eta_thBC],
+    'C' : [config.eta_thBC, 3.5]
 }
 
 for cat in ['A', 'B', 'C']:
@@ -412,7 +413,7 @@ print('[=] save ROC by category curve %sroc_%s'%(args.plot_outdir, tag))
 
 # ------------ CORRELATION MATRIX ------------ # 
 # Compute the correlation matrix for the signal
-corr = sig[features + ['tauEta','bdt_score', 'tau_fit_mass']].corr()
+corr = sig[config.features + ['tauEta','bdt_score', 'tau_fit_mass']].corr()
 print(corr)
 
 # Set up the matplotlib figure
@@ -426,8 +427,8 @@ g = sns.heatmap(corr, cmap=cmap, vmax=1., vmin=-1, center=0, annot=True, fmt='.2
                 square=True, linewidths=.5, cbar_kws={"shrink": 1.0},  annot_kws={"size":9})
 
 # rotate axis labels
-g.set_xticklabels(labels.values(), rotation='vertical', fontsize = 16)
-g.set_yticklabels(labels.values(), rotation='horizontal', fontsize = 16)
+g.set_xticklabels(config.labels.values(), rotation='vertical', fontsize = 16)
+g.set_yticklabels(config.labels.values(), rotation='horizontal', fontsize = 16)
 
 # plt.show()
 plt.title('linear correlation matrix - signal', fontdict={'fontsize':18}, pad=16)
@@ -438,7 +439,7 @@ print('[=] save signal correlation in %scorr_sig_%s'%(args.plot_outdir, tag))
 plt.clf()
 
 # Compute the correlation matrix for the signal
-corr = bkg[features + ['tauEta','bdt_score', 'tau_fit_mass']].corr()
+corr = bkg[config.features + ['tauEta','bdt_score', 'tau_fit_mass']].corr()
 
 # Set up the matplotlib figure
 f, ax = plt.subplots(figsize=(11, 9))
@@ -451,8 +452,8 @@ g = sns.heatmap(corr, cmap=cmap, vmax=1., vmin=-1, center=0, annot=True, fmt='.2
                 square=True, linewidths=.5, cbar_kws={"shrink": 1.0}, annot_kws={"size":9})
 
 # rotate axis labels
-g.set_xticklabels(labels.values(), rotation='vertical', fontsize = 16)
-g.set_yticklabels(labels.values(), rotation='horizontal', fontsize = 16)
+g.set_xticklabels(config.labels.values(), rotation='vertical', fontsize = 16)
+g.set_yticklabels(config.labels.values(), rotation='horizontal', fontsize = 16)
 
 # plt.show()
 plt.title('linear correlation matrix - background', fontdict={'fontsize':18}, pad=16)
@@ -525,7 +526,7 @@ print(f'[OUT] saved OVERTRAIN plot in {plot_name}.png/pdf')
 plt.clf()
 
 # ------------ FEATURES IMPORTANCE ------------ # 
-bdt_inputs = features + ['tauEta']
+bdt_inputs = config.features + ['tauEta']
 
 fscores = OrderedDict(zip(bdt_inputs, np.zeros(len(bdt_inputs))))
 for i, iclas in classifiers.items():
