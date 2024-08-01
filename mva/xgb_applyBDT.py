@@ -18,6 +18,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 # from my config
 from config import * 
+import config
 
 ##########################################################################################
 # Define the gini metric - from https://www.kaggle.com/c/ClaimPredictionChallenge/discussion/703#5897
@@ -44,18 +45,18 @@ print('\n')
  # ------------ DEFINE SELECTIONS ------------ # 
 if(args.process == 'DsPhiMuMuPi'):
     base_selection = '&'.join([
-                            '(Ds_fit_mass > %.2f & Ds_fit_mass < %.2f )'%(Ds_mass_range_lo,Ds_mass_range_hi),
+                            '(Ds_fit_mass > %.2f & Ds_fit_mass < %.2f )'%(config.Ds_mass_range_lo,config.Ds_mass_range_hi),
                             '(Ds_Lxy_sign_BS > %.2f)'%args.LxySign_cut,
                             '(Ds_fit_vprob > 0.01)',
                             '(phi_fit_mass > 0.98 & phi_fit_mass < 1.05)'
                         ])
 elif (args.process == 'fake_rate'):
-    base_selection = 'tau_fit_mass > %.2f'%mass_range_lo
+    base_selection = 'tau_fit_mass > %.2f'%config.mass_range_lo
 else:
-    base_selection = '(tau_fit_mass > %.2f & tau_fit_mass < %.2f  & tau_Lxy_sign_BS > %.2f)'%(mass_range_lo,mass_range_hi, args.LxySign_cut) 
-selection  = base_selection 
+    base_selection = '(tau_fit_mass > %.2f & tau_fit_mass < %.2f  & tau_Lxy_sign_BS > %.2f)'%(config.mass_range_lo,config.mass_range_hi, args.LxySign_cut) 
+selection       = base_selection 
 data_selection  = base_selection 
-bkg_selection  = base_selection
+bkg_selection   = base_selection
 
 print('[!] base-selection : %s'%base_selection)
 print('---------------------------------------------')
@@ -63,8 +64,7 @@ print('---------------------------------------------')
  # ------------ INPUT DATASET ------------ # 
 
 if(args.data is None):
-    
-    dataset = analysis_samples[args.process]
+    dataset = config.mc_samples[args.process] if args.isMC else config.data_samples[args.process]
 else:
     dataset = args.data
 print('[+] processing files :')
@@ -84,12 +84,12 @@ if (args.debug): print(dat)
 print('---------------------------------------------')
 
 ## ETA BINS
-bdt_inputs = features + ['tauEta']
-if (args.LxySign_cut > 1.0): bdt_inputs.remove('tau_Lxy_sign_BS')
+bdt_inputs = config.features + ['tauEta']
+#if (args.LxySign_cut > 1.0): bdt_inputs.remove('tau_Lxy_sign_BS')
 if(args.process == 'DsPhiMuMuPi'): 
-    if(args.debug): print(features_DsPhiPi_to_Tau3Mu)
+    if(args.debug): print(config.features_DsPhiPi_to_Tau3Mu)
     # rename Ds branches to match BDT structure 
-    dat.rename( columns= features_DsPhiPi_to_Tau3Mu, inplace=True) 
+    dat.rename( columns= config.features_DsPhiPi_to_Tau3Mu, inplace=True) 
     dat.loc[:,'tauEta'] = tauEta(dat['Ds_fit_eta'])
 else:
     dat.loc[:,'tauEta'] = tauEta(dat['tau_fit_eta'])

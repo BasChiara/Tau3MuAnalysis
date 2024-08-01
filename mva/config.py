@@ -14,14 +14,32 @@ blind_range_lo = 1.72 # GeV
 blind_range_hi = 1.84 # GeV
 
 ###                ###
+#  Ds->Phi(MuMu) Pi  #
+###                ###
+Ds_mass = 1.9678 # GeV
+D_mass  = 1.8693 # GeV
+Ds_mass_range_lo  = 1.70 # GeV
+Ds_mass_range_hi  = 2.10 # GeV
+
+###                ###
 #   EVENT SELECTION  #
 ###  at mva level  ###
 Phi_mass_, Phi_window_ = 1.020, 0.020
 
+# tau->3mu
 base_selection      = f'(tau_fit_mass > {mass_range_lo} & tau_fit_mass < {mass_range_hi} ) & (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu)'
 phi_veto            = '''(fabs(tau_mu12_fitM- {mass:.3f})> {window:.3f} & fabs(tau_mu23_fitM - {mass:.3f})> {window:.3f} & fabs(tau_mu13_fitM -  {mass:.3f})>{window:.3f})'''.format(mass =Phi_mass_ , window = Phi_window_/2. )
 sidebands_selection = f'((tau_fit_mass < {blind_range_lo} )|| (tau_fit_mass > {blind_range_hi}))'
+# Ds->Phi(MuMu)Pi
+Ds_base_selection   = f'(Ds_fit_mass > {Ds_mass_range_lo} & Ds_fit_mass < {Ds_mass_range_hi} )'
+Ds_phi_selection    = f'(phi_fit_mass > {Phi_mass_ - 0.030} & phi_fit_mass < {Phi_mass_ + 0.030} )'
+Ds_sv_selection     = f'(Ds_Lxy_sign_BS > 0.0 & Ds_fit_vprob > 0.10 )'
+Tau_sv_selection    = f'(tau_Lxy_sign_BS > 0.0 & tau_fit_vprob > 0.10 )'
 
+year_selection = {
+    '2022' : '(year_id > 219 & year_id < 230)',
+    '2023' : '(year_id > 229 & year_id < 240)',
+}
 
 ###                  ###
 #  DATASET LUMINOSITY  #
@@ -83,11 +101,11 @@ bdt_label_process ={
    'DataSB' : 1,
    'W3MuNu' : 2,
 }
-##############
-#    BDT     #
-##############
 
-# ------------ INPUT DATASET ------------ #
+#########################
+#        DATASETS       #
+#########################
+
 mc_path     = '/afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/'
 data_path   = '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/'
 WTau3Mu_signals  = [
@@ -104,8 +122,26 @@ DsPhiPi_signals = [
     mc_path + 'outRoot/DsPhiMuMuPi_MCanalyzer_2022preEE_HLT_overlap_onDsPhiPi.root',
     mc_path + 'outRoot/DsPhiMuMuPi_MCanalyzer_2022EE_HLT_overlap_onDsPhiPi.root',
     # 2023
-    mc_path + 'outRoot/DsPhiMuMuPi_MCanalyzer_2023preBPix_HLT_overlap_onDsPhiPi.root',
-    mc_path + 'outRoot/DsPhiMuMuPi_MCanalyzer_2023BPix_HLT_overlap_onDsPhiPi.root'
+    #mc_path + 'outRoot/DsPhiMuMuPi_MCanalyzer_2023preBPix_HLT_overlap_onDsPhiPi.root',
+    #mc_path + 'outRoot/DsPhiMuMuPi_MCanalyzer_2023BPix_HLT_overlap_onDsPhiPi.root'
+]
+
+DsPhiPi_data = [
+    #2022
+    data_path + 'reMini2022_eosbkp/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Cv1_HLT_overlap.root',
+    data_path + 'reMini2022_eosbkp/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv1_HLT_overlap.root',
+    data_path + 'reMini2022_eosbkp/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv2_HLT_overlap.root',
+    data_path + 'reMini2022_eosbkp/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Ev1_HLT_overlap.root',
+    data_path + 'reMini2022_eosbkp/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Fv1_HLT_overlap.root',
+    data_path + 'reMini2022_eosbkp/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Gv1_HLT_overlap.root',
+    #2023
+    #data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023B.root',
+    #data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv1.root',
+    #data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv2.root',
+    #data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv3.root',
+    #data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023C.root',
+    #data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv1.root',
+    #data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023D.root',
 ]
 
 data_background  = [
@@ -134,12 +170,20 @@ W3MuNu_background = [
      mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onW3MuNu.root',
 ]
 
-analysis_samples = {
-    'data'      : data_background,
-    'Tau3Mu'    : WTau3Mu_signals,
-    'DsPhiMuMuPi': DsPhiPi_signals,
-    'W3MuNu'    : W3MuNu_background, 
+mc_samples = {
+    'Tau3Mu'        : WTau3Mu_signals,
+    'DsPhiMuMuPi'   : DsPhiPi_signals,
+    'W3MuNu'        : W3MuNu_background,
 }
+data_samples = {
+    'Tau3Mu'        : data_background,
+    'DsPhiMuMuPi'   : DsPhiPi_data,
+    'W3MuNu'        : data_background, 
+}
+
+##############
+#    BDT     #
+##############
 
 # give labels human readable names
 # IMPORTANT : same order as features!!!
@@ -221,25 +265,6 @@ def tauEta(eta):
    else                : return 0
 
 
-###               ###
-#   COMBINE UTILS   #
-###               ###
-from statsmodels.stats.proportion import proportion_confint
-def cp_intervals(Nobs, Ntot, cl=0.68, verbose = False):
-
-    eff = 1.*Nobs/Ntot
-    lo, hi = proportion_confint(Nobs, Ntot, 1.-cl, method='beta')
-
-    lor = lo/eff if eff else -99
-    hir = hi/eff if eff else -99
-    if verbose :
-        print('-- Clopper Pearson --')
-        print('\n\t'.join([
-        'Ntot:  {T}','Nobs:  {O}','eff:  {E}','low:  {L}','high:  {H}'
-        ]).format(T=Ntot, O=Nobs, E=eff, L=lor, H=hir))
-
-    return lor, hir
-
 
 ### ----- features Nbins xlow xhigh ---- ###
 
@@ -272,11 +297,7 @@ features_NbinsXloXhiLabelLog = {
     'tau_mu23_fitM'     : [ 40, 0.8, 1.2,'M(#mu_{2}#mu_{3})',       0],
 }
 
-###                ###
-#  Ds->Phi(MuMu) Pi  #
-###                ###
-Ds_mass_range_lo  = 1.70 # GeV
-Ds_mass_range_hi  = 2.10 # GeV
+
 
 # -- translate features -- #
 features_DsPhiPi = [
@@ -374,3 +395,23 @@ features_Run3toRun2 = {
     'tau_mu3_TightID_PV':'mu3ID',
     'tau_mu3_TightID_PV':'mu3ID',
 }
+
+###               ###
+#   COMBINE UTILS   #
+###               ###
+
+from statsmodels.stats.proportion import proportion_confint
+def cp_intervals(Nobs, Ntot, cl=0.68, verbose = False):
+
+    eff = 1.*Nobs/Ntot
+    lo, hi = proportion_confint(Nobs, Ntot, 1.-cl, method='beta')
+
+    lor = lo/eff if eff else -99
+    hir = hi/eff if eff else -99
+    if verbose :
+        print('-- Clopper Pearson --')
+        print('\n\t'.join([
+        'Ntot:  {T}','Nobs:  {O}','eff:  {E}','low:  {L}','high:  {H}'
+        ]).format(T=Ntot, O=Nobs, E=eff, L=lor, H=hir))
+
+    return lor, hir

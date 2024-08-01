@@ -104,6 +104,7 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], to_ploton = [], file_nam
     isMC         = kwargs['isMC'] if 'isMC' in kwargs else False
     year         = kwargs['year'] if 'year' in kwargs else 2022
     x_lim        = kwargs['x_lim'] if 'x_lim' in kwargs else [histo_den.GetBinLowEdge(histo_den.FindFirstBinAbove(0.)), histo_den.GetBinLowEdge(histo_den.FindLastBinAbove(0.)+1)] 
+    y_lim        = kwargs['y_lim'] if 'y_lim' in kwargs else [histo_den.GetMinimum(), 1.3*histo_den.GetMaximum()]
     
     # CMS style setting
     CMS.SetExtraText(CMSextraText)
@@ -114,8 +115,8 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], to_ploton = [], file_nam
     # CMS style canva
     x_min = x_lim[0]
     x_max = x_lim[1]
-    y_min = histo_den.GetMinimum()
-    y_max = histo_den.GetMaximum()
+    y_min = y_lim[0]
+    y_max = y_lim[1]
     r_min = 1 - ratio_w 
     r_max = 1 + ratio_w
     #c = ROOT.TCanvas("c", "", 1024, 1248)
@@ -189,7 +190,10 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], to_ploton = [], file_nam
     fcolor = h_ratio_den.GetFillColor(),
     )
     [CMS.cmsDraw(h_ratio, f'{draw_opt_num} same', lwidth = h_ratio.GetLineWidth(),mcolor = h_ratio.GetLineColor(), fcolor = h_ratio.GetFillColor(), ) for h_ratio in h_ratio_list]
-    
+    c.cd()
     c.SaveAs(file_name + '.png')
     c.SaveAs(file_name + '.pdf')
     c.SaveAs(file_name + '.root')
+
+    c.Clear()
+    return 1

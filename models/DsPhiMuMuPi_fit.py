@@ -10,13 +10,17 @@ from pdb import set_trace
 from array import array 
 import math
 import argparse
+import sys
+sys.path.append('..')
+import mva.config as config
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--fake_cand',  action='store_true', help='activate it when running on 3 muons')
+parser.add_argument('--fake_cand',  action='store_true',                        help='activate it when running on 3 muons')
 parser.add_argument('--plot_outdir',default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/DsPhiMuMuPi/sPlot/', help=' output directory for plots')
-parser.add_argument('--tag',        default= 'reMini', help='tag to the training')
-parser.add_argument('--debug',      action = 'store_true' ,help='set it to have useful printout')
-parser.add_argument('--category',   default = 'noCat')
+parser.add_argument('--tag',        default= 'reMini',                          help='tag to the training')
+parser.add_argument('--debug',      action = 'store_true' ,                     help='set it to have useful printout')
+parser.add_argument('--category',                             default = 'noCat',help='category to be used')
+parser.add_argument('--year',       choices=['2022', '2023'], default = '2022', help='year of data-taking')
 
 args = parser.parse_args()
 tag = args.tag 
@@ -26,86 +30,89 @@ ROOT.gROOT.SetBatch(True)
 ROOT.gStyle.SetOptStat(True)
 ROOT.TH1.SetDefaultSumw2()
 
-# **** USEFUL CONSTANT VARIABLES *** #
-mass_window = 0.060 # GeV
-Ds_mass = 1.9678 # GeV
-D_mass  = 1.8693 # GeV
-fit_range_lo  , fit_range_hi   = 1.70, 2.10 # GeV
-mass_window_lo, mass_window_hi = 1.70, 2.10 # GeV #Ds_mass-mass_window, Ds_mass+mass_window
-
+# **** CONSTANT VARIABLES **** #
+fit_range_lo = config.Ds_mass_range_lo
+fit_range_hi = config.Ds_mass_range_hi
 nbins = 40 if not args.fake_cand else 25 # needed just for plotting, fits are all unbinned
 
 
 # *** INPUT DATA AND MONTE CARLO ***
 input_tree_name = 'DsPhiMuMuPi_tree' if not args.fake_cand else 'WTau3Mu_tree'
-mc_file = [
-    '../outRoot//DsPhiMuMuPi_MCanalyzer_2022preEE_HLT_Tau3Mu.root', 
-    '../outRoot//DsPhiMuMuPi_MCanalyzer_2022EE_HLT_Tau3Mu.root'] if not args.fake_cand else \
+mc_file = config.mc_samples['DsPhiMuMuPi'] if not args.fake_cand else \
     [
     #'../outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap_FakeDsRate.root',
     #'../outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_FakeDsRate.root',
     '../outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap_FakeDsRate.root',
     '../outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_FakeDsRate.root',
     ] 
-data_file = [
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Cv1.root',
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv1.root',
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv2.root',
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Ev1.root',
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Fv1.root',
-    '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Gv1.root',
-]
+data_file = config.data_samples['DsPhiMuMuPi']
+# *** OUTPUT FILE *** #
+f_out_name = "DsPhiPi2022_wspace_%s.root"%(tag)
+f_out = ROOT.TFile(f_out_name, "RECREATE")
+
 # ** RooFit Variables
 # Ds mass
-mass = ROOT.RooRealVar('Ds_fit_mass' if not args.fake_cand else 'tau_MuMuPi_mass', '#mu#mu #pi mass'  , mass_window_lo,  mass_window_hi, 'GeV' )
-mass.setRange('fit_range', fit_range_lo,fit_range_hi)
-mass.setRange('full_range', mass_window_lo, mass_window_hi)
-# Ds mass resolution
+mass = ROOT.RooRealVar('Ds_fit_mass' if not args.fake_cand else 'tau_MuMuPi_mass', '#mu#mu #pi mass'  , config.Ds_mass_range_lo,  config.Ds_mass_range_hi, 'GeV' )
+mass.setRange('fit_range', fit_range_lo, fit_range_hi)
+mass.setRange('full_range', config.Ds_mass_range_lo, config.Ds_mass_range_lo)
+
+weight   = ROOT.RooRealVar('weight', 'weight'  , -900,  900, '')
+year_id  = ROOT.RooRealVar('year_id', 'year_id'  , 210,  270, '')
 mass_err = ROOT.RooRealVar('%s_fit_mass_err'%('Ds' if not args.fake_cand else 'tau'), '#sigma_{M(3 #mu)}/ M(3 #mu)'  , 0.0,  0.03, 'GeV' )
+eta      = ROOT.RooRealVar('Ds_fit_eta', '#eta_{#mu#mu#pi}'  , -4.0,  4.0)
 dspl_sig = ROOT.RooRealVar('%s_Lxy_sign_BS'%('Ds' if not args.fake_cand else 'tau'), ''  , 0.0,  1000)
-sv_prob  = ROOT.RooRealVar('%s_fit_vprob'%('Ds' if not args.fake_cand else 'tau'), ''  , 0.01,  1.0)
-phi_mass = ROOT.RooRealVar('phi_fit_mass' if not args.fake_cand else 'tau_phiMuMu_mass', ''  , 0.99,  1.05, 'GeV')
+sv_prob  = ROOT.RooRealVar('%s_fit_vprob'%('Ds' if not args.fake_cand else 'tau'), ''  , 0.0,  1.0)
+phi_mass = ROOT.RooRealVar('phi_fit_mass' if not args.fake_cand else 'tau_phiMuMu_mass', ''  , 0.5,  2.0, 'GeV')
 
 thevars = ROOT.RooArgSet()
 thevars.add(mass)
-thevars.add(mass_err)
+#thevars.add(mass_err)
+thevars.add(weight)
+thevars.add(year_id)
+thevars.add(eta)
 thevars.add(dspl_sig)
 thevars.add(sv_prob)
 thevars.add(phi_mass)
 
-### MC SIGNAL ###
-sgn_selection  = '' 
-base_selection = ''
+### MC SIGNAL - FIT ###
+base_selection = '(' + ' & '.join([
+    config.year_selection[args.year],
+    config.Ds_base_selection,
+    config.Ds_phi_selection,
+    config.Ds_sv_selection,
+]) + ')'
+print('[i] base_selection = %s'%base_selection)
+sgn_selection  = base_selection 
 
 mc_tree = ROOT.TChain(input_tree_name)
 [mc_tree.AddFile(f) for f in mc_file]
 N_mc = mc_tree.GetEntries(base_selection)
 
-fullmc = ROOT.RooDataSet('mc_DsPhiMuMuPi', 'mc_DsPhiMuMuPi', mc_tree, thevars, sgn_selection)
+fullmc = ROOT.RooDataSet('mc_DsPhiMuMuPi', 'mc_DsPhiMuMuPi', mc_tree, thevars, sgn_selection, 'weight')
 fullmc.Print()
 print('entries = %.2f'%fullmc.sumEntries() )
 print('weight  = %e'%fullmc.weight() )
 sig_efficiency = fullmc.sumEntries()/N_mc/fullmc.weight()
 
 # signal PDF : double gaussian + constant
-Mass   = ROOT.RooRealVar('Mass' , 'Mass' , Ds_mass, -1.7, 1.9)
+Mass   = ROOT.RooRealVar('Ds_Mmc' , 'Ds_Mmc' , config.Ds_mass, 1.7, 1.9)
 Mass.setConstant(True)
-dMass  = ROOT.RooRealVar('dM', 'dM', 0, -0.1, 0.1)
-mean   = ROOT.RooFormulaVar('mean','mean', '(@0+@1)', ROOT.RooArgList(Mass,dMass) )
-width1 = ROOT.RooRealVar('width1',  'width1', 0.01,    0.001, 0.1)
-width2 = ROOT.RooRealVar('width2',  'width2', 0.01,    0.001, 0.1)
+dMass_mc  = ROOT.RooRealVar('dM_mc', 'dM_mc', 0, -0.1, 0.1)
+mean_mc   = ROOT.RooFormulaVar('mean_mc','mean_mc', '(@0+@1)', ROOT.RooArgList(Mass,dMass_mc) )
+width1_mc = ROOT.RooRealVar('width1_mc',  'width1_mc', 0.05,    0.001, 0.1)
+width2_mc = ROOT.RooRealVar('width2_mc',  'width2_mc', 0.01,    0.001, 0.1)
 
-gfrac   = ROOT.RooRealVar("gfrac", "", 0.5, 0.0, 1.0)
-gaus1_mc  = ROOT.RooGaussian('gaus1_mc', 'gaus1', mass, mean, width1)
-gaus2_mc  = ROOT.RooGaussian('gaus2_mc', 'gaus2', mass, mean, width2)
-gsum_mc = ROOT.RooAddModel('gsum_mc', "", [gaus1_mc, gaus2_mc], [gfrac])
+gfrac       = ROOT.RooRealVar("gfrac", "", 0.2, 0.0, 1.0)
+gaus1_mc    = ROOT.RooGaussian('gaus1_mc', 'gaus1', mass, mean_mc, width1_mc)
+gaus2_mc    = ROOT.RooGaussian('gaus2_mc', 'gaus2', mass, mean_mc, width2_mc)
+gsum_mc     = ROOT.RooAddModel('gsum_mc', "", [gaus1_mc, gaus2_mc], [gfrac])
 
-nMC = ROOT.RooRealVar('nMC', 'model_DsPhiMuMuPi_norm', fullmc.sumEntries(), 0., 10*fullmc.sumEntries())
-# background
+nMC = ROOT.RooRealVar('nMC', 'model_DsPhiMuMuPi_norm', fullmc.sumEntries(), 0.5*fullmc.sumEntries(), 3*fullmc.sumEntries())
+# MC cobinatorial PDF
 poly = ROOT.RooPolynomial('flat_bkg', "flat_bkg", mass, ROOT.RooArgList())
-nBflat = ROOT.RooRealVar('nBflat', 'background', 0.5*fullmc.numEntries(), 0., fullmc.numEntries())
+nBflat = ROOT.RooRealVar('nBflat', 'background', 0.5*fullmc.sumEntries(), 0., fullmc.sumEntries())
 
-# signal + background
+# signal + combinatorial
 signal_model = ROOT.RooAddPdf("extMCmodel_DsPhiMuMuPi", "extMCmodel_DsPhiMuMuPi", ROOT.RooArgList(gsum_mc,poly), ROOT.RooArgList(nMC,nBflat))
 
 # signal fit
@@ -127,20 +134,12 @@ fullmc.plotOn(
     ROOT.RooFit.LineWidth(2),
     ROOT.RooFit.FillColor(ROOT.kRed),
 )
+
 sig_curve = signal_model.plotOn(
-    frame, 
-    ROOT.RooFit.LineColor(ROOT.kRed),
-    ROOT.RooFit.Range('full_range'),
-    ROOT.RooFit.NormRange('full_range')
+    frame,
+    ROOT.RooFit.MoveToBack(),
 )
 print('signal chi2 %.2f'%(frame.chiSquare(4)))
-fullmc.plotOn(
-    frame, 
-    ROOT.RooFit.Binning(nbins), 
-    ROOT.RooFit.XErrorSize(0), 
-    ROOT.RooFit.LineWidth(2),
-    ROOT.RooFit.FillColor(ROOT.kRed),
-)
 signal_model.paramOn(
     frame,
     ROOT.RooFit.Layout(0.2, 0.50, 0.85),
@@ -148,7 +147,7 @@ signal_model.paramOn(
 )
 frame.getAttText().SetTextSize(0.03)
 
-c = ROOT.TCanvas("c", "c", 800, 800)
+c = ROOT.TCanvas("c", "c", 1200, 800)
 ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
 frame.Draw()
 c.SaveAs('%s/mcDsPhiPi_mass_%s.png'%(args.plot_outdir, tag)) 
@@ -157,19 +156,39 @@ c.SetLogy(1)
 c.SaveAs('%s/mcDsPhiPi_mass_Log_%s.png'%(args.plot_outdir, tag)) 
 c.SaveAs('%s/mcDsPhiPi_mass_Log_%s.pdf'%(args.plot_outdir, tag)) 
 if (args.fake_cand): exit(-1)
+
+# save workspace
+f_out.cd()
+width1_mc.setConstant(True)
+width2_mc.setConstant(True)
+gfrac.setConstant(True)
+dMass_mc.setConstant(True)
+wspace_mc = ROOT.RooWorkspace("DsPhiPi_mc_wspace", "DsPhiPi_mc_wspace")
+try:
+    getattr(wspace_mc, 'import')(signal_model)
+    print("signal_model imported successfully.")
+    wspace_mc.Print()
+except Exception as e:
+    print("Error importing signal_model:", e)
+
+wspace_mc.Write()
+
 #### DATA ####
 
 data_tree = ROOT.TChain(input_tree_name)
 [data_tree.AddFile(f) for f in data_file]
 N_data = data_tree.GetEntries(base_selection) 
 
-datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, sgn_selection)
+datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, sgn_selection, 'weight')
 datatofit.Print()
 bkg_efficiency = datatofit.sumEntries()/N_data
 
 # Ds -> phi pi signal 
-width1.setConstant()
-width2.setConstant()
+width1 = ROOT.RooRealVar('width1',  'width1', width1_mc.getVal())
+width2 = ROOT.RooRealVar('width2',  'width2', width2_mc.getVal())
+dMass  = ROOT.RooRealVar('dM', 'dM', dMass_mc.getVal(), -0.1, 0.1)
+mean   = ROOT.RooFormulaVar('mean_mc','mean_mc', '(@0+@1)', ROOT.RooArgList(Mass,dMass) )
+
 gfrac.setConstant()
 gaus1_data  = ROOT.RooGaussian('gaus1_data', 'gaus1_data', mass, mean, width1)
 gaus2_data  = ROOT.RooGaussian('gaus2_data', 'gaus2_data', mass, mean, width2)
@@ -177,17 +196,23 @@ gsum_data   = ROOT.RooAddModel("gsum_data", "", [gaus1_data, gaus2_data], [gfrac
 
 # background PDF
 # + D+ -> phi pi
-massDp   = ROOT.RooRealVar('massDp' , 'mass_Dp' , D_mass)
-widthDp  = ROOT.RooRealVar('widthDp' , 'width_Dp' , 0.01, 0.008, 0.05)
+massDp   = ROOT.RooRealVar('massDp' , 'mass_Dp' , config.D_mass)
+massDp.setConstant(True)
+widthDp  = ROOT.RooRealVar('widthDp' , 'width_Dp' , 0.02, 0.01, 0.05)
 gaus_Dp  = ROOT.RooGaussian('gaus_Dp', '', mass, massDp, widthDp)
 # + falling expo
 a  = ROOT.RooRealVar("a", "",  -1.0, -5, -0.1)
 comb_bkg = ROOT.RooExponential('model_bkg_Ds', 'model_bkg_Ds', mass, a)
 
-Dp_f     = ROOT.RooRealVar("Dp_f", "", 0.1, 0.0, 1.0)
-full_bkg = ROOT.RooAddModel("full_bkg", "", [gaus_Dp, comb_bkg], [Dp_f])
+# + polynomial background
+p1  = ROOT.RooRealVar("p1", "p1", -0.1, -1., 1.)
+poly = ROOT.RooPolynomial('poly', 'poly', mass, ROOT.RooArgList(p1))
 
-nDs = ROOT.RooRealVar('nDs', 'Ds yield', 20000, 0., datatofit.sumEntries())
+# D+ fraction
+Dp_f     = ROOT.RooRealVar("Dp_f", "", 0.02, 0.005, 0.5)
+full_bkg = ROOT.RooAddModel("full_bkg", "", [gaus_Dp, poly], [Dp_f])
+
+nDs = ROOT.RooRealVar('nDs', 'Ds yield', 0.01*datatofit.numEntries(), 0.001*datatofit.numEntries(), 0.5*datatofit.numEntries())
 nB  = ROOT.RooRealVar('nB',  'background yield', 0.5*datatofit.numEntries(), 0., datatofit.numEntries())
 full_model = ROOT.RooAddPdf("extDATAmodel_DsPhiMuMuPi", "extDATAmodel_DsPhiMuMuPi", ROOT.RooArgList(full_bkg,gsum_data), ROOT.RooArgList(nB,nDs))
 
@@ -199,32 +224,30 @@ datatofit.plotOn(
     ROOT.RooFit.MarkerSize(1.)
 )
 
-
 # fit background with exponential model
 results = full_model.fitTo(datatofit, ROOT.RooFit.Range('fit_range'), ROOT.RooFit.Save())
 full_model.plotOn(
     frame_b, 
     ROOT.RooFit.LineColor(ROOT.kBlue),
-    ROOT.RooFit.Range('full_range'),
-    ROOT.RooFit.NormRange('full_range')
+    ROOT.RooFit.MoveToBack(),
 )
 full_model.plotOn(
     frame_b, 
     ROOT.RooFit.Components('gsum_data'),
     ROOT.RooFit.LineColor(ROOT.kRed),
-    ROOT.RooFit.Range('full_range'),
-    ROOT.RooFit.NormRange('full_range')
+    #ROOT.RooFit.Range('full_range'),
+    #ROOT.RooFit.NormRange('full_range')
 )
 full_model.plotOn(
     frame_b, 
     ROOT.RooFit.Components('gaus_Dp'),
     ROOT.RooFit.LineColor(ROOT.kOrange),
-    ROOT.RooFit.Range('full_range'),
-    ROOT.RooFit.NormRange('full_range')
+    #ROOT.RooFit.Range('full_range'),
+    #ROOT.RooFit.NormRange('full_range')
 )
-text_NDs = ROOT.TText(mass_window_lo + 0.02, 0.90*frame_b.GetMaximum(), "N_Ds = %.0f +/- %.0f"%(nDs.getValV(), nDs.getError()))
-text_NDp = ROOT.TText(mass_window_lo + 0.02, 0.85*frame_b.GetMaximum(), "N_D+ = %.0f +/- %.0f"%(nB.getValV() * (Dp_f.getValV()), nB.getError()))
-text_Nb  = ROOT.TText(mass_window_lo + 0.02, 0.80*frame_b.GetMaximum(), "Nb   = %.0f +/- %.0f"%(nB.getValV() * (1-Dp_f.getValV()), nB.getError()))
+text_NDs = ROOT.TText(config.Ds_mass_range_lo + 0.02, 0.90*frame_b.GetMaximum(), "N_Ds = %.0f +/- %.0f"%(nDs.getValV(), nDs.getError()))
+text_NDp = ROOT.TText(config.Ds_mass_range_lo + 0.02, 0.85*frame_b.GetMaximum(), "N_D+ = %.0f +/- %.0f"%(nB.getValV() * (Dp_f.getValV()), nB.getError()))
+text_Nb  = ROOT.TText(config.Ds_mass_range_lo + 0.02, 0.80*frame_b.GetMaximum(), "Nb   = %.0f +/- %.0f"%(nB.getValV() * (1-Dp_f.getValV()), nB.getError()))
 text_NDs.SetTextSize(0.035)
 text_NDp.SetTextSize(0.035)
 text_Nb.SetTextSize(0.035)
@@ -232,14 +255,7 @@ frame_b.addObject(text_NDs)
 frame_b.addObject(text_NDp)
 frame_b.addObject(text_Nb)
 
-datatofit.plotOn(
-    frame_b, 
-    ROOT.RooFit.Binning(nbins), 
-    ROOT.RooFit.MarkerSize(1.)
-)
-
-
-c2 = ROOT.TCanvas("c2", "c2", 800, 800)
+c2 = ROOT.TCanvas("c2", "c2", 1200, 800)
 ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
 frame_b.Draw()
 c2.SaveAs('%s/DsPhiPi_mass_%s.png'%(args.plot_outdir, tag)) 
@@ -254,29 +270,16 @@ print(' == B efficiency %.2e '%bkg_efficiency)
 
 
 # *** SAVE WORKSPACE ***
-#nMC.setConstant(True)
-dMass.setConstant(True)
-width1.setConstant(True)
-width2.setConstant(True)
-gfrac.setConstant()
-
-widthDp.setConstant(True)
-
-a.setConstant(True)
-
-wspace_mc = ROOT.RooWorkspace("DsPhiPi_mc_wspace", "DsPhiPi_mc_wspace")
-getattr(wspace_mc, 'import')(signal_model)
-wspace_mc.Print()
-#getattr(wspace, 'import')(poly)
-#getattr(wspace, 'import')(nBflat)
-#getattr(wspace, 'import')(nMC)
+f_out.cd()
 wspace_data = ROOT.RooWorkspace("DsPhiPi_data_wspace", "DsPhiPi_data_wspace")
-getattr(wspace_data, 'import')(full_model)
-wspace_data.Print()
-f_out_name = "DsPhiPi2022_wspace_%s.root"%(tag)
-f_out = ROOT.TFile(f_out_name, "RECREATE")
-wspace_mc.Write()
+try:
+    getattr(wspace_data, 'import')(full_model)
+    print("full_model imported successfully.")
+    wspace_data.Print()
+except Exception as e:
+    print("Error importing full_model:", e)
+
+#wspace_mc.Write()
 wspace_data.Write()
 f_out.Close()
-
-
+print(' -- saved workspace in %s'%f_out_name)
