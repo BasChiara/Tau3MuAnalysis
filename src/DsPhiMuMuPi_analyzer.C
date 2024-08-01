@@ -93,14 +93,17 @@ void DsPhiMuMuPi_analyzer::Loop(){
          phi_mu1_TightID_PV = Muon_isTight[DsPhiPi_mu1_idx[t]];    phi_mu2_TightID_PV = Muon_isTight[DsPhiPi_mu2_idx[t]]; 
          phi_mu1_TightID_BS = Muon_isTight_BS[DsPhiPi_mu1_idx[t]]; phi_mu2_TightID_BS = Muon_isTight_BS[DsPhiPi_mu2_idx[t]];
          // muons SF in MC
-         Ds_mu1_IDrecoSF=1.; Ds_mu2_IDrecoSF=1.;
+         Ds_mu1_IDrecoSF= 1.; Ds_mu2_IDrecoSF= 1.;
          Ds_mu1_IDrecoSF_sysUP = -1.; Ds_mu1_IDrecoSF_sysDOWN = -1.;  
          Ds_mu2_IDrecoSF_sysUP = -1.; Ds_mu2_IDrecoSF_sysDOWN = -1.;
+         PU_weight = 1.; PU_weight_up = -1.; PU_weight_down = -1.;
          if(isMC_){
             applyMuonSF(t);
             applyPUreweight();
          }
-         weight = lumi_factor * PU_weight * Ds_mu1_IDrecoSF * Ds_mu2_IDrecoSF; 
+         weight = lumi_factor * PU_weight * Ds_mu1_IDrecoSF * Ds_mu2_IDrecoSF; // PU weights to be understood !!
+         //weight = lumi_factor * Ds_mu1_IDrecoSF * Ds_mu2_IDrecoSF;
+
          // muons kinematics
          phi_mu1_pt  = DsPhiPi_mu1_pt[t];   phi_mu2_pt  = DsPhiPi_mu2_pt[t];
          phi_mu1_eta = DsPhiPi_mu1_eta[t];  phi_mu2_eta = DsPhiPi_mu2_eta[t];

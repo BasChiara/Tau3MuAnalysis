@@ -4,24 +4,31 @@ import argparse
 
 usage = 'usage : python3 makeNanoAOD_inoutLists.py'
 parser = argparse.ArgumentParser(usage = usage)
-parser.add_argument('-p','--path',    default = '/pnfs/roma1.infn.it/data/cms/store/group/phys_bphys/cbasile/Tau3MuNano2023_2024Jan24/', help = 'path containing the crab NanoAODs')
-parser.add_argument('-o','--output',  default = '', help = 'location for ouput lists')
-parser.add_argument('-d','--dataset', default = 'ParkingDoubleMuonLowMass', help = 'CMS dataset name' )
-parser.add_argument('-y','--year',    default = '2022', help = 'data-taking year' )
-parser.add_argument('-e','--era',     default = 'E', help = 'VdM data-taking era' )
-parser.add_argument('-f','--filename',default = 'tau3muNANO_data_2024Jan24_', help = 'root file name' )
-parser.add_argument('-k','--kfolders',default = 1, type = int, help = 'root file name' )
-parser.add_argument('-j','--jobtag',  nargs = '*', type = str, help = 'jobtags' )
+parser.add_argument('-p','--path', default = '/pnfs/roma1.infn.it/data/cms/store/group/phys_bphys/cbasile/Tau3MuNano2023_2024Jan24/', help = 'path containing the crab NanoAODs')
+parser.add_argument('-s','--site',    choices=['T2_IT_Rome', 'eos'],   default = 'eos',                                                  help = 'site where the ntuples are stored')
+parser.add_argument('-o','--output',                                default = '',                                                     help = 'location for ouput lists')
+parser.add_argument('-d','--dataset',                               default = 'ParkingDoubleMuonLowMass',                             help = 'CMS dataset name' )
+parser.add_argument('-y','--year',                                  default = '2022',                                                 help = 'data-taking year' )
+parser.add_argument('-e','--era',                                   default = 'E',                                                    help = 'VdM data-taking era' )
+parser.add_argument('-f','--filename',                              default = 'tau3muNANO_data_2024Jan24_',                           help = 'root file name' )
+parser.add_argument('-k','--kfolders',                              default = 1, type = int,                                          help = 'root file name' )
+parser.add_argument('-j','--jobtag',  nargs = '*', type = str,                                                                        help = 'jobtags' )
 args = parser.parse_args()
 
-site_isRomaT2 = True
-base_path = '/pnfs/roma1.infn.it/data/cms/'
-xrootd_str = 'root://xrootd-cms.infn.it///' 
+if (args.site == 'eos'):
+    base_path='/eos/cms/'
+    xrootd_str='root://eoscms.cern.ch///'
+elif (args.site == 'T2_IT_Rome'):
+    base_path = '/pnfs/roma1.infn.it/data/cms/'
+    xrootd_str = 'root://xrootd-cms.infn.it///'
+else :
+    raise Exception("[ERROR] site %s not recognized"%args.site)
+
 Ndatasets = 8
 if (len(args.jobtag) != Ndatasets):
-    raise Exception("[ERROR] jobtags list should be of size 8, size is %d"%len(args.jobtag))
+    raise Exception("[ERROR] jobtags list should be of size %d, size is %d"%len(Ndatasets, args.jobtag))
 
-# remove /pnfs/ domain
+# remove site domain
 print("[+] reading files from %s"%args.path)
 ntuples_path = xrootd_str + args.path.removeprefix(base_path)
 print(" base path with xrootd protocol %s" %ntuples_path)

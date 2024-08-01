@@ -20,7 +20,7 @@ parser.add_option('--debug',    action='store_true',        help='useful printou
 
 (opt, args) = parser.parse_args()
 
-# make the job directories list
+# list of job directories 
 base_name = 'Analyzer_ParkingDoubleMuonLowMass'
 Ndataset = 8
 job_dir_list = []
@@ -35,7 +35,7 @@ for i_dataset in range(Ndataset):
         print('[ERROR] found multiple job-report... cancel the unwanted directoriries')
         [print(f' - {d}') for d in matching]
         exit(-1)
-# check are not empty
+# check if the job directories are empty
 for d in job_dir_list :
     if not glob.glob(d):
         print(f'[ERROR] job directory {d} is empty')
@@ -46,19 +46,21 @@ print(f'[+] running checks on  the following reports')
 print('----------------------------------------------')
 
 for d in job_dir_list :
-    # jobs lounched
+    # count the number of submitted/successful/failed jobs 
     log_files       = os.listdir(d+'/log/')
-    Nlounched_jobs  = len(log_files)
+    Nsub_jobs  = len(log_files)
     Nsuccesful_jobs = 0
     Failed_jobID    = []
     if(opt.debug) : print(log_files)
-    print(f'= {Nlounched_jobs} jobs in {d}')
+    print(f'= {Nsub_jobs} jobs in {d}')
+    
     N_processed_events = 0
     N_saved_events = 0
-    for ijob in range(Nlounched_jobs) :
+    for ijob in range(Nsub_jobs) :
+        
+        if(opt.debug) :print(f'\tcheck job {ijob}/{Nsub_jobs}')
         job_is_ok = True 
-        if(opt.debug) :print(f'\tcheck job {ijob}/{Nlounched_jobs}')
-        # check if the output .root exists 
+        # retrive output file from .src and check if the .root exists 
         src_file = d + '/src/submit_' + str(ijob) + '.src'
         src_file_lines = open(src_file).readlines()
         for line in src_file_lines: 
@@ -68,12 +70,13 @@ for d in job_dir_list :
             # out-file is OK :)
             if (out_file_root.endswith('.root') and os.path.isfile(out_file_root) ):
                 if(opt.debug) : print(f' jobID {ijob} output exists :)')
-                report_file = d + '/out/' + str(ijob) + '.out' 
+                
+                report_file = d + '/out/' + str(ijob) + '.out'
                 report_file_lines = open(report_file).readlines()
                 for l in report_file_lines:
                     l = l.rstrip('\n')
                     l = l.lstrip()
-                    # retrive number of processed events
+                    # number of processed events
                     if l.startswith('Events processed'):
                         nevts = int(l.split()[-1])
                         if nevts > 0 : 
@@ -81,7 +84,7 @@ for d in job_dir_list :
                             if(opt.debug): print(f'\tevents processed {nevts}')
                         else : 
                             job_is_ok = False
-                            print(f'WARNING : job {ijob} has {nevts} processed events')
+                            print(f'   [WARNING] : job {ijob} has {nevts} processed events')
                     # retrive number of saved events
                     if l.startswith('Events after HLT_DoubleMu reinforcement'): 
                         nevts = int(l.split()[-1])
@@ -90,7 +93,7 @@ for d in job_dir_list :
                             if(opt.debug): print(f'\tevents saved {nevts}')
                         else :
                             job_is_ok = False
-                            print(f'WARNING : job {ijob} has {nevts} saved events')
+                            print(f'   [WARNING] : job {ijob} has {nevts} saved events')
             # out-file is KO :(
             else:
                 job_is_ok = False
@@ -100,11 +103,10 @@ for d in job_dir_list :
 
     # ** final report
     
-    print(colored(f' succesful jobs : {Nsuccesful_jobs}/{Nlounched_jobs}', 'red' if Nsuccesful_jobs/Nlounched_jobs < 1.0 else 'green' ))
+    print(colored(f' succesful jobs : {Nsuccesful_jobs}/{Nsub_jobs}', 'red' if Nsuccesful_jobs/Nsub_jobs < 1.0 else 'green' ))
     
     if Failed_jobID :
-        print(f'\tfound {len(Failed_jobID)}/{Nlounched_jobs} failed jobs')
-        [print('\t%d'%j) for j in Failed_jobID]
+        print(f'\tfound {len(Failed_jobID)}/{Nsub_jobs} job(s) with no output -> ID : {Failed_jobID}\n')
     print(f'\ttotal processed events : {N_processed_events}')
     print(f'\ttotal saved events     : {N_saved_events}')
     print('\n')

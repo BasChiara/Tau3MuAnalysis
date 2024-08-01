@@ -1,6 +1,7 @@
 import os
 import sys
 import argparse
+import glob
 
 usage = 'usage : python hadd_file.py'
 parser = argparse.ArgumentParser(usage = usage)
@@ -13,7 +14,7 @@ parser.add_argument('--hlt',          default = 'HLT_Tau3Mu', help = 'hlt applie
 parser.add_argument('--skip_files',   nargs = '*', type = int, help = 'dataset to skip' )
 
 args = parser.parse_args()
-print(' [...] hadd files from '+ args.path)
+print(' [+] hadd files from '+ args.path)
 if args.skip_files:
    print('  [-] skip datasets '+ str(args.skip_files)[1:-1])
 
@@ -26,8 +27,19 @@ for n in range(N_datasetParkingDoubleMuonLowMass):
    if (args.skip_files and n in args.skip_files): 
       print (' [-] skip dataset '+args.dataset+str(n))         
       continue
-   path_to_hadd = args.path+'/'+args.dataset+str(n)+'_'+args.year+args.era+'/'+args.app+'_'+args.dataset+str(n)+'*'+args.hlt+'.root'
+   path_to_hadd = args.path+'/'+args.dataset+str(n)+'_'+args.year+args.era+'/'+args.app+'_'+args.dataset+str(n)+'_'+args.year+args.era+'_'+args.hlt+'_*.root'
+   # number of file to hadd
+   N_files = len(glob.glob(path_to_hadd))
    hadd_command += ' '+path_to_hadd
-
+print(f' [i] adding {N_files} files from {args.dataset}_{args.year}{args.era} to {out_file}')
 #print(hadd_command)
 os.system(hadd_command)
+
+# check if the output file exists
+print('\n... cecking if the output file exists')
+if not os.path.isfile(out_file):
+   print(f' [ERROR] output file {out_file} does not exist')
+   sys.exit(1)
+else:
+   print(f' [+] output file {out_file} exists :)')
+   sys.exit(0)
