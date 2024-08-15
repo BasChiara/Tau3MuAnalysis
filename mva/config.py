@@ -24,7 +24,7 @@ Ds_mass_range_hi  = 2.10 # GeV
 ###                ###
 #   EVENT SELECTION  #
 ###  at mva level  ###
-Phi_mass_, Phi_window_ = 1.020, 0.020
+Phi_mass_, Phi_window_ = 1.020, 0.040#0.020
 
 # tau->3mu
 base_selection      = f'(tau_fit_mass > {mass_range_lo} & tau_fit_mass < {mass_range_hi} ) & (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu)'
@@ -78,6 +78,12 @@ cat_eta_selection_dict_fit = {
     'A'  : f'(fabs(tau_fit_eta) < {eta_thAB})',
     'B'  : f'(fabs(tau_fit_eta) > {eta_thAB} & fabs(tau_fit_eta) < {eta_thBC})', 
     'C'  : f'(fabs(tau_fit_eta) > {eta_thBC})',
+}
+Ds_category_selection = {
+    'ABC': f'(fabs(Ds_fit_eta) > 0.)',
+    'A'  : f'(fabs(Ds_fit_eta) < {eta_thAB})',
+    'B'  : f'(fabs(Ds_fit_eta) > {eta_thAB} & fabs(Ds_fit_eta) < {eta_thBC})', 
+    'C'  : f'(fabs(Ds_fit_eta) > {eta_thBC})',
 }
 
 #########################
@@ -171,12 +177,12 @@ W3MuNu_background = [
 ]
 
 mc_samples = {
-    'Tau3Mu'        : WTau3Mu_signals,
+    'WTau3Mu'        : WTau3Mu_signals,
     'DsPhiMuMuPi'   : DsPhiPi_signals,
     'W3MuNu'        : W3MuNu_background,
 }
 data_samples = {
-    'Tau3Mu'        : data_background,
+    'WTau3Mu'        : data_background,
     'DsPhiMuMuPi'   : DsPhiPi_data,
     'W3MuNu'        : data_background, 
 }
@@ -269,11 +275,11 @@ def tauEta(eta):
 ### ----- features Nbins xlow xhigh ---- ###
 
 features_NbinsXloXhiLabelLog = {
-    'tau_fit_pt'        : [ 35, 10, 80,  'p_{T}(3 #mu) (GeV)',      0],
-    'tau_fit_mt'        : [ 60, 0, 120,  'M_{T}(3 #mu)',            0],
-    'tau_relIso'        : [ 50, 0, 0.5,  'rel. Isolation (3 #mu)',  1],
+    'tau_fit_pt'        : [ 20, 10, 50,  'p_{T}(3 #mu) (GeV)',      0],
+    'tau_fit_mt'        : [ 20, 0, 80,  'M_{T}(3 #mu)',            0],
+    'tau_relIso'        : [ 20, 0, 0.5,  'rel. Isolation (3 #mu)',  1],
     'tau_met_Dphi'      : [ 32, 0, 6.4,  '#Delta #phi (3 #mu, MET)',0],
-    'tau_met_pt'        : [ 50, 0, 150., 'MET (GeV)',               0],
+    'tau_met_pt'        : [ 40, 0, 100., 'MET (GeV)',               0],
     'tau_met_ratio_pt'  : [ 30, 0., 3.,  'MET/p_{T}(3 #mu)',        0],
     'W_pt'              : [ 40, 0, 120,  'p_{T}(W) (GeV)',          0],
     'miss_pz_min'       : [50, -300, 300, 'min p_{z}^{#nu} (GeV)',  0],
@@ -281,16 +287,16 @@ features_NbinsXloXhiLabelLog = {
     'tau_mu12_dZ'       : [ 20, 0, 0.2, '#Delta z (#mu_1, #mu_2)',  0],
     'tau_mu13_dZ'       : [ 20, 0, 0.2, '#Delta z (#mu_1, #mu_3)',  0],
     'tau_mu23_dZ'       : [ 20, 0, 0.2, '#Delta z (#mu_2, #mu_3)',  0],
-    'tau_Lxy_sign_BS'   : [ 50, 0, 10,  'SV L_{xy}/#sigma',        0],
+    'tau_Lxy_sign_BS'   : [ 40, 0, 20,  'SV L_{xy}/#sigma',        0],
     'tau_fit_vprob'     : [ 20, 0,  1,  'SV probability',           0],
-    'tau_cosAlpha_BS'   : [ 50, 0.9,1,  'cos_{#alpha}(SV, BS)',     1],
+    'tau_cosAlpha_BS'   : [ 10, 0.98,1,  'cos_{#alpha}(SV, BS)',     1],
     'tau_mu1_TightID_PV': [  2,-0.5,1.5, '#mu_1 ID',                0],
     'tau_mu2_TightID_PV': [  2,-0.5,1.5, '#mu_2 ID',                0],
     'tau_mu3_TightID_PV': [  2,-0.5,1.5, '#mu_3 ID',                0],
     'tauEta'            : [  8,-0.5,7.5, '3#mu #eta bins',          0],
-    'tau_fit_eta'       : [ 35, -3.5, 3.5,'#eta (3 #mu)',           0],
+    'tau_fit_eta'       : [ 20, -3.5, 3.5,'#eta (3 #mu)',           0],
     'tau_fit_mass'      : [ 40,1.6, 2.0, 'M(3 #mu)',                0],
-    'bdt_score'         : [ 50, 0, 1,    'BDT score',               1],
+    'bdt_score'         : [ 25, 0, 1,    'BDT score',               1],
     'bdt_score_t3m'     : [ 50, 0, 1,    'BDT_{#tau 3 #mu} score',  1],
     'tau_mu12_fitM'     : [ 40, 0.8, 1.2,'M(#mu_{1}#mu_{2})',       0],
     'tau_mu13_fitM'     : [ 40, 0.8, 1.2,'M(#mu_{1}#mu_{3})',       0],

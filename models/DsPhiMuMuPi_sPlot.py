@@ -26,7 +26,7 @@ ROOT.RooMsgService.instance().setSilentMode(True)
 def plot_sWeights(observable, mc_norm = 1.0 ,selection = '', nbins = 100, lo = 0, hi = 100, color = ROOT.kRed, to_ploton = None, add_tag = ''):
     frame_sw = observable.frame(Title=" ", Bins= nbins)
     # MC matched
-    mc_tree.Draw(f'{observable.GetName()}>>h_{observable.GetName()}({nbins}, {lo}, {hi})', selection + ' * (weight)', 'goff')
+    mc_tree.Draw(f'{observable.GetName()}>>h_{observable.GetName()}({nbins}, {lo}, {hi})', f'({selection}) * weight', 'goff')
     h_mc = ROOT.gDirectory.Get(f"h_{observable.GetName()}")
     h_mc.Scale(mc_norm)
     h_mc.SetFillColor(color)
@@ -60,7 +60,9 @@ def plot_sWeights(observable, mc_norm = 1.0 ,selection = '', nbins = 100, lo = 0
         file_name = f'{args.plot_outdir}/DsPhiPi_SW{observable.GetName()}_{tag}{add_tag}',
         draw_opt_num = 'pe',
         draw_opt_den = 'hist',
-        y_lim = [0, 1.3 * np.max([h_mc.GetMaximum(), h_sData.GetMaximum()])],
+        ratio_w      = 1.0,
+        y_lim = [0, 1.5 * np.max([h_mc.GetMaximum(), h_sData.GetMaximum()])],
+        x_lim = [lo, hi],
     )
 
 parser = argparse.ArgumentParser()
@@ -95,36 +97,45 @@ full_model = wspace_data['extDATAmodel_DsPhiMuMuPi']
 mass = wspace_data['Ds_fit_mass']
 
 # *** RooFit VARIABLES *** # 
-## data weights
-weight    = ROOT.RooRealVar('weight', 'weight'  , -10.0,  1000.0, '' )
+
+var_list = [mass]
+# weights
+weight    = ROOT.RooRealVar('weight', 'weight', -10,  np.inf, '' )
+var_list.append(weight)
 year_id   = ROOT.RooRealVar('year_id', 'year_id'  , 210,  270, '' )
-# Ds variables 
-#mass_err = ROOT.RooRealVar('Ds_fit_mass_err', '#sigma_{M(3 #mu)}/ M(3 #mu)'  , 0.0,  0.03, 'GeV' )
-eta      = ROOT.RooRealVar('Ds_fit_eta', '#eta_{M(3 #mu)}'  , -4.0,  4.0)
-dspl_sig = ROOT.RooRealVar('tau_Lxy_sign_BS', ''  , 0.0,  100)
+var_list.append(year_id)
+# categorization variable
+eta      = ROOT.RooRealVar('Ds_fit_eta', '#eta_{3#mu}'  , -3,  3)
+var_list.append(eta)
+# observables for selection 
+dspl_sig = ROOT.RooRealVar('tau_Lxy_sign_BS', ''  , 0.0,  np.inf)
 sv_prob  = ROOT.RooRealVar('tau_fit_vprob', ''  , 0.0,  1.0)
 phi_mass = ROOT.RooRealVar('phi_fit_mass', ''  , 0.5,  2.0, 'GeV')
+var_list.append(dspl_sig)
+var_list.append(sv_prob)
+var_list.append(phi_mass)
 # MET variables
-puppi_met = ROOT.RooRealVar('tau_met_pt',     'Puppi MET', 0.0,  100, 'GeV' )
-deep_met  = ROOT.RooRealVar('tau_DeepMet_pt', 'deep MET' , 0.0,  100, 'GeV' )
-raw_met   = ROOT.RooRealVar('tau_rawMet_pt',  'raw MET'  , 0.0,  100, 'GeV' )
-## BDT score
+puppi_met = ROOT.RooRealVar('tau_met_pt',     'Puppi MET', 0.0,  np.inf, 'GeV' )
+deep_met  = ROOT.RooRealVar('tau_DeepMet_pt', 'deep MET' , 0.0,  np.inf, 'GeV' )
+raw_met   = ROOT.RooRealVar('tau_rawMet_pt',  'raw MET'  , 0.0,  np.inf, 'GeV' )
+var_list.append(puppi_met)
+var_list.append(deep_met)
+var_list.append(raw_met)
+# BDT input features
+bdt_input = config.features
+bdt_input.remove('tau_Lxy_sign_BS')
+bdt_input.remove('tau_fit_vprob')
+bdt_input.remove('tau_met_pt')
+for feat in bdt_input:
+    var = ROOT.RooRealVar(feat, feat, -np.inf, np.inf)
+    var_list.append(var)
+# BDT score
 bdt       = ROOT.RooRealVar('bdt_score', 'BDT score'  , 0.0,  1.0, '' )
+var_list.append(bdt)
 
 thevars = ROOT.RooArgSet()
-thevars.add(weight)
-thevars.add(year_id)
-thevars.add(mass)
-#thevars.add(mass_err)
-thevars.add(eta)
-thevars.add(dspl_sig)
-thevars.add(sv_prob)
-thevars.add(phi_mass)
-thevars.add(bdt)
-
-thevars.add(puppi_met)
-thevars.add(deep_met)
-thevars.add(raw_met)
+for var in var_list:
+    thevars.add(var)
 
 # *** INPUT DATA AND MONTE CARLO *** #
 base_selection = '(' + ' & '.join([
@@ -134,10 +145,9 @@ base_selection = '(' + ' & '.join([
     config.Tau_sv_selection,
 ]) + ')'
 print('[i] base_selection = %s'%base_selection)
-sgn_selection  = base_selection 
 input_tree_name = 'tree_w_BDT'
-mc_file     = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_DsPhiMuMuPi_MC_Optuna_HLT_overlap_LxyS1.9_2024Jul12.root' ]
-data_file   = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_DsPhiMuMuPi_DATA_Optuna_HLT_overlap_LxyS1.9_2024Jul12.root' ]
+mc_file     = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_DsPhiMuMuPi_MC_Optuna_HLT_overlap_LxyS2.1_2024Jul11.root' ]
+data_file   = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_DsPhiMuMuPi_DATA_Optuna_HLT_overlap_LxyS2.1_2024Jul11.root' ]
 
 # signal MC 
 mc_tree = ROOT.TChain(input_tree_name)
@@ -146,21 +156,21 @@ mc_tree = ROOT.TChain(input_tree_name)
 data_tree = ROOT.TChain(input_tree_name)
 [data_tree.AddFile(f) for f in data_file]
 
-fullmc = ROOT.RooDataSet('mc_DsPhiMuMuPi', 'mc_DsPhiMuMuPi', mc_tree, thevars, sgn_selection, 'weight')
+fullmc = ROOT.RooDataSet('mc_DsPhiMuMuPi', 'mc_DsPhiMuMuPi', mc_tree, thevars, base_selection, 'weight')
 fullmc.Print()
 print('[+] MC entries = %.2f'%fullmc.sumEntries() )
-datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, sgn_selection, 'weight')
+datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, base_selection, 'weight')
 datatofit.Print()
 print('[+] DATA entries = %.2f'%datatofit.sumEntries() )
 
 # Fit to mc & fix the parameters
-signal_model.fitTo(fullmc, ROOT.RooFit.Range('fit_range'))
+signal_model.fitTo(fullmc, ROOT.RooFit.Range('fit_range'), ROOT.RooFit.SumW2Error(ROOT.kTRUE))
 nMC = wspace_mc['nMC']
 nMC.setConstant()
 nBflat = wspace_mc['nBflat']
 nBflat.setConstant()
 # Fit to data & fix the parameters
-full_model.fitTo(datatofit, ROOT.RooFit.Range('fit_range'))
+full_model.fitTo(datatofit, ROOT.RooFit.Range('fit_range'), ROOT.RooFit.SumW2Error(ROOT.kTRUE))
 nDs = wspace_data['nDs']
 nDs.setConstant()
 Dp_f = wspace_data['Dp_f']
@@ -209,7 +219,6 @@ frame.Draw()
 c.SaveAs('%s/DsPhiPi_mass_%s.png'%(args.plot_outdir, tag)) 
 c.SaveAs('%s/DsPhiPi_mass_%s.pdf'%(args.plot_outdir, tag)) 
 
-
 # *** sPlot *** #
 sMC   = ROOT.RooStats.SPlot("sMC",  "SPlot of signal MC", fullmc, signal_model, ROOT.RooArgList(nMC, nBflat))
 sData = ROOT.RooStats.SPlot("sData","SPlot of data",datatofit, full_model, ROOT.RooArgList(nDs,nB))
@@ -243,16 +252,14 @@ sc.SaveAs('%s/DsPhiPi_SWmass_%s.pdf'%(args.plot_outdir, tag))
 
 # sPlot - Ds mass
 plot_sWeights(mass, fnorm_mc.evaluate(), sWeigths_selection, nbins, mass_window_lo, mass_window_hi, ROOT.kBlue, [])
-
+# sPlot - Ds eta
+eta_bins, eta_min, eta_max = 30, eta.getMin(), eta.getMax()
+plot_sWeights(eta, fnorm_mc.evaluate(), sWeigths_selection, eta_bins, eta_min, eta_max, ROOT.kOrange, [])
+plot_sWeights(eta, fnorm_mc.evaluate(), sWeigths_selection + '&(bdt_score> 0.960)', int(eta_bins/2), eta_min, eta_max, ROOT.kOrange, [], add_tag='_bdt960')
 # sPlot - BDT score
 plot_sWeights(bdt, fnorm_mc.evaluate(), sWeigths_selection, 25, 0.0, 1.0, ROOT.kRed, [])
+plot_sWeights(bdt, fnorm_mc.evaluate(), sWeigths_selection + '&(bdt_score > 0.960)', 25, 0.0, 1.0, ROOT.kRed, [], add_tag='_bdt960')
 
-# -- split by category
-cat_selection_dict = {
-    'A' : f'(fabs(Ds_fit_eta) < {config.eta_thAB})',
-    'B' : f'(fabs(Ds_fit_eta) > {config.eta_thAB} & fabs(Ds_fit_eta) < {config.eta_thBC})',
-    'C' : f'(fabs(Ds_fit_eta) > {config.eta_thBC})',
-}
 # text on plot
 CAT_txt = ROOT.TText()
 CAT_txt.SetTextFont(43)
@@ -260,22 +267,50 @@ CAT_txt.SetTextAngle(0)
 CAT_txt.SetTextColor(ROOT.kBlack)    
 CAT_txt.SetTextSize(40)
 CAT_txt.SetTextAlign(11)
-for i, cat in enumerate(cat_selection_dict.keys()):
-    print(' - category %d %s'%(i,cat))
-    max_fixed = 2000
-    CAT_txt.SetText(0.30, 0.90*max_fixed, "CAT %s"%cat)
+CAT_txt.SetNDC()
+for i, cat in enumerate(config.Ds_category_selection.keys()):
+    if cat == 'ABC': continue
+    CAT_txt.SetText(0.30, 0.90, "CAT %s"%cat)
     plot_sWeights(bdt, fnorm_mc.evaluate(), f'({sWeigths_selection} & {cat_selection_dict[cat]})', 25, 0.0, 1.0, ROOT.kRed, [CAT_txt], add_tag=f'_cat{cat}')
 
-# sPlot - MET
-METalgos = [puppi_met, deep_met, raw_met]
-#METalgos = ['tau_met_pt', 'tau_DeepMet_pt', 'tau_rawMet_pt']
-met_bins = 25
-for met in METalgos:
-    plot_sWeights(met, fnorm_mc.evaluate(), sWeigths_selection, met_bins, 0, 100, ROOT.kViolet, [])
+## sPlot - MET
+#METalgos = [puppi_met, deep_met, raw_met]
+##METalgos = ['tau_met_pt', 'tau_DeepMet_pt', 'tau_rawMet_pt']
+#met_bins = 25
+#for met in METalgos:
+#    plot_sWeights(met, fnorm_mc.evaluate(), sWeigths_selection, met_bins, 0, 100, ROOT.kViolet, [])
+## sPlot - Lxy significance
+#lxy_bins = 40
+#lxy_max = 100
+#plot_sWeights(dspl_sig, fnorm_mc.evaluate(), sWeigths_selection, lxy_bins, 0, lxy_max, ROOT.kGreen, [])
 
-# sPlot - Lxy significance
-lxy_bins = 40
-lxy_max = 100
-plot_sWeights(dspl_sig, fnorm_mc.evaluate(), sWeigths_selection, lxy_bins, 0, lxy_max, ROOT.kGreen, [])
 
+# *** save results on file *** #
+sWeights_file_base = f'sWeights_{tag}_'
+mc_fname = f'{sWeights_file_base}MC.root'
+data_fname = f'{sWeights_file_base}DATA.root'
+# remove files if already exist
+if os.path.exists(mc_fname):
+    os.system(f'rm {mc_fname}')
+if os.path.exists(data_fname):
+    os.system(f'rm {data_fname}')
 
+# attach data driven normalization to MC
+mc_rdf = ROOT.RDataFrame(input_tree_name, mc_file).Filter(base_selection).Define('norm_factor', f'{fnorm_mc.evaluate()}')
+mc_rdf.Snapshot('mc_tree', mc_fname)
+print(f'[i] MC normalized saved in {mc_fname}')
+
+# save sWeights for DATA
+sWeights_file = ROOT.TFile(data_fname, 'recreate')
+sWeights_file.cd()
+sDataSet.convertToTreeStore()
+sDataSet.Write()
+sWeights_file.Close()
+print(f'[i] sWeights for DATA saved in {data_fname}')
+# if the root files exist merge results
+if (os.path.exists(mc_fname) and os.path.exists(data_fname)):
+    os.system(f'hadd -f {sWeights_file_base}DataMc.root {mc_fname} {data_fname}')
+    print(f'[i] sWeights for MC and DATA saved in {sWeights_file_base}DataMc.root')
+    os.system(f'rm {mc_fname} {data_fname}')
+else:
+    print('[!] something went wrong in saving sWeights')

@@ -94,8 +94,8 @@ def ratio_plot( histo_num = [], histo_den = [], to_ploton = [], file_name = 'rat
 
 def ratio_plot_CMSstyle(histo_num = [], histo_den = [], to_ploton = [], file_name = 'ratio_plot', **kwargs):
     # parse argument
-    for key, value in kwargs.items():
-        print(f'{key} : {value}')
+    #for key, value in kwargs.items():
+    #    print(f'{key} : {value}')
     ratio_w      = kwargs['ratio_w'] if 'ratio_w' in kwargs else 0.5
     ratio_yname  = kwargs['ratio_yname'] if 'ratio_yname' in kwargs else 'Data/MC'
     draw_opt_num = kwargs['draw_opt_num'] if 'draw_opt_num' in kwargs else 'hist'
@@ -105,10 +105,14 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], to_ploton = [], file_nam
     year         = kwargs['year'] if 'year' in kwargs else 2022
     x_lim        = kwargs['x_lim'] if 'x_lim' in kwargs else [histo_den.GetBinLowEdge(histo_den.FindFirstBinAbove(0.)), histo_den.GetBinLowEdge(histo_den.FindLastBinAbove(0.)+1)] 
     y_lim        = kwargs['y_lim'] if 'y_lim' in kwargs else [histo_den.GetMinimum(), 1.3*histo_den.GetMaximum()]
+    log_y        = kwargs['log_y'] if 'log_y' in kwargs else False
     
     # CMS style setting
+    if isMC :
+        CMS.SetLumi('')
+        CMSextraText = 'Simulation ' + CMSextraText
+    else: CMS.SetLumi(LumiVal_plots[str(year)])
     CMS.SetExtraText(CMSextraText)
-    if not isMC : CMS.SetLumi(LumiVal_plots[str(year)])
     CMS.SetEnergy(13.6)
 
     
@@ -117,7 +121,7 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], to_ploton = [], file_nam
     x_max = x_lim[1]
     y_min = y_lim[0]
     y_max = y_lim[1]
-    r_min = 1 - ratio_w 
+    r_min = np.max([0.0, 1 - ratio_w])
     r_max = 1 + ratio_w
     #c = ROOT.TCanvas("c", "", 1024, 1248)
     c = CMS.cmsDiCanvas('c', 
@@ -179,6 +183,7 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], to_ploton = [], file_nam
         fstyle = h_num.GetFillStyle(),
         ) 
     [obj.Draw() for obj in to_ploton]
+    c.SetLogy(log_y)
     CMS.fixOverlay()
     # draw in the ratio pad 
     c.cd(2)
@@ -196,4 +201,4 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], to_ploton = [], file_nam
     c.SaveAs(file_name + '.root')
 
     c.Clear()
-    return 1
+    return c

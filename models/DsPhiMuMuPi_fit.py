@@ -14,18 +14,23 @@ import sys
 sys.path.append('..')
 import mva.config as config
 
+
+category_list = ['A', 'B', 'C', 'ABC']
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--fake_cand',  action='store_true',                        help='activate it when running on 3 muons')
 parser.add_argument('--plot_outdir',default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/DsPhiMuMuPi/sPlot/', help=' output directory for plots')
 parser.add_argument('--tag',        default= 'reMini',                          help='tag to the training')
 parser.add_argument('--debug',      action = 'store_true' ,                     help='set it to have useful printout')
-parser.add_argument('--category',                             default = 'noCat',help='category to be used')
+parser.add_argument('--category',   choices=category_list,   default = 'ABC',help='category to be used')
 parser.add_argument('--year',       choices=['2022', '2023'], default = '2022', help='year of data-taking')
+parser.add_argument('--bdt_cut',    default = -1.0, type=float,                help='BDT cut value')
 
 args = parser.parse_args()
-tag = args.tag 
+tag = f'cat{args.category}' + (f'_bdt{args.bdt_cut:,.2f}' if args.bdt_cut > 0. else '') + f'_{args.tag}'
 
-
+# *** ROOT STYLES *** #
 ROOT.gROOT.SetBatch(True)
 ROOT.gStyle.SetOptStat(True)
 ROOT.TH1.SetDefaultSumw2()
@@ -37,15 +42,10 @@ nbins = 40 if not args.fake_cand else 25 # needed just for plotting, fits are al
 
 
 # *** INPUT DATA AND MONTE CARLO ***
-input_tree_name = 'DsPhiMuMuPi_tree' if not args.fake_cand else 'WTau3Mu_tree'
-mc_file = config.mc_samples['DsPhiMuMuPi'] if not args.fake_cand else \
-    [
-    #'../outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap_FakeDsRate.root',
-    #'../outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_FakeDsRate.root',
-    '../outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap_FakeDsRate.root',
-    '../outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_FakeDsRate.root',
-    ] 
-data_file = config.data_samples['DsPhiMuMuPi']
+#input_tree_name = 'DsPhiMuMuPi_tree' if not args.fake_cand else 'WTau3Mu_tree'
+input_tree_name = 'tree_w_BDT'
+mc_file     = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_DsPhiMuMuPi_MC_Optuna_HLT_overlap_LxyS2.1_2024Jul11.root' ]
+data_file   = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_DsPhiMuMuPi_DATA_Optuna_HLT_overlap_LxyS2.1_2024Jul11.root' ]
 # *** OUTPUT FILE *** #
 f_out_name = "DsPhiPi2022_wspace_%s.root"%(tag)
 f_out = ROOT.TFile(f_out_name, "RECREATE")
@@ -56,13 +56,14 @@ mass = ROOT.RooRealVar('Ds_fit_mass' if not args.fake_cand else 'tau_MuMuPi_mass
 mass.setRange('fit_range', fit_range_lo, fit_range_hi)
 mass.setRange('full_range', config.Ds_mass_range_lo, config.Ds_mass_range_lo)
 
-weight   = ROOT.RooRealVar('weight', 'weight'  , -900,  900, '')
+weight   = ROOT.RooRealVar('weight', 'weight'  , -1000,  1000, '')
 year_id  = ROOT.RooRealVar('year_id', 'year_id'  , 210,  270, '')
-mass_err = ROOT.RooRealVar('%s_fit_mass_err'%('Ds' if not args.fake_cand else 'tau'), '#sigma_{M(3 #mu)}/ M(3 #mu)'  , 0.0,  0.03, 'GeV' )
+mass_err = ROOT.RooRealVar('tau_fit_mass_err', '#sigma_{M(3 #mu)}/ M(3 #mu)'  , 0.0,  0.03, 'GeV' )
 eta      = ROOT.RooRealVar('Ds_fit_eta', '#eta_{#mu#mu#pi}'  , -4.0,  4.0)
-dspl_sig = ROOT.RooRealVar('%s_Lxy_sign_BS'%('Ds' if not args.fake_cand else 'tau'), ''  , 0.0,  1000)
-sv_prob  = ROOT.RooRealVar('%s_fit_vprob'%('Ds' if not args.fake_cand else 'tau'), ''  , 0.0,  1.0)
+dspl_sig = ROOT.RooRealVar('tau_Lxy_sign_BS', ''  , 0.0,  1000)
+sv_prob  = ROOT.RooRealVar('tau_fit_vprob', ''  , 0.0,  1.0)
 phi_mass = ROOT.RooRealVar('phi_fit_mass' if not args.fake_cand else 'tau_phiMuMu_mass', ''  , 0.5,  2.0, 'GeV')
+bdt_score= ROOT.RooRealVar('bdt_score', 'bdt_score', args.bdt_cut, 1.0)
 
 thevars = ROOT.RooArgSet()
 thevars.add(mass)
@@ -73,22 +74,25 @@ thevars.add(eta)
 thevars.add(dspl_sig)
 thevars.add(sv_prob)
 thevars.add(phi_mass)
+thevars.add(bdt_score)
 
 ### MC SIGNAL - FIT ###
 base_selection = '(' + ' & '.join([
     config.year_selection[args.year],
     config.Ds_base_selection,
     config.Ds_phi_selection,
-    config.Ds_sv_selection,
+    config.Tau_sv_selection,
+    config.Ds_category_selection[args.category],
 ]) + ')'
+if args.bdt_cut > 0.:
+    base_selection += ' & (bdt_score > %.2f)'%args.bdt_cut
 print('[i] base_selection = %s'%base_selection)
-sgn_selection  = base_selection 
 
 mc_tree = ROOT.TChain(input_tree_name)
 [mc_tree.AddFile(f) for f in mc_file]
 N_mc = mc_tree.GetEntries(base_selection)
 
-fullmc = ROOT.RooDataSet('mc_DsPhiMuMuPi', 'mc_DsPhiMuMuPi', mc_tree, thevars, sgn_selection, 'weight')
+fullmc = ROOT.RooDataSet('mc_DsPhiMuMuPi', 'mc_DsPhiMuMuPi', mc_tree, thevars, base_selection, 'weight')
 fullmc.Print()
 print('entries = %.2f'%fullmc.sumEntries() )
 print('weight  = %e'%fullmc.weight() )
@@ -102,7 +106,14 @@ mean_mc   = ROOT.RooFormulaVar('mean_mc','mean_mc', '(@0+@1)', ROOT.RooArgList(M
 width1_mc = ROOT.RooRealVar('width1_mc',  'width1_mc', 0.05,    0.001, 0.1)
 width2_mc = ROOT.RooRealVar('width2_mc',  'width2_mc', 0.01,    0.001, 0.1)
 
+
 gfrac       = ROOT.RooRealVar("gfrac", "", 0.2, 0.0, 1.0)
+# single gaussian for cat C
+if (args.category == 'C' and args.bdt_cut > 0.9):
+    gfrac.setVal(0.0)
+    gfrac.setConstant(True)
+    width1_mc.setVal(0.01)
+    width1_mc.setConstant(True)
 gaus1_mc    = ROOT.RooGaussian('gaus1_mc', 'gaus1', mass, mean_mc, width1_mc)
 gaus2_mc    = ROOT.RooGaussian('gaus2_mc', 'gaus2', mass, mean_mc, width2_mc)
 gsum_mc     = ROOT.RooAddModel('gsum_mc', "", [gaus1_mc, gaus2_mc], [gfrac])
@@ -179,7 +190,7 @@ data_tree = ROOT.TChain(input_tree_name)
 [data_tree.AddFile(f) for f in data_file]
 N_data = data_tree.GetEntries(base_selection) 
 
-datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, sgn_selection, 'weight')
+datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, base_selection, 'weight')
 datatofit.Print()
 bkg_efficiency = datatofit.sumEntries()/N_data
 
@@ -209,7 +220,11 @@ p1  = ROOT.RooRealVar("p1", "p1", -0.1, -1., 1.)
 poly = ROOT.RooPolynomial('poly', 'poly', mass, ROOT.RooArgList(p1))
 
 # D+ fraction
-Dp_f     = ROOT.RooRealVar("Dp_f", "", 0.02, 0.005, 0.5)
+Dp_f     = ROOT.RooRealVar("Dp_f", "", 0.0001, 0.005, 0.5)
+# no D+ in category C
+if (args.category == 'C' and args.bdt_cut > 0.9):
+    Dp_f.setVal(0.0)
+    Dp_f.setConstant(True)
 full_bkg = ROOT.RooAddModel("full_bkg", "", [gaus_Dp, poly], [Dp_f])
 
 nDs = ROOT.RooRealVar('nDs', 'Ds yield', 0.01*datatofit.numEntries(), 0.001*datatofit.numEntries(), 0.5*datatofit.numEntries())
