@@ -41,27 +41,28 @@ for obs in obs_list:
     histo_NLO   = input_file.Get(f'h_Wgen_NLO_{obs}')
     histo_NLO.SetLineColor(ROOT.kRed)
     histo_NLO.SetLineWidth(2)
-
-    c = ROOT.TCanvas(f'c_{obs}', "c", 800, 800)
-    c.cd()
-    histo_LO.Draw("HISTE")
-    histo_NLO.Draw("HISTE same")
+    
     legend.AddEntry(histo_LO, 'LO', 'l')
     legend.AddEntry(histo_NLO, 'NLO', 'l')
-    legend.Draw()
-    c.SaveAs(f'plots/W_{obs}_NLOvsLO.png')
-    c.SaveAs(f'plots/W_{obs}_NLOvsLO.pdf')
+
+    #c = ROOT.TCanvas(f'c_{obs}', "c", 800, 800)
+    #c.cd()
+    #histo_LO.Draw("HISTE")
+    #histo_NLO.Draw("HISTE same")
+    #legend.Draw()
+    #c.SaveAs(f'plots/W_NLOvsLO_{args.year}_{obs}.png')
+    #c.SaveAs(f'plots/W_NLOvsLO_{args.year}_{obs}.pdf')
 
     # ratio plot
     ratio_plot_CMSstyle(
         histo_num = [histo_NLO], 
-        histo_den = histo_LO, 
+        histo_den = histo_LO,
         isMC = True,
-        year = 2022,
+        year = args.year,
         ratio_yname = 'NLO/LO',
         ratio_w = 2.0,
         to_ploton=[legend],
-        file_name = f'plots/W_NLOvsT3m_ratio_{args.year}_{obs}', 
+        file_name = f'plots/W_NLOvsLO_ratio_{args.year}_{obs}', 
     )
 
 
