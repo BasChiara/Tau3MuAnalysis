@@ -49,10 +49,15 @@ class WTau3Mu_tools : public WTau3Mu_base{
    // sort candidates by transverse mass
    std::vector<unsigned int> sorted_cand_mT();
    // scale factors
+   // muon ID
    int    parseMuonSF(const TString & era = "2022preEE", const TString & pTrange = "low" );
    int    applyMuonSF(const int& TauIdx);
+   // PU re-weight
    int    parsePUweights(const TString & era = "2022preEE");
    int    applyPUreweight();
+   // NLO re-weight
+   int    parseNLOweights(const TString & era = "2022preEE");
+   int    applyNLOreweight(const float& W_pt, const float& W_eta);
 
    const std::string muons_IDsf_set_ = "NUM_MediumID_DEN_TrackerMuons";
 
@@ -83,7 +88,14 @@ class WTau3Mu_tools : public WTau3Mu_base{
    TH1D* h_PUweights_sysUP       =0;
    TH1D* h_PUweights_sysDOWN     =0;
 
-   float PU_weight, PU_weight_up, PU_weight_down; 
+   float PU_weight, PU_weight_up, PU_weight_down;
+
+   // NLO weights
+   TH2F* h_NLOweights            =0;
+   TH2F* h_NLOweights_sysUP      =0;
+   TH2F* h_NLOweights_sysDOWN    =0;
+
+   float NLO_weight, NLO_weight_up, NLO_weight_down;
 
    private:
    bool debug = false; 

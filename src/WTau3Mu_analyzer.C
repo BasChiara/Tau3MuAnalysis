@@ -42,6 +42,7 @@ void WTau3Mu_analyzer::Loop(){
       Run = run;
       Event = event;
       nGoodPV = PV_npvsGood;
+      Rho_Fj  = Rho_fixedGridRhoFastjetAll;
 
       if(isMC_){
          // --- MC truth & matching
@@ -54,6 +55,9 @@ void WTau3Mu_analyzer::Loop(){
          W_gen_pt = GenW_P4.Pt(); W_gen_eta = GenW_P4.Eta(); W_gen_phi = GenW_P4.Phi();
          Nu_gen_pt = GenNu_P4.Pt(); Nu_gen_eta = GenNu_P4.Eta(); Nu_gen_phi = GenNu_P4.Phi();
          gen_met_pt = GenMET_pt; gen_met_phi = GenMET_phi;
+
+         // --- NLO weights
+         applyNLOreweight(W_gen_pt, W_gen_eta);
       }
 
       // --- PU weights
@@ -254,12 +258,18 @@ void WTau3Mu_analyzer::saveOutput(){
 
    outTree_->Write();
    if(isMC_){
+      // muon ID
       h_muonSF_lowpT->Write();
       h_muonSF_lowpT_sysUP->Write();
       h_muonSF_lowpT_sysDOWN->Write();
+      // PU
       h_PUweights->Write();
       h_PUweights_sysUP->Write();
       h_PUweights_sysDOWN->Write();
+      // NLO
+      h_NLOweights->Write();
+      h_NLOweights_sysUP->Write();
+      h_NLOweights_sysDOWN->Write();
 
    }
    outFile_->Close();
@@ -278,6 +288,7 @@ void WTau3Mu_analyzer::outTreeSetUp(){
    outTree_->Branch("event", &Event, "Event/l");
    outTree_->Branch("year_id", &year_id_, "year_id/i"); 
    outTree_->Branch("nGoodPV", &nGoodPV, "nGoodPV/i");
+   outTree_->Branch("Rho_Fj", &Rho_Fj, "Rho_Fj/F");
    // lumi & scale factors
    outTree_->Branch("weight",                   &weight,                   "weight/F");
    outTree_->Branch("lumi_factor",              &lumi_factor,              "lumi_factor/F");
@@ -293,6 +304,9 @@ void WTau3Mu_analyzer::outTreeSetUp(){
    outTree_->Branch("PU_weight",                &PU_weight,                "PU_weight/F");
    outTree_->Branch("PU_weight_up",             &PU_weight_up,             "PU_weight_up/F");
    outTree_->Branch("PU_weight_down",           &PU_weight_down,           "PU_weight_down/F");
+   outTree_->Branch("NLO_weight",               &NLO_weight,               "NLO_weight/F");
+   outTree_->Branch("NLO_weight_sysUP",         &NLO_weight_up,            "NLO_weight_sysUP/F");
+   outTree_->Branch("NLO_weight_sysDOWN",       &NLO_weight_down,          "NLO_weight_sysDOWN/F");
    outTree_->Branch("isMCmatching",             &isMCmatching,             "isMCmatching/I");
    // * HLT
    outTree_->Branch("HLT_isfired_Tau3Mu",     &HLT_isfired_Tau3Mu,   "HLT_isfired_Tau3Mu/I");

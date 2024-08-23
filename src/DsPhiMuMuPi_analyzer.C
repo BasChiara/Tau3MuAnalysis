@@ -39,6 +39,7 @@ void DsPhiMuMuPi_analyzer::Loop(){
       Run = run;
       Event = event;
       nGoodPV = PV_npvsGood;
+      Rho_Fj = Rho_fixedGridRhoFastjetAll;
       // --- MC truth & matching
       if(isMC_) {
          GenPartFillP4();
@@ -227,6 +228,7 @@ void DsPhiMuMuPi_analyzer::outTreeSetUp(){
    outTree_->Branch("event",     &Event,     "Event/l");
    outTree_->Branch("year_id",   &year_id_,  "year_id/i");
    outTree_->Branch("nGoodPV",   &nGoodPV,   "nGoodPV/i");
+   outTree_->Branch("Rho_Fj",    &Rho_Fj,    "Rho_Fj/F");
    // lumi & scale factors
    outTree_->Branch("weight",                   &weight,                   "weight/F");
    outTree_->Branch("lumi_factor",              &lumi_factor,              "lumi_factor/F");

@@ -540,8 +540,41 @@ int WTau3Mu_tools::applyPUreweight(){
    int bin = h_PUweights->FindBin(Pileup_nTrueInt); 
    if (bin < 0 ) std::cout << "[ERROR] Pileup_nTrueInt outside PU-weights range" << std::endl;
    PU_weight      = (bin > 0 ? h_PUweights->GetBinContent(bin) : 1.0 ); 
-   PU_weight_up   = (bin > 0 ? h_PUweights_sysUP->GetBinContent(bin) : 1.0 ); 
-   PU_weight_down = (bin > 0 ? h_PUweights_sysDOWN->GetBinContent(bin) : 1.0 ); 
+   PU_weight_up   = (bin > 0 ? h_PUweights_sysUP->GetBinContent(bin) : 0.0 ); 
+   PU_weight_down = (bin > 0 ? h_PUweights_sysDOWN->GetBinContent(bin) : 0.0 ); 
 
    return 0;
 }//applyPUreweight
+
+
+int WTau3Mu_tools::parseNLOweights(const TString & era){
+
+   TFile * file_weights = new TFile(scale_factor_src::NLOweight_rootfile);
+   if (file_weights->IsZombie()) {
+      std::cerr << "[ERROR] NLO weights file not found" << std::endl;
+      return 1;
+   }
+   std::cout << "[+] parse NLO weights from \n " << file_weights->GetName() << std::endl; 
+   h_NLOweights          = (TH2F*)((file_weights->Get(scale_factor_src::NLOweights_hist[era]+"_nominal"))->Clone());
+   h_NLOweights->SetDirectory(0);
+   h_NLOweights_sysUP    = (TH2F*)((file_weights->Get(scale_factor_src::NLOweights_hist[era]+"_up"))->Clone());
+   h_NLOweights_sysUP->SetDirectory(0);
+   h_NLOweights_sysDOWN  = (TH2F*)((file_weights->Get(scale_factor_src::NLOweights_hist[era]+"_down"))->Clone());
+   h_NLOweights_sysDOWN->SetDirectory(0);
+
+   file_weights->Close(); 
+    
+   return 0;
+}//parseNLOweights
+
+int WTau3Mu_tools::applyNLOreweight(const float& W_pt, const float& W_eta){
+   
+   int bin = h_NLOweights->FindBin(W_pt, std::abs(W_eta));
+   // (pT, eta) outside NLO weight range -> SF = 1.0 +/- 0.0
+   if (bin < 0 ) std::cout << "[INFO] GenW_P4.Pt() outside NLO-weights range" << std::endl;
+   NLO_weight      = (bin > 0 ? h_NLOweights->GetBinContent(bin) : 1.0 ); 
+   NLO_weight_up   = (bin > 0 ? h_NLOweights_sysUP->GetBinContent(bin) : 0.0 ); 
+   NLO_weight_down = (bin > 0 ? h_NLOweights_sysDOWN->GetBinContent(bin) : 0.0 ); 
+
+   return 0;
+}//applyNLOreweight

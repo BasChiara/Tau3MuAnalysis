@@ -44,6 +44,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
          if (isMC_){
             parseMuonSF(year_, "low");
             parsePUweights(year_);
+            parseNLOweights(year_);
          }
 
          // name and setup the output
@@ -93,6 +94,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       UInt_t LumiBlock, Run;
       ULong64_t Event;
       int nGoodPV;
+      float Rho_Fj;
       int isMCmatching;
       // total weight : lumi and scale facors(in tools)
       float weight;

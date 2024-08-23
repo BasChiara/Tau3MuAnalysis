@@ -77,29 +77,35 @@ int main(int argc, char* argv[]) {
     std::cout << "[+] NLO file has " << tree_NLO.GetEntries() << " entries" << std::endl;
     std::cout << std::endl;
     // --- W kinematics
-    // pT
+    // pT vs eta
     int pT_bins = 15;
     double pT_lo = 0, pT_hi = 150;
-    tree_t3m.Draw(("GenPart_pt>>h_Wgen_t3m_pT(" + std::to_string(pT_bins) + "," + std::to_string(pT_lo) + "," + std::to_string(pT_hi) + ")").c_str(), Wgen_selection.c_str(), "goff");
-    TH1F* h_Wgen_t3m_pT = (TH1F*)gDirectory->Get("h_Wgen_t3m_pT");
-    tree_NLO.Draw(("GenPart_pt>>h_Wgen_NLO_pT(" + std::to_string(pT_bins) + "," + std::to_string(pT_lo) + "," + std::to_string(pT_hi) + ")").c_str(), Wgen_selection.c_str(), "goff");
-    TH1F* h_Wgen_NLO_pT = (TH1F*)gDirectory->Get("h_Wgen_NLO_pT");
+    int eta_bins  = 20;
+    double eta_lo = 0, eta_hi = 10;
+
+    tree_t3m.Draw(("fabs(GenPart_eta):GenPart_pt>>h_Wgen_"+ year +"_t3m_pTeta(" + std::to_string(pT_bins) + "," + std::to_string(pT_lo) + "," + std::to_string(pT_hi) + "," + std::to_string(eta_bins) + "," + std::to_string(eta_lo) + "," + std::to_string(eta_hi) + ")").c_str(), Wgen_selection.c_str(), "goff");
+    TH2F* h_Wgen_t3m_pTeta = (TH2F*)gDirectory->Get(Form("h_Wgen_%s_t3m_pTeta", year.c_str()));
+    tree_NLO.Draw(("fabs(GenPart_eta):GenPart_pt>>h_Wgen_"+ year +"_NLO_pTeta(" + std::to_string(pT_bins) + "," + std::to_string(pT_lo) + "," + std::to_string(pT_hi) + "," + std::to_string(eta_bins) + "," + std::to_string(eta_lo) + "," + std::to_string(eta_hi) + ")").c_str(), Wgen_selection.c_str(), "goff");
+    TH2F* h_Wgen_NLO_pTeta = (TH2F*)gDirectory->Get(Form("h_Wgen_%s_NLO_pTeta", year.c_str()));
+    std::cout << "... done with pT VS eta histo" << std::endl;
+    // pT
+    TH1D* h_Wgen_t3m_pT = h_Wgen_t3m_pTeta->ProjectionX(Form("h_Wgen_%s_t3m_pT", year.c_str()));
+    TH1D* h_Wgen_NLO_pT = h_Wgen_NLO_pTeta->ProjectionX(Form("h_Wgen_%s_NLO_pT", year.c_str()));
+    //tree_t3m.Draw(("GenPart_pt>>h_Wgen_t3m_pT(" + std::to_string(pT_bins) + "," + std::to_string(pT_lo) + "," + std::to_string(pT_hi) + ")").c_str(), Wgen_selection.c_str(), "goff");
+    //TH1F* h_Wgen_t3m_pT = (TH1F*)gDirectory->Get("h_Wgen_t3m_pT");
+    //tree_NLO.Draw(("GenPart_pt>>h_Wgen_NLO_pT(" + std::to_string(pT_bins) + "," + std::to_string(pT_lo) + "," + std::to_string(pT_hi) + ")").c_str(), Wgen_selection.c_str(), "goff");
+    //TH1F* h_Wgen_NLO_pT = (TH1F*)gDirectory->Get("h_Wgen_NLO_pT");
     std::cout << "... done with pT histo" << std::endl;
     // eta
-    int eta_bins = 14;
-    double eta_lo = -3.5, eta_hi = 3.5;
-    tree_t3m.Draw(("GenPart_eta>>h_Wgen_t3m_eta(" + std::to_string(eta_bins) + "," + std::to_string(eta_lo) + "," + std::to_string(eta_hi) + ")").c_str(), Wgen_selection.c_str(), "goff");
-    TH1F* h_Wgen_t3m_eta = (TH1F*)gDirectory->Get("h_Wgen_t3m_eta");
-    tree_NLO.Draw(("GenPart_eta>>h_Wgen_NLO_eta(" + std::to_string(eta_bins) + "," + std::to_string(eta_lo) + "," + std::to_string(eta_hi) + ")").c_str(), Wgen_selection.c_str(), "goff");
-    TH1F* h_Wgen_NLO_eta = (TH1F*)gDirectory->Get("h_Wgen_NLO_eta");
+    TH1D* h_Wgen_t3m_eta = h_Wgen_t3m_pTeta->ProjectionY(Form("h_Wgen_%s_t3m_eta", year.c_str()));
+    TH1D* h_Wgen_NLO_eta = h_Wgen_NLO_pTeta->ProjectionY(Form("h_Wgen_%s_NLO_eta", year.c_str()));
+    //tree_t3m.Draw(("GenPart_eta>>h_Wgen_t3m_eta(" + std::to_string(eta_bins) + "," + std::to_string(eta_lo) + "," + std::to_string(eta_hi) + ")").c_str(), Wgen_selection.c_str(), "goff");
+    //TH1F* h_Wgen_t3m_eta = (TH1F*)gDirectory->Get("h_Wgen_t3m_eta");
+    //tree_NLO.Draw(("GenPart_eta>>h_Wgen_NLO_eta(" + std::to_string(eta_bins) + "," + std::to_string(eta_lo) + "," + std::to_string(eta_hi) + ")").c_str(), Wgen_selection.c_str(), "goff");
+    //TH1F* h_Wgen_NLO_eta = (TH1F*)gDirectory->Get("h_Wgen_NLO_eta");
     std::cout << "... done with eta histo" << std::endl;
 
-    // pT vs eta
-    tree_t3m.Draw(("GenPart_pt:GenPart_eta>>h_Wgen_t3m_pTeta(" + std::to_string(eta_bins) + "," + std::to_string(eta_lo) + "," + std::to_string(eta_hi) + "," + std::to_string(pT_bins) + "," + std::to_string(pT_lo) + "," + std::to_string(pT_hi) + ")").c_str(), Wgen_selection.c_str(), "goff");
-    TH2F* h_Wgen_t3m_pTeta = (TH2F*)gDirectory->Get("h_Wgen_t3m_pTeta");
-    tree_NLO.Draw(("GenPart_pt:GenPart_eta>>h_Wgen_NLO_pTeta(" + std::to_string(eta_bins) + "," + std::to_string(eta_lo) + "," + std::to_string(eta_hi) + "," + std::to_string(pT_bins) + "," + std::to_string(pT_lo) + "," + std::to_string(pT_hi) + ")").c_str(), Wgen_selection.c_str(), "goff");
-    TH2F* h_Wgen_NLO_pTeta = (TH2F*)gDirectory->Get("h_Wgen_NLO_pTeta");
-    std::cout << "... done with pT VS eta histo" << std::endl;
+    
 
     // normalize
     h_Wgen_t3m_eta->Scale(1/h_Wgen_t3m_eta->Integral());
@@ -109,7 +115,7 @@ int main(int argc, char* argv[]) {
     h_Wgen_t3m_pTeta->Scale(1/h_Wgen_t3m_pTeta->Integral());
     h_Wgen_NLO_pTeta->Scale(1/h_Wgen_NLO_pTeta->Integral());
 
-    TH2F* h_Wgen_ratio = (TH2F*)h_Wgen_NLO_pTeta->Clone("h_Wgen_ratio");
+    TH2F* h_Wgen_ratio = (TH2F*)h_Wgen_NLO_pTeta->Clone(Form("h_Wgen_%s_ratio_pTeta", year.c_str()));
     h_Wgen_ratio->Divide(h_Wgen_t3m_pTeta);
 
     // --- save to file

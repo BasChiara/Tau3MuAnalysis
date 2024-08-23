@@ -175,8 +175,14 @@ namespace LumiRun3
         {"2023BPix"       , 0.00100}, 
     };
 }
+
+//*******************
+//*  SCALE FACTORS  *
+//*******************
+
 namespace scale_factor_src
 {
+    // muon ID
     inline std::string base_dir = "/afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/";
     inline std::map<TString, std::string> IDsf_jsonfile_Jpsi{
         {"2022preEE"      , base_dir + "/include/scale_factors/ScaleFactors_Muon_Jpsi_ID_2022_schemaV2.json"}, 
@@ -190,12 +196,21 @@ namespace scale_factor_src
         {"2023preBPix"    , base_dir + "/include/scale_factors/ScaleFactors_Muon_Z_ID_ISO_2023_schemaV2.json"}, 
         {"2023BPix"       , base_dir + "/include/scale_factors/"}, 
     };
+    // PU weights
     inline TString PUweight_rootfile = base_dir + "corrections/pileup/puWeights_CollisionsRun3_GoldenJson_2024Jun23.root"; 
     inline std::map<TString, TString> PUweights_hist{
         {"2022preEE"      , "Collisions2022_355100_357900_eraBCD_GoldenJson"},
         {"2022EE"         , "Collisions2022_359022_362760_eraEFG_GoldenJson"},
         {"2023preBPix"    , "Collisions2023_366403_369802_eraBC_GoldenJson"},
         {"2023BPix"       , "Collisions2023_369803_370790_eraD_GoldenJson"},
+    };
+    // NLO weights
+    inline TString NLOweight_rootfile = base_dir + "corrections/NLO_W/SF_source/W_NLOvsT3m_Run3.root";
+    inline std::map<TString, TString> NLOweights_hist{ 
+        {"2022preEE"      , "h_Wgen_2022preEE_ratio_pTeta"},
+        {"2022EE"         , "h_Wgen_2022EE_ratio_pTeta"},
+        {"2023preBPix"    , "h_Wgen_2023preBPix_ratio_pTeta"},
+        {"2023BPix"       , "h_Wgen_2023BPix_ratio_pTeta"},
     };
 }
 #endif

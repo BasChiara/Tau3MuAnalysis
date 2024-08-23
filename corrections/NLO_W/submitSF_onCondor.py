@@ -15,7 +15,7 @@ def main():
     ############# USAGE #############
 
     # --defaults
-    executable = 'NLO_Wkinematics_correction.C'
+    executable = 'NLO_Wkinematics_correction'
     year_era_list = ['2022preEE', '2022EE', '2023preBPix', '2023BPix']
     NLO_file_list = [
         'WtoLNu-2Jets_Run3Summer22preEENanoAODv12_fileList.txt',
@@ -49,10 +49,10 @@ def main():
     # --> setup the ouput directory
     if not os.path.isdir(opt.plot_outdir):
         os.system(f'mkdir -p {opt.plot_outdir}')
-        os.system(f'cp ~/public/index.php {opt.plot_outdir}')
-        print(f'[+] plot-directory created : {opt.plot_outdir}')
+        #os.system(f'cp ~/public/index.php {opt.plot_outdir}')
+        print(f'[+] output-directory created : {opt.plot_outdir}')
     else:
-        print(f'[+] plot-directory already exists : {opt.plot_outdir}')
+        print(f'[+] output-directory already exists : {opt.plot_outdir}')
 
     # --> set-up the report directory
     jobdir = f'./{opt.prefix}/NLOreweight_{opt.tag}_'+ now.strftime("%Y%m%d_%H%M%S")
@@ -83,7 +83,7 @@ cmsenv
 cd {pwd} 
 echo $PWD\n
 
-./NLO_Wkinematics_correction.exe --lo {f_lo} --nlo {f_nlo} -y {year} -o {out}
+./NLO_Wkinematics_correction --lo {f_lo} --nlo {f_nlo} -y {year} -o {out}
     '''.format(
         pwd     = pwd,
         f_lo    = LO_file_dict[year],

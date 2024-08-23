@@ -85,6 +85,7 @@ class DsPhiMuMuPi_analyzer : public DsPhiMuMuPi_tools{
       UInt_t LumiBlock, Run;
       ULong64_t Event;
       int nGoodPV;
+      float Rho_Fj;
       // total weight : lumi and scale factor
       float weight;
       float lumi_factor = 1.0;
