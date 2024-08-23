@@ -1,6 +1,9 @@
 import os
-import sys
+import glob
 import argparse
+import sys 
+sys.path.append(os.path.abspath('..'))
+from plots.color_text import color_text as ct
 
 usage = 'usage : python3 makeNanoAOD_inoutLists.py'
 parser = argparse.ArgumentParser(usage = usage)
@@ -22,11 +25,26 @@ elif (args.site == 'T2_IT_Rome'):
     base_path = '/pnfs/roma1.infn.it/data/cms/'
     xrootd_str = 'root://xrootd-cms.infn.it///'
 else :
-    raise Exception("[ERROR] site %s not recognized"%args.site)
+    raise Exception(f"{ct.RED}[ERROR]{ct.END} site %s not recognized"%args.site)
 
+# retrive obtag list form eos
 Ndatasets = 8
-if (len(args.jobtag) != Ndatasets):
-    raise Exception("[ERROR] jobtags list should be of size %d, size is %d"%len(Ndatasets, args.jobtag))
+jobtag_list = []
+if args.site == 'eos':
+    for n in range(Ndatasets):
+        data_dir = args.path + "/" + args.dataset + "%d/crab_data_Run%s%s_%d"%(n, args.year, args.era, n)
+        # check if the directory exists
+        if not os.path.isdir(data_dir):
+            print(f' {ct.YELLOW}[WARNING]{ct.END} {data_dir} does not exist')
+            jobtag_list.append('999999')
+        else:
+            jobtag_list.append(os.listdir(data_dir)[0])
+    print("[=] jobtags list %s"%jobtag_list)
+else:
+    if (len(args.jobtag) != Ndatasets):
+        raise Exception(f"{ct.RED}[ERROR]{ct.END} jobtags list should be of size %d, size is %d"%len(Ndatasets, args.jobtag))
+    else :
+        jobtag_list = args.jobtag
 
 # remove site domain
 print("[+] reading files from %s"%args.path)
@@ -35,19 +53,18 @@ print(" base path with xrootd protocol %s" %ntuples_path)
 
 # set output 
 if os.path.isfile(args.output):
-    raise Exception("[ERROR] just specify the output folder")
+    raise Exception(f"{ct.RED}[ERROR]{ct.END} just specify the output folder")
 if os.path.isdir(args.output):
     print("[OUT] save lists in existing directory %s"%args.output)
 else :
     print("[OUT] creating directory %s"%args.output)
     os.makedirs(args.output)
 
-
-for n, job in enumerate(args.jobtag):
+for n, job in enumerate(jobtag_list):
     outfile = args.output + "/" + args.dataset + "%d_%s%s.txt"%(n, args.year, args.era)
     f = open(outfile, 'w+')
     for i in range(args.kfolders):
         line = ntuples_path + "/" + args.dataset +"%d/crab_data_Run%s%s_%d/%s/%04d/%s"%(n, args.year, args.era, n, job, i,args.filename) + (str(i) if i>0 else '') + '\n'
         f.write(line)
-    print("[=] written %s"%outfile)
+    print(f"{ct.GREEN}[=]{ct.END} written %s"%outfile)
     f.close()

@@ -1,1 +1,1 @@
-root://xrootd-cms.infn.it///store/group/phys_bphys/cbasile/Tau3MuNano2022_2024Jan29//ParkingDoubleMuonLowMass6/crab_data_Run2023Cv2_6/240129_162100/0000/tau3muNANO_data_2024Jan29_
+root://eoscms.cern.ch///store/group/phys_bphys/cbasile/Tau3MuNano_2024Aug03//ParkingDoubleMuonLowMass6/crab_data_Run2023Cv2_6/240803_093254/0000/tau3muNANO_data_2024Aug03_
