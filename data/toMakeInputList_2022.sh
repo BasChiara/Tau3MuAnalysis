@@ -16,7 +16,7 @@ python3 makeNanoAOD_inputLists.py -p $FILE_PATH -s $SITE -o $OUT_PATH -y 2022 -e
 # (v2)
 python3 makeNanoAOD_inputLists.py -p $FILE_PATH -s $SITE -o $OUT_PATH -y 2022 -e Dv2 -f $FILE_TAG 
 FILE_PATH='/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano_2024Aug05/'
-FILE_TAG='tau3muNANO_data_2024Aug06_'
+FILE_TAG='tau3muNANO_data_2024Aug05_'
 # 2022 E 
 python3 makeNanoAOD_inputLists.py -p $FILE_PATH -s $SITE -o $OUT_PATH -y 2022 -e Ev1 -f $FILE_TAG -k 2 
 # 2022 F
