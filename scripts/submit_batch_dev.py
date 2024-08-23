@@ -20,12 +20,14 @@
 
 
 import os
-import sys
 import re
 import time
 import optparse
 import datetime
 import numpy as np
+import sys
+sys.path.append("./")
+from plots.color_text import color_text as ct
 
 def makeCondorFile(jobdir, srcFiles, batch_name, options):
     dummy_exec = open(jobdir+'/dummy_exec.sh','w')
@@ -91,9 +93,10 @@ def main():
         print('[ERROR] no arguments were provided') 
         print(usage)
         sys.exit(1)
-    print('\n[+] reading input from')
+    print('\n')
+    print(f'{ct.BOLD}[+] reading input from')
     [print('   '+a) for a in args]
-    print('---------------------------------------------------')
+    print(f'---------------------------------------------------{ct.END}')
 
     ##### INPUT/OUTPUT #####
     # --> .txt files containg the ntuples path
@@ -174,7 +177,7 @@ def main():
                 if not (os.path.isdir(outdireos)): os.system('mkdir -p '+outdireos)
                 srcfile.write('cp '+rootoutputfile+' '+ outdireos +'\n')
                 srcfile.write('rm '+rootoutputfile)
-                print("  [OUT] output saved in final destination : " + outdireos)
+                print(f'  [OUT] output saved in final destination : {outdireos}')
             srcfile.close()
 
             logfile = jobdir+"/log/"+dataset+"_"+str(abs_job_id)+".log"

@@ -2,6 +2,9 @@ import os
 import sys
 import argparse
 import glob
+import sys
+sys.path.append('..')
+from plots.color_text import color_text as ct
 
 usage = 'usage : python hadd_file.py'
 parser = argparse.ArgumentParser(usage = usage)
@@ -14,13 +17,13 @@ parser.add_argument('--hlt',          default = 'HLT_Tau3Mu', help = 'hlt applie
 parser.add_argument('--skip_files',   nargs = '*', type = int, help = 'dataset to skip' )
 
 args = parser.parse_args()
-print(' [+] hadd files from '+ args.path)
+print(f' {ct.BOLD}[+]{ct.END} hadd files from '+ args.path)
 if args.skip_files:
-   print('  [-] skip datasets '+ str(args.skip_files)[1:-1])
+   print(f'  {ct.PURPLE}[-]{ct.END} skip datasets '+ str(args.skip_files)[1:-1])
 
 
 out_file = args.path+'/'+args.app+'_'+args.dataset+'_'+args.year+args.era+'_'+args.hlt+'.root'
-hadd_command = 'hadd -f ' + out_file
+hadd_command = 'hadd -f -v 1 ' + out_file
 N_datasetParkingDoubleMuonLowMass = 8
 # /eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/condor_data/ParkingDoubleMuonLowMass0_2022E/recoKinematicsT3m_ParkingDoubleMuonLowMass0_2022E_ 
 for n in range(N_datasetParkingDoubleMuonLowMass):
@@ -31,15 +34,15 @@ for n in range(N_datasetParkingDoubleMuonLowMass):
    # number of file to hadd
    N_files = len(glob.glob(path_to_hadd))
    hadd_command += ' '+path_to_hadd
-print(f' [i] adding {N_files} files from {args.dataset}_{args.year}{args.era} to {out_file}')
+print(f'{ct.BOLD} [i]{ct.END} adding {N_files} files from {args.dataset}_{args.year}{args.era} to {out_file}')
 #print(hadd_command)
 os.system(hadd_command)
 
 # check if the output file exists
 print('\n... cecking if the output file exists')
 if not os.path.isfile(out_file):
-   print(f' [ERROR] output file {out_file} does not exist')
+   print(f' {ct.RED}[ERROR]{ct.END} output file {out_file} does not exist')
    sys.exit(1)
 else:
-   print(f' [+] output file {out_file} exists :)')
+   print(f' {ct.GREEN}[+]{ct.END} output file {out_file} exists :)')
    sys.exit(0)
