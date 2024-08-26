@@ -523,11 +523,11 @@ int WTau3Mu_tools::parsePUweights(const TString & era){
 
    TFile * file_weights = new TFile(scale_factor_src::PUweight_rootfile);
    std::cout << "[+] parse PU weights from \n " << file_weights->GetName() << std::endl; 
-   h_PUweights          = (TH1D*)((file_weights->Get(scale_factor_src::PUweights_hist[era]+"_nominal"))->Clone());
+   h_PUweights          = (TH1D*)((file_weights->Get(scale_factor_src::centralPUweights_hist[era]+"_nominal"))->Clone());
    h_PUweights->SetDirectory(0);
-   h_PUweights_sysUP    = (TH1D*)((file_weights->Get(scale_factor_src::PUweights_hist[era]+"_up"))->Clone());
+   h_PUweights_sysUP    = (TH1D*)((file_weights->Get(scale_factor_src::centralPUweights_hist[era]+"_up"))->Clone());
    h_PUweights_sysUP->SetDirectory(0);
-   h_PUweights_sysDOWN  = (TH1D*)((file_weights->Get(scale_factor_src::PUweights_hist[era]+"_down"))->Clone());
+   h_PUweights_sysDOWN  = (TH1D*)((file_weights->Get(scale_factor_src::centralPUweights_hist[era]+"_down"))->Clone());
    h_PUweights_sysDOWN->SetDirectory(0);
 
    file_weights->Close(); 

@@ -8,19 +8,21 @@ import datetime
 import numpy as np
 
 debug = False
-base_cJson = "/eos/user/c/cmsdqm/www/CAF/certification/"
+# central corrections in correctionlib format
+#       --> from https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration
+base_cJson = "/cvmfs/cms.cern.ch/rsync/cms-nanoAOD/jsonpog-integration/POG/LUM/"
 json_file_list = [
-   "Collisions22/PileUp/BCD/pileup_JSON.txt", 
-   "Collisions22/PileUp/EFG/pileup_JSON.txt", 
-   "Collisions23/PileUp/BC/pileup_JSON.txt", 
-   "Collisions23/PileUp/D/pileup_JSON.txt", 
+   base_cJson +  "2022_Summer22/puWeights.json.gz",
+   base_cJson +  "2022_Summer22EE/puWeights.json.gz",
+   base_cJson +  "2023_Summer23/puWeights.json.gz",
+   base_cJson +  "2023_Summer23BPix/puWeights.json.gz",
 ]
 value_list = ["nominal", "up", "down"]
 
 PU_lo, PU_hi, binw = 0.0, 100.0, 1.0
 binning = np.arange(PU_lo, PU_hi, binw)
 if debug : print(binning)
-outfile = ROOT.TFile("./puWeights_CollisionsRun3_GoldenJson_"+datetime.date.today().strftime('%Y%b%d')+".root", "RECREATE")
+outfile = ROOT.TFile("./weights/puWeights_CollisionsRun3_GoldenJson_"+datetime.date.today().strftime('%Y%b%d')+".root", "RECREATE")
 print(f'[+] PU weights will be saved in {outfile}')
 
 for json_file in json_file_list:

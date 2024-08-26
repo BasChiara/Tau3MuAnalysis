@@ -81,13 +81,13 @@ namespace yearID
         {"ParkingDoubleMuonLowMass6_2022Ev1"       , 225},
         {"ParkingDoubleMuonLowMass7_2022Ev1"       , 225},
         {"ParkingDoubleMuonLowMass0_2022Fv1"       , 226},
-        {"ParkingDoubleMuonLowMass1_2022Ev1"       , 225},
-        {"ParkingDoubleMuonLowMass2_2022Ev1"       , 225},
-        {"ParkingDoubleMuonLowMass3_2022Ev1"       , 225},
-        {"ParkingDoubleMuonLowMass4_2022Ev1"       , 225},
-        {"ParkingDoubleMuonLowMass5_2022Ev1"       , 225},
-        {"ParkingDoubleMuonLowMass6_2022Ev1"       , 225},
-        {"ParkingDoubleMuonLowMass7_2022Ev1"       , 225},
+        {"ParkingDoubleMuonLowMass1_2022Fv1"       , 225},
+        {"ParkingDoubleMuonLowMass2_2022Fv1"       , 225},
+        {"ParkingDoubleMuonLowMass3_2022Fv1"       , 225},
+        {"ParkingDoubleMuonLowMass4_2022Fv1"       , 225},
+        {"ParkingDoubleMuonLowMass5_2022Fv1"       , 225},
+        {"ParkingDoubleMuonLowMass6_2022Fv1"       , 225},
+        {"ParkingDoubleMuonLowMass7_2022Fv1"       , 225},
         {"ParkingDoubleMuonLowMass0_2022Gv1"       , 227},
         {"ParkingDoubleMuonLowMass1_2022Gv1"       , 227},
         {"ParkingDoubleMuonLowMass2_2022Gv1"       , 227},
@@ -98,22 +98,14 @@ namespace yearID
         {"ParkingDoubleMuonLowMass7_2022Gv1"       , 227},
         {"2023preBPix"    , 230}, 
         {"2023BPix"       , 231},
-        {"ParkingDoubleMuonLowMass0_2023B"         , 232},
-        {"ParkingDoubleMuonLowMass1_2023B"         , 232},
-        {"ParkingDoubleMuonLowMass2_2023B"         , 232},
-        {"ParkingDoubleMuonLowMass3_2023B"         , 232},
-        {"ParkingDoubleMuonLowMass4_2023B"         , 232},
-        {"ParkingDoubleMuonLowMass5_2023B"         , 232},
-        {"ParkingDoubleMuonLowMass6_2023B"         , 232},
-        {"ParkingDoubleMuonLowMass7_2023B"         , 232},
-        {"ParkingDoubleMuonLowMass0_2023C"         , 233},
-        {"ParkingDoubleMuonLowMass1_2023C"         , 233},
-        {"ParkingDoubleMuonLowMass2_2023C"         , 233},
-        {"ParkingDoubleMuonLowMass3_2023C"         , 233},
-        {"ParkingDoubleMuonLowMass4_2023C"         , 233},
-        {"ParkingDoubleMuonLowMass5_2023C"         , 233},
-        {"ParkingDoubleMuonLowMass6_2023C"         , 233},
-        {"ParkingDoubleMuonLowMass7_2023C"         , 233},
+        {"ParkingDoubleMuonLowMass0_2023Bv1"       , 232},
+        {"ParkingDoubleMuonLowMass1_2023Bv1"       , 232},
+        {"ParkingDoubleMuonLowMass2_2023Bv1"       , 232},
+        {"ParkingDoubleMuonLowMass3_2023Bv1"       , 232},
+        {"ParkingDoubleMuonLowMass4_2023Bv1"       , 232},
+        {"ParkingDoubleMuonLowMass5_2023Bv1"       , 232},
+        {"ParkingDoubleMuonLowMass6_2023Bv1"       , 232},
+        {"ParkingDoubleMuonLowMass7_2023Bv1"       , 232},
         {"ParkingDoubleMuonLowMass0_2023Cv1"       , 233},
         {"ParkingDoubleMuonLowMass1_2023Cv1"       , 233},
         {"ParkingDoubleMuonLowMass2_2023Cv1"       , 233},
@@ -138,14 +130,14 @@ namespace yearID
         {"ParkingDoubleMuonLowMass5_2023Cv3"       , 233},
         {"ParkingDoubleMuonLowMass6_2023Cv3"       , 233},
         {"ParkingDoubleMuonLowMass7_2023Cv3"       , 233},
-        {"ParkingDoubleMuonLowMass0_2023D"         , 234},
-        {"ParkingDoubleMuonLowMass1_2023D"         , 234},
-        {"ParkingDoubleMuonLowMass2_2023D"         , 234},
-        {"ParkingDoubleMuonLowMass3_2023D"         , 234},
-        {"ParkingDoubleMuonLowMass4_2023D"         , 234},
-        {"ParkingDoubleMuonLowMass5_2023D"         , 234},
-        {"ParkingDoubleMuonLowMass6_2023D"         , 234},
-        {"ParkingDoubleMuonLowMass7_2023D"         , 234},
+        {"ParkingDoubleMuonLowMass0_2023Cv4"       , 233},
+        {"ParkingDoubleMuonLowMass1_2023Cv4"       , 233},
+        {"ParkingDoubleMuonLowMass2_2023Cv4"       , 233},
+        {"ParkingDoubleMuonLowMass3_2023Cv4"       , 233},
+        {"ParkingDoubleMuonLowMass4_2023Cv4"       , 233},
+        {"ParkingDoubleMuonLowMass5_2023Cv4"       , 233},
+        {"ParkingDoubleMuonLowMass6_2023Cv4"       , 233},
+        {"ParkingDoubleMuonLowMass7_2023Cv4"       , 233},
         {"ParkingDoubleMuonLowMass0_2023Dv1"       , 234},
         {"ParkingDoubleMuonLowMass1_2023Dv1"       , 234},
         {"ParkingDoubleMuonLowMass2_2023Dv1"       , 234},
@@ -154,6 +146,14 @@ namespace yearID
         {"ParkingDoubleMuonLowMass5_2023Dv1"       , 234},
         {"ParkingDoubleMuonLowMass6_2023Dv1"       , 234},
         {"ParkingDoubleMuonLowMass7_2023Dv1"       , 234},
+        {"ParkingDoubleMuonLowMass0_2023Dv2"       , 234},
+        {"ParkingDoubleMuonLowMass1_2023Dv2"       , 234},
+        {"ParkingDoubleMuonLowMass2_2023Dv2"       , 234},
+        {"ParkingDoubleMuonLowMass3_2023Dv2"       , 234},
+        {"ParkingDoubleMuonLowMass4_2023Dv2"       , 234},
+        {"ParkingDoubleMuonLowMass5_2023Dv2"       , 234},
+        {"ParkingDoubleMuonLowMass6_2023Dv2"       , 234},
+        {"ParkingDoubleMuonLowMass7_2023Dv2"       , 234},
     };
 }
 
@@ -197,12 +197,21 @@ namespace scale_factor_src
         {"2023BPix"       , base_dir + "/include/scale_factors/"}, 
     };
     // PU weights
-    inline TString PUweight_rootfile = base_dir + "corrections/pileup/puWeights_CollisionsRun3_GoldenJson_2024Jun23.root"; 
-    inline std::map<TString, TString> PUweights_hist{
+    // - central weights
+    inline TString PUweight_rootfile = base_dir + "corrections/pileup/weights/puWeights_CollisionsRun3_GoldenJson_2024Aug26.root"; 
+    inline std::map<TString, TString> centralPUweights_hist{
         {"2022preEE"      , "Collisions2022_355100_357900_eraBCD_GoldenJson"},
         {"2022EE"         , "Collisions2022_359022_362760_eraEFG_GoldenJson"},
         {"2023preBPix"    , "Collisions2023_366403_369802_eraBC_GoldenJson"},
         {"2023BPix"       , "Collisions2023_369803_370790_eraD_GoldenJson"},
+    };
+    // - recalc with Tau3Mu_nanoAOD
+    inline TString myPUweight_rootfile = base_dir + "corrections/pileup/weights/PUweights_Run3_WTau3MuNanoAOD.root"; 
+    inline std::map<TString, TString> myPUweights_hist{
+        {"2022preEE"      , "myPUweights_GoldenJson_2022preEE_nomina"},
+        {"2022EE"         , "myPUweights_GoldenJson_2022EE"},
+        {"2023preBPix"    , "myPUweights_GoldenJson_2023preBPix"},
+        {"2023BPix"       , "myPUweights_GoldenJson_2023BPix"},
     };
     // NLO weights
     inline TString NLOweight_rootfile = base_dir + "corrections/NLO_W/SF_source/W_NLOvsT3m_Run3.root";
