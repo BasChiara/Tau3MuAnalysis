@@ -1,12 +1,10 @@
 import ROOT 
 ROOT.EnableImplicitMT()
 import argparse
-import datetime 
 import pickle
 import numpy  as np
 import pandas as pd
 
-import xgboost
 from xgboost import XGBClassifier, plot_importance
 from sklearn.preprocessing import LabelEncoder
 
@@ -16,9 +14,13 @@ from collections import OrderedDict
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# from my config
-from config import * 
+# my imports
+import sys
+import os
 import config
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+from plots.color_text import color_text as ct
+
 
 ##########################################################################################
 # Define the gini metric - from https://www.kaggle.com/c/ClaimPredictionChallenge/discussion/703#5897
@@ -45,21 +47,20 @@ print('\n')
  # ------------ DEFINE SELECTIONS ------------ # 
 if(args.process == 'DsPhiMuMuPi'):
     base_selection = '&'.join([
-                            '(Ds_fit_mass > %.2f & Ds_fit_mass < %.2f )'%(config.Ds_mass_range_lo,config.Ds_mass_range_hi),
-                            '(Ds_Lxy_sign_BS > %.2f)'%args.LxySign_cut,
-                            '(Ds_fit_vprob > 0.01)',
-                            '(phi_fit_mass > 0.98 & phi_fit_mass < 1.05)'
-                        ])
+        config.Ds_base_selection,
+        config.Ds_phi_selection,
+        config.Ds_sv_selection,
+    ])
 elif (args.process == 'fake_rate'):
     base_selection = 'tau_fit_mass > %.2f'%config.mass_range_lo
 else:
-    base_selection = '(tau_fit_mass > %.2f & tau_fit_mass < %.2f  & tau_Lxy_sign_BS > %.2f)'%(config.mass_range_lo,config.mass_range_hi, args.LxySign_cut) 
-selection       = base_selection 
-data_selection  = base_selection 
-bkg_selection   = base_selection
+    base_selection = ' & '.join([
+        config.base_selection,
+        config.displacement_selection,
+    ]) 
 
-print('[!] base-selection : %s'%base_selection)
-print('---------------------------------------------')
+print(f'{ct.BOLD}[!] base-selection : %s'%base_selection)
+print(f'---------------------------------------------{ct.BOLD}')
 
  # ------------ INPUT DATASET ------------ # 
 
@@ -67,12 +68,12 @@ if(args.data is None):
     dataset = config.mc_samples[args.process] if args.isMC else config.data_samples[args.process]
 else:
     dataset = args.data
+tree_name = 'WTau3Mu_tree' if not args.process == 'DsPhiMuMuPi' else 'DsPhiMuMuPi_tree' 
 print('[+] processing files :')
 [print(f' - {sample}') for sample in dataset]
 
-tree_name = 'WTau3Mu_tree' if not args.process == 'DsPhiMuMuPi' else 'DsPhiMuMuPi_tree' 
 
-data_rdf = ROOT.RDataFrame(tree_name, dataset, branches).Filter(data_selection)#.Define('weight', 'lumi_factor')
+data_rdf = ROOT.RDataFrame(tree_name, dataset).Filter(base_selection)
 input_branches = [str(name) for name in data_rdf.GetColumnNames()]
 if (args.debug) : print("[i] Extracted Column Names:", input_branches)
 print('... processing input ...')
@@ -90,9 +91,9 @@ if(args.process == 'DsPhiMuMuPi'):
     if(args.debug): print(config.features_DsPhiPi_to_Tau3Mu)
     # rename Ds branches to match BDT structure 
     dat.rename( columns= config.features_DsPhiPi_to_Tau3Mu, inplace=True) 
-    dat.loc[:,'tauEta'] = tauEta(dat['Ds_fit_eta'])
+    dat.loc[:,'tauEta'] = config.tauEta(dat['Ds_fit_eta'])
 else:
-    dat.loc[:,'tauEta'] = tauEta(dat['tau_fit_eta'])
+    dat.loc[:,'tauEta'] = config.tauEta(dat['tau_fit_eta'])
 
 if(args.debug):print(dat.columns)
 

@@ -9,12 +9,9 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import os
+import sys
 import shutil
 sns.set(style="white")
-
-#import warnings
-## Suppress the specific UserWarning
-#warnings.filterwarnings("ignore", message="The value of the smallest subnormal for <class 'numpy.float64'> type is zero.")
 
 #import xgboost
 from xgboost import XGBClassifier, plot_importance
@@ -27,7 +24,9 @@ from itertools import product
 from pdb import set_trace
 
 # from my config
-from config import *
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import mva.config as config
+from plots.color_text import color_text as ct
 from data_preprocessing_lib import kFold_splitting
 
 ##########################################################################################
@@ -56,13 +55,13 @@ parser.add_argument('--debug',          action = 'store_true' ,                 
 
 args    = parser.parse_args()
 if (args.plot_only and not args.load_model):
-    print('[ERROR] you have to specify a the model to load to make plots')
+    print(f'{ct.RED}[ERROR]{ct.END} you have to specify a the model to load to make plots')
     exit()
 print("\n")
 
 # [INPUT]
 if args.opt_parameters and not os.path.exists(args.opt_parameters) :
-    print(f'[ERROR] specified file for BDT params does not exist')
+    print(f'{ct.RED}[ERROR]{ct.END} specified file for BDT params does not exist')
     exit()
 
 
@@ -72,48 +71,47 @@ tag = 'kFold_' + (f'{args.tag}_' if args.tag else '') + (f'LxyS{args.LxySign_cut
 # setup output directories...
 # ...for plots
 plot_outpath = args.plot_outdir + '/Training_' + tag + '/'
-if not args.load_model:
-    try:
-        os.makedirs(plot_outpath)
-        shutil.copy2('/afs/cern.ch/user/c/cbasile/public/index.php', plot_outpath)
-        print(f'[OUT] created out-directory for plots {plot_outpath}')
-    except OSError as e:
-        if os.path.exists(plot_outpath) and os.path.isdir(plot_outpath):
-            print(f'[OUT] already existing out-directory for plots {plot_outpath}')
-        else:
-            print(f'[ERROR] cannot create plot-output directory {plot_outpath}')
-            exit(-1)
+try:
+    os.makedirs(plot_outpath)
+    shutil.copy2('/afs/cern.ch/user/c/cbasile/public/index.php', plot_outpath)
+    print(f'{ct.BOLD}[OUT]{ct.END} created out-directory for plots {plot_outpath}')
+except OSError as e:
+    if os.path.exists(plot_outpath) and os.path.isdir(plot_outpath):
+        print(f'{ct.BOLD}[OUT]{ct.END} already existing out-directory for plots {plot_outpath}')
+    else:
+        print(f'{ct.RED}[ERROR]{ct.END} cannot create plot-output directory {plot_outpath}')
+        exit(-1)
 # ...for data
 out_data_filename = f'{args.data_outdir}/XGBout_data_{tag}.root'
 out_signal_filename = f'{args.data_outdir}/XGBout_signal_{tag}.root'
 if args.save_output:
     try:
         os.makedirs(args.data_outdir)
-        print(f'[OUT] created out-directory for data {plot_outpath}')
+        print(f'{ct.BOLD}[OUT]{ct.END} created out-directory for data {args.data_outdir}')
     except OSError as e:
         if os.path.exists(args.data_outdir) and os.path.isdir(args.data_outdir):
-            print(f'[OUT] already existing out-directory for data {args.data_outdir}')
+            print(f'{ct.BOLD}[OUT]{ct.END} already existing out-directory for data {args.data_outdir}')
         else:
-            print(f'[ERROR] cannot create out-directory for data {args.data_outdir}')
+            print(f'{ct.RED}[ERROR]{ct.END} cannot create out-directory for data {args.data_outdir}')
             exit(-1)
 else :
-    print(f'[i] data with BDT applied will NOT be saved')
+    print(f'{ct.BOLD}[i]{ct.END} data with BDT applied will NOT be saved')
 
 removeNaN = False
 
 # ------------ DEFINE SELECTIONS ------------ # 
-base_selection = f'(tau_fit_mass > {mass_range_lo} & tau_fit_mass < {mass_range_hi} ) & (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu) & (tau_Lxy_sign_BS >{args.LxySign_cut})'
+base_selection = config.base_selection +  f'& (tau_Lxy_sign_BS > {args.LxySign_cut} )'
 sig_selection  = base_selection
 bkg_selection  = base_selection
 print('\n---------------------------------------------')
-print('[!] base-selection   : %s'%base_selection)
-print('[S] signal-selection : %s'%sig_selection)
-print('[B] data-selection   : %s'%bkg_selection)
+print(f'[!] base-selection   : {base_selection}')
+print(f'{ct.RED}[S]{ct.END} signal-selection :{sig_selection}')
+print(f'{ct.BLUE}[B]{ct.END} data-selection  :{bkg_selection}')
 print('---------------------------------------------')
 
 # ------------ BDT settings ------------ #
 kfold = 5
-bdt_inputs = features + ['tauEta']
+bdt_inputs = config.features + ['tauEta']
 # remove displacement significance if cut Lxy/sigma
 #if (args.LxySign_cut > 0 ) : bdt_inputs.remove('tau_Lxy_sign_BS')
 print('[i] BDT inputs')
@@ -125,33 +123,33 @@ tree_name = 'WTau3Mu_tree'
 if args.preprocess:
     print('[i] run data preprocessing')
     tree_name = 'WTau3Mu_tree'
-    signals         = WTau3Mu_signals
-    backgrounds     = data_background
-    if (args.useW3MuNu): enrich_bkg      = W3MuNu_background
+    signals         = config.WTau3Mu_signals
+    backgrounds     = config.data_background
+    if (args.useW3MuNu): enrich_bkg      = config.W3MuNu_background
 else :
     print('[i] import preprocessed data')
     tree_name = 'tree_w_BDT'
     signals = args.prep_sig
     if not os.path.exists(signals):
-        print(f'[ERROR] cannot find preprocessed signal input {signals}')
+        print(f'{ct.RED}[ERROR]{ct.END} cannot find preprocessed signal input {signals}')
         exit(-1)
     backgrounds = args.prep_bkg
     if not os.path.exists(backgrounds):
-        print(f'[ERROR] cannot find preprocessed background input {backgrounds}')
+        print(f'{ct.RED}[ERROR]{ct.END} cannot find preprocessed background input {backgrounds}')
         exit(-1)
 
 print('... processing input ...')
 print('[+] adding WTau3Mu SIGNAL samples')
 print('[+] adding data-sidebands background samples')
-sig_rdf = ROOT.RDataFrame(tree_name, signals, branches).Filter(sig_selection)
+sig_rdf = ROOT.RDataFrame(tree_name, signals).Filter(sig_selection)
 sig = pd.DataFrame( sig_rdf.AsNumpy() )
 print(' SIGNAL      : %s entries passed selection' %len(sig.index))
-bkg_rdf = ROOT.RDataFrame(tree_name, backgrounds, branches).Filter(bkg_selection)
+bkg_rdf = ROOT.RDataFrame(tree_name, backgrounds).Filter(bkg_selection)
 bkg = pd.DataFrame( bkg_rdf.AsNumpy() )
 print(' DATA-SB BACKGROUND  : %s entries passed selection' %len(bkg.index))
 if (args.useW3MuNu):
     print('[+] adding W3MuNu MC samples')
-    W3MuNu_bkg_rdf = ROOT.RDataFrame(tree_name, enrich_bkg, branches).Filter(bkg_selection).Define('weight', 'lumi_factor')
+    W3MuNu_bkg_rdf = ROOT.RDataFrame(tree_name, enrich_bkg).Filter(bkg_selection).Define('weight', 'lumi_factor')
     W3MuNu_bkg = pd.DataFrame( W3MuNu_bkg_rdf.AsNumpy() ) 
     W3MuNu_bkg = W3MuNu_bkg.sample(frac = args.fracW3MuNu, random_state = args.seed).reset_index(drop=True)
     print(' W3MuNu(MC) BACKGROUND  : %s entries passed selection' %len(W3MuNu_bkg.index))
@@ -171,14 +169,14 @@ if args.preprocess:
     Nplus  = sig[sig.tau_fit_charge>0].shape[0]
     Nminus = sig[sig.tau_fit_charge<0].shape[0]
     sig.loc[sig.tau_fit_charge<0,'tau_charge_weight'] = Nplus/Nminus #* np.ones(sig[sig.tau_fit_charge<0].shape[0]).astype(float)
-    print(f' N+ = {Nplus} \t N- = {Nminus} -> weight = {Nplus/Nminus}')
+    print(f' N+ = {Nplus} \t N- = {Nminus} -> weight = {Nplus/Nminus:.2f}')
 
-    sig.loc[:,'train_weight'] = sig.PU_weight * sig.tau_charge_weight * sig.tau_mu1_IDrecoSF * sig.tau_mu2_IDrecoSF * sig.tau_mu3_IDrecoSF
+    sig.loc[:,'train_weight'] = sig.NLO_weight * sig.tau_charge_weight * sig.tau_mu1_IDrecoSF * sig.tau_mu2_IDrecoSF * sig.tau_mu3_IDrecoSF
     bkg.loc[:,'train_weight'] = np.ones(bkg.shape[0]).astype(float)
 
     # REBIN ETA
-    sig.loc[:,'tauEta'] = tauEta(sig['tau_fit_eta'])
-    bkg.loc[:,'tauEta'] = tauEta(bkg['tau_fit_eta'])
+    sig.loc[:,'tauEta'] = config.tauEta(sig['tau_fit_eta'])
+    bkg.loc[:,'tauEta'] = config.tauEta(bkg['tau_fit_eta'])
 
     ## CONCATENATE & SHUFFLE SIGNAL AND BACKGROUND
     data = pd.concat([sig, bkg])
@@ -214,6 +212,8 @@ else:
     if(args.debug) : print(data)
     data = data.sample(frac = 1, random_state = args.seed).reset_index(drop=True)
 
+
+# ------------ MODEL TRAINING ------------ #
 if (args.load_model is None) or (args.plot_only is None):
     
     # .pkl file to save BDT weights
@@ -267,7 +267,7 @@ if (args.load_model is None) or (args.plot_only is None):
         
         # split the train set in training and validation + select SB
         ktrain, kvalid = train_test_split(
-                kdataset[(kdataset.target == 1) | ((kdataset.target == 0) & ((kdataset.tau_fit_mass < blind_range_lo) | (kdataset.tau_fit_mass > blind_range_hi)))], 
+                kdataset[(kdataset.target == 1) | ((kdataset.target == 0) & ((kdataset.tau_fit_mass < config.blind_range_lo) | (kdataset.tau_fit_mass > config.blind_range_hi)))], 
                 test_size=0.2, 
                 random_state= args.seed)
         X_train, X_valid = ktrain[bdt_inputs], kvalid[bdt_inputs]
@@ -324,8 +324,9 @@ if (args.load_model is None) or (args.plot_only is None):
     # save the models
     pickle.dump(classifiers, classifier_file)
     classifier_file.close()
+# ------------ APPLY EXISTING WEIGHTS ------------ #
 else:
-    print('[+] load model from %s'%args.load_model)
+    print(f'{ct.BOLD}[+]{ct.END} load model from {args.load_model}')
     with open(args.load_model, 'rb') as f:
         classifiers = pickle.load(f)
 
@@ -354,16 +355,16 @@ if not args.plot_only:
         # convert data to dictionary with numpy arrays 
         out_data = {col: data[col].values for col in data.columns}
         out_rdf = ROOT.RDF.MakeNumpyDataFrame(out_data).Filter('target == 0').Snapshot('tree_w_BDT', out_data_filename)
-        print(f'[o] output DATA saved in {out_data_filename}')
+        print(f'{ct.BOLD}[OUT]{ct.END} output DATA saved in {out_data_filename}')
         out_rdf = ROOT.RDF.MakeNumpyDataFrame(out_data).Filter('target == 1').Snapshot('tree_w_BDT', out_signal_filename)
-        print(f'[o] output SIGNAL saved in {out_signal_filename}')
+        print(f'{ct.BOLD}[OUT]{ct.END} output SIGNAL saved in {out_signal_filename}')
 
 
 
 ###              ###
 #   PLOT SECTION   # 
 ###              ###
-plot_data = data[(data.target == 1) | ((data.target == 0) & ((data.tau_fit_mass < blind_range_lo) | (data.tau_fit_mass > blind_range_hi)))]
+plot_data = data[(data.target == 1) | ((data.target == 0) & ((data.tau_fit_mass < config.blind_range_lo) | (data.tau_fit_mass > config.blind_range_hi)))]
 
 # ------------ ROC CURVE ------------ # 
 plt.clf()
@@ -421,7 +422,7 @@ plt.tight_layout()
 plot_name = '%sroc_%s' %(plot_outpath,tag)
 plt.savefig(f'{plot_name}.png')
 plt.savefig(f'{plot_name}.pdf')
-print(f'[OUT] saved ROC curve in {plot_name}.png/pdf')
+print(f'{ct.BOLD}[OUT]{ct.END} saved {ct.CYAN}ROC{ct.END} curve in {plot_name}.png/pdf')
 plt.clf()
 
 # ------------ OVERTRAINING TEST ------------ # 
@@ -471,7 +472,7 @@ ks_bkg = ks_2samp(train_bkg, test_bkg)
 plot_name = '%sovertrain_%s' %(plot_outpath,tag)
 plt.savefig(f'{plot_name}.png')
 plt.savefig(f'{plot_name}.pdf')
-print(f'[OUT] saved OVERTRAIN plot in {plot_name}.png/pdf')
+print(f'{ct.BOLD}[OUT]{ct.END} saved {ct.CYAN}OVERTRAIN{ct.END} plot in {plot_name}.png/pdf')
 
 plt.clf()
 
@@ -492,7 +493,7 @@ plt.ylabel('feature')
 
 orderedfscores = OrderedDict(sorted(fscores.items(), key=lambda x : x[1], reverse=False ))
 
-bars = [labels[k] for k in orderedfscores.keys()]
+bars = [config.labels[k] for k in orderedfscores.keys()]
 y_pos = np.arange(len(bars))
  
 # Create horizontal bars
@@ -504,6 +505,6 @@ plt.tight_layout()
 plot_name = '%sfeat_importance_%s' %(plot_outpath,tag)
 plt.savefig(f'{plot_name}.png')
 plt.savefig(f'{plot_name}.pdf')
-print(f'[OUT] saved FEATURE IMPRTANCE plot in {plot_name}.png/pdf')
+print(f'{ct.BOLD}[OUT]{ct.END} saved {ct.CYAN}FEATURE IMPRTANCE{ct.END} plot in {plot_name}.png/pdf')
 plt.clf()
 
