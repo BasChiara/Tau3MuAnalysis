@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--plot_outdir',default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/DsPhiMuMuPi/', help=' output directory for plots')
 parser.add_argument('--tag',        default= 'reMini',                          help='tag to the training')
 parser.add_argument('--debug',      action = 'store_true' ,                     help='set it to have useful printout')
-parser.add_argument('--year',       choices=['2022', '2023', 'Run3'],       default = '2022', help='year of data-taking')
+parser.add_argument('--year',       choices=['2022preEE', '2022EE','2022', '2023preBPix', '2023BPix','2023', 'Run3'],       default = '2022', help='year of data-taking')
 parser.add_argument('--process',    choices= ['WTau3Mu', 'W3MuNu', 'data', 'DsPhiMuMuPi', 'fake_rate'],   help='what process is in the input sample')
 
 args = parser.parse_args()
@@ -21,7 +21,7 @@ tag = args.tag
 print('\n')
 
 # input DATA and MC
-selection   = '1' #config.year_selection[args.year] # fixme: add yearID in data
+selection   = config.year_selection[args.year] # fixme: add yearID in data
 mc_files    = config.mc_samples[args.process]
 data_files  = config.data_samples[args.process]
 tree_name   = 'WTau3Mu_tree' if not args.process == 'DsPhiMuMuPi' else 'DsPhiMuMuPi_tree' 

@@ -13,8 +13,10 @@ from array import array
 import argparse
 # import custom configurations
 import sys
-sys.path.append('/afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis')
-from mva.config import mass_range_lo, mass_range_hi, cat_selection_dict, cat_color_dict,cat_eta_selection_dict_fit, cp_intervals
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+import mva.config as config
+from plots.color_text import color_text as ct
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--plot_outdir',    default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/SigBkg_models/Tau3Mu_massFit/reMini', help='output directory for plots')
@@ -58,11 +60,11 @@ ROOT.TH1.SetDefaultSumw2()
 mass_window = 0.060 # GeV
 tau_mass = 1.777 # GeV
 fit_range_lo  , fit_range_hi   = 1.68, 1.87 # GeV
-mass_window_lo, mass_window_hi = mass_range_lo, mass_range_hi # GeV #tau_mass-mass_window, tau_mass+mass_window
+mass_window_lo, mass_window_hi = config.mass_range_lo, config.mass_range_hi # GeV #tau_mass-mass_window, tau_mass+mass_window
 
 bin_w = 0.01
 nbins = int(np.rint((mass_window_hi-mass_window_lo)/bin_w)) # needed just for plotting, fits are all unbinned
-if (args.debug): print(f'[INFO] binning {nbins} of type {type(nbins)}')
+if (args.debug): print(f'{ct.BOLD}[INFO]{ct.END} binning {nbins} of type {type(nbins)}')
 runblind = not args.unblind # don't show (nor fit!) data in the signal mass window
 blind_region_lo, blind_region_hi = 1.72, 1.84
 # phi
@@ -74,12 +76,12 @@ omega_mass = 0.783 #GeV
 input_tree_name = 'tree_w_BDT'
 mc_file     = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_signal_kFold_HLT_overlap_LxyS150_2024Apr29.root' if not args.signal else args.signal
 if not os.path.exists(args.signal):
-    print(f'[ERROR] MC file {mc_file} does NOT exist')
-print(f'[+] added MC file :\n {mc_file}')
+    print(f'{ct.RED}[ERROR]{ct.END} MC file {mc_file} does NOT exist')
+print(f'{ct.BOLD}{ct.BOLD}[+]{ct.END}{ct.END} added MC file :\n {mc_file}')
 data_file   = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_data_kFold_HLT_overlap_LxyS150_2024Apr29_open.root' if not args.data else args.data
 if not os.path.exists(args.data):
-    print(f'[ERROR] DATA file {data_file} does NOT exist')
-print(f'[+] added DATA file :\n {data_file}')
+    print(f'{ct.RED}[ERROR]{ct.END} DATA file {data_file} does NOT exist')
+print(f'{ct.BOLD}[+]{ct.END} added DATA file :\n {data_file}')
 
 # ** RooFit Variables
 # tau mass
@@ -90,32 +92,30 @@ mass.setRange('fit_range', fit_range_lo,fit_range_hi)
 mass.setRange('sig_range', blind_region_lo,blind_region_hi)
 mass.setRange('full_range', mass_window_lo, mass_window_hi)
 # tau mass resolution
-mass_err = ROOT.RooRealVar('tau_fit_mass_err', '#sigma_{M(3 #mu)}/ M(3 #mu)'  , 0.0,  0.03, 'GeV' )
 eta = ROOT.RooRealVar('tau_fit_eta', '#eta_{3 #mu}'  , -4.0,  4.0)
 # BDT score
 bdt = ROOT.RooRealVar('bdt_score', 'BDT score'  , 0.0,  1.0, '' )
 # data weights
-weight = ROOT.RooRealVar('weight', 'weight'  , -10,  10, '' )
+weight = ROOT.RooRealVar('weight', 'weight', -1000, 1000, '')
 # di-muon mass
 mu12_mass = ROOT.RooRealVar('tau_mu12_fitM', 'tau_mu12_fitM'  , -10.0,  10.0, 'GeV' )
 mu23_mass = ROOT.RooRealVar('tau_mu23_fitM', 'tau_mu23_fitM'  , -10.0,  10.0, 'GeV' )
 mu13_mass = ROOT.RooRealVar('tau_mu13_fitM', 'tau_mu13_fitM'  , -10.0,  10.0, 'GeV' )
-# run
-run = ROOT.RooRealVar('run', 'run'  , 0,  362800)
 #displacement
-Lsign = ROOT.RooRealVar('tau_Lxy_sign_BS', 'tau_Lxy_sign_BS', 0., 1000, '')
+Lsign = ROOT.RooRealVar('tau_Lxy_sign_BS', 'tau_Lxy_sign_BS', 0, np.inf)
+# year/era tag
+year_id = ROOT.RooRealVar('year_id', 'year_id', 0, 500, '')
 
 thevars = ROOT.RooArgSet()
 thevars.add(mass)
 thevars.add(eta)
-thevars.add(mass_err)
 thevars.add(bdt)
 thevars.add(weight)
 thevars.add(mu12_mass)
 thevars.add(mu13_mass)
 thevars.add(mu23_mass)
-thevars.add(run)
 thevars.add(Lsign)
+thevars.add(year_id)
 
 # ** data frame to scan Punzi sensitivity
 
@@ -131,18 +131,25 @@ if args.optim_bdt :
     PunziS_err      = []
     AMS_val         = []
 
-# **** EVENT SELECTION ****
-phi_veto            = '''(fabs(tau_mu12_fitM- {mass:.3f})> {window:.3f} & fabs(tau_mu23_fitM - {mass:.3f})> {window:.3f} & fabs(tau_mu13_fitM -  {mass:.3f})>{window:.3f})'''.format(mass =phi_mass , window = phi_window/2. )
-cat_selection       = f'({cat_selection_dict[args.category]})' if not category_by_eta else cat_eta_selection_dict_fit[args.category]
-sidebands_selection = f'((tau_fit_mass < {blind_region_lo} )|| (tau_fit_mass > {blind_region_hi}))'
+# **** EVENT SELEctION ****
+phi_veto            = config.phi_veto 
+cat_selection       = f'({config.cat_selection_dict[args.category]})' if not category_by_eta else config.cat_eta_selection_dict_fit[args.category]
+sidebands_selection = config.sidebands_selection
+year_selection      = config.year_selection['20'+args.year]
 
 if args.save_ws : file_ws = ROOT.TFile(wspace_filename, "RECREATE")
 
 for cut in set_bdt_cut:
-    bdt_selection       = f'(bdt_score > {cut:,.4f})'
-    base_selection      = phi_veto + '&' + cat_selection + ' & (run < 362800)'
-    sgn_selection       = f'{bdt_selection} & {base_selection}'
+    # output tag
     point_tag           = f'{args.category}{args.year}' + (('_' + args.tag ) if not (args.tag is None) else '') + f'_bdt{cut:,.4f}'
+    # common event selection
+    bdt_selection       = f'(bdt_score > {cut:,.4f})'
+    base_selection      = ' & '.join([
+        cat_selection, 
+        year_selection, 
+        phi_veto,
+    ])
+    sgn_selection       = ' & '.join([bdt_selection, base_selection])
 
     # **** IMPORT SIGNAL ****
     mc_tree = ROOT.TChain(input_tree_name)
@@ -153,36 +160,43 @@ for cut in set_bdt_cut:
     fullmc.Print()
     sig_efficiency = mc_tree.GetEntries(sgn_selection)/N_mc
 
-    print('\n\n------ SIGNAL MC ------- ')
+    print(f'\n\n{ct.PURPLE}------ SIGNAL MC ------- {ct.END}')
     print(f' entries   : {N_mc}')
     print(f' selection : {sgn_selection}')
     print(f' total entries = %.2f'%fullmc.sumEntries() )
     print(f' signal efficiency = %.4e'%sig_efficiency)
-    print('------------------------\n')
+    print(f'{ct.PURPLE}------------------------{ct.END}\n')
+    # skip if no signal events
     if fullmc.sumEntries() == 0: continue
+    
     # **** IMPORT DATA ****
     data_tree = ROOT.TChain(input_tree_name)
     data_tree.AddFile(data_file)
     N_data = data_tree.GetEntries(base_selection + f' & {sidebands_selection}' if runblind else '') 
 
+    data_selection = ' & '.join([
+        base_selection, 
+        bdt_selection,
+        sidebands_selection if runblind else '(1)',
+    ])
     if runblind:
         print('\n *** running BLIND')
         # cut for blinding
-        blinder   = ROOT.RooFormulaVar('blinder', 'blinder',  f'{sidebands_selection} & {sgn_selection}', ROOT.RooArgList(thevars))
+        blinder   = ROOT.RooFormulaVar('blinder', 'blinder',  data_selection, ROOT.RooArgList(thevars))
         datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, blinder)
     else:
         print('\n *** running OPEN')
-        datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, sgn_selection)
+        datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, data_selection)
     datatofit.Print()
     bkg_efficiency = datatofit.sumEntries()/N_data
 
-    print('\n------ DATA SIDEBANDS ------- ')
+    print(f'\n{ct.BLUE}------ DATA SIDEBANDS -------{ct.END}')
     print(f' entries in SB  : {N_data}')
-    print(f' selection      : {sgn_selection}')
+    print(f' selection      : {data_selection}')
     print(f' total entries  : %.2f'%datatofit.sumEntries() )
     print(f' background efficiency : %.4e'%bkg_efficiency)
-    print('------------------------\n\n')
-    if datatofit.sumEntries() == 0 : continue
+    print(f'{ct.BLUE}------------------------{ct.END}\n\n')
+    
     fit_with_const = (args.bkg_func == 'const') or ((args.bkg_func == 'dynamic') and (datatofit.sumEntries() < args.lowB_th))
     # **** SIGNAL MODEL ****
     # signal PDF
@@ -215,11 +229,11 @@ for cut in set_bdt_cut:
     b_model = expo
     if fit_with_const :
         b_model = const
-        print('[i] fit background with constant')
+        print(f'{ct.BOLD}[i]{ct.END} fit background with constant')
     elif args.bkg_func == 'poly1' :
         b_model = poly1
-        print('[i] fit background with 1st order polynimial')
-    else : print('[i] fit background with exponential')
+        print(f'{ct.BOLD}[i]{ct.END} fit background with 1st order polynimial')
+    else : print(f'{ct.BOLD}[i]{ct.END} fit background with exponential')
     # number of background events
     nbkg = ROOT.RooRealVar('model_bkg_%s_norm'%process_name, 'model_bkg_%s_norm'%process_name, datatofit.sumEntries(), 0.5*datatofit.sumEntries(), 5*datatofit.sumEntries())
     print(f'[debug] entries in data {datatofit.numEntries()}')
@@ -351,7 +365,7 @@ for cut in set_bdt_cut:
         c2.SaveAs('%s/SigBkg_mass_Log_%s.png'%(args.plot_outdir, point_tag)) 
         c2.SaveAs('%s/SigBkg_mass_Log_%s.pdf'%(args.plot_outdir, point_tag))
 
-    print('\n\n---------- SUMMARY ----------')
+    print(f'\n\n{ct.BOLD}---------- SUMMARY ----------{ct.END}')
     print(' ** selection : \n%s'%base_selection)
     print(' RooExtendPdf = %.2f'%ext_bkg_model.expectedEvents(ROOT.RooArgSet(mass)))
     #B = (nbkg.getValV())*(ext_bkg_model.createIntegral(ROOT.RooArgSet(mass), ROOT.RooFit.NormSet(mass), ROOT.RooFit.Range('sig_range')).getValV())
@@ -416,7 +430,7 @@ for cut in set_bdt_cut:
     #   floating in an interval marked by Clopper Pearson distribution for binomial proportion confidence level
     #   signal strenght for bkg normalizaion varies around 1.0 
     #   within an interval covering 99% CL of efficincy p.d.f. in counting experiment
-    bkg_norm_lo, bkg_norm_hi = cp_intervals(Nobs = nbkg.getVal(), Ntot= N_data, cl = 0.99, verbose = True)
+    bkg_norm_lo, bkg_norm_hi = config.cp_intervals(Nobs = nbkg.getVal(), Ntot= N_data, cl = 0.99, verbose = True)
 
     datacard_name = f'{args.combine_dir}/datacard_{wspace_tag}.txt'
     # dump the text datacard
@@ -450,7 +464,7 @@ bkgNorm_{proc}     flatParam
             bkg_model= b_model.GetName(),
             sig_model= gsum.GetName(),
             obs      = fulldata.numEntries() if runblind==False else -1, # number of observed events
-            signal   = nsig.getVal(), #number of EXPECTED signal events, INCLUDES the a priori normalisation. Combine fit results will be in terms of signal strength relative to this inistial normalisation
+            signal   = nsig.getVal(), #number of EXPEctED signal events, INCLUDES the a priori normalisation. Combine fit results will be in terms of signal strength relative to this inistial normalisation
             bkg      = nbkg.getVal(), # number of expected background events **over the full mass range** using the exponential funciton fitted in the sidebands 
             bkg_lo   = bkg_norm_lo,
             bkg_hi   = bkg_norm_hi, 
