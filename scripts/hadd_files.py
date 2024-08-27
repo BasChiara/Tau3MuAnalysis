@@ -18,8 +18,6 @@ parser.add_argument('--skip_files',   nargs = '*', type = int, help = 'dataset t
 
 args = parser.parse_args()
 print(f' {ct.BOLD}[+]{ct.END} hadd files from '+ args.path)
-if args.skip_files:
-   print(f'  {ct.PURPLE}[-]{ct.END} skip datasets '+ str(args.skip_files)[1:-1])
 
 
 out_file = args.path+'/'+args.app+'_'+args.dataset+'_'+args.year+args.era+'_'+args.hlt+'.root'
@@ -28,7 +26,7 @@ N_datasetParkingDoubleMuonLowMass = 8
 # /eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/condor_data/ParkingDoubleMuonLowMass0_2022E/recoKinematicsT3m_ParkingDoubleMuonLowMass0_2022E_ 
 for n in range(N_datasetParkingDoubleMuonLowMass):
    if (args.skip_files and n in args.skip_files): 
-      print (' [-] skip dataset '+args.dataset+str(n))         
+      print (f' {ct.PURPLE}[-]{ct.END} skip dataset '+args.dataset+str(n))         
       continue
    path_to_hadd = args.path+'/'+args.dataset+str(n)+'_'+args.year+args.era+'/'+args.app+'_'+args.dataset+str(n)+'_'+args.year+args.era+'_'+args.hlt+'_*.root'
    # number of file to hadd

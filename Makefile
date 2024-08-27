@@ -31,14 +31,6 @@ OUTEXE			 = $(INCLUDEDIR)/bin/
 
 $(OUTLIB)FileReader.o: $(INCLUDEDIR)src/FileReader.C
 		$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)FileReader.o $<
-$(OUTLIB)MCTau3Mu_base.o: $(INCLUDEDIR)src/MCTau3Mu_base.C
-		$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)MCTau3Mu_base.o $<
-$(OUTLIB)Tau3Mu_base.o: $(INCLUDEDIR)src/Tau3Mu_base.C
-		$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)Tau3Mu_base.o $<
-$(OUTLIB)MCstudiesT3m.o: $(INCLUDEDIR)src/MCstudiesT3m.C
-		$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)MCstudiesT3m.o $<
-$(OUTLIB)prepStudiesT3m.o: $(INCLUDEDIR)src/prepStudiesT3m.C
-		$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)prepStudiesT3m.o $<
 $(OUTLIB)WTau3Mu_base.o: $(INCLUDEDIR)src/WTau3Mu_base.C
 		$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)WTau3Mu_base.o $<
 $(OUTLIB)WTau3Mu_tools.o: $(INCLUDEDIR)src/WTau3Mu_tools.C

@@ -1,10 +1,10 @@
 #!/usr/bin/bash
 # run ./bin/RecoLevelAnalysis on data
 cd /afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/ 
-make clean
-make ana 
+#make clean
+#make ana 
 
-RUNTIME_H=48
+RUNTIME_H=8
 FILES_PER_JOB=50
 HLT_CONF='HLT_overlap'
 EOS_PATH='/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/'

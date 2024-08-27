@@ -23,6 +23,7 @@ parser.add_option('--job_dir',                              help='job-report dir
 parser.add_option('--out_dir',                              help='root ntuples directory'              , default='/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/')
 parser.add_option('--era',                                  help='era ID to process'                   , default='2022Cv1')
 parser.add_option('--resubmit', action='store_true',        help='resubmit failed jobs'                )
+parser.add_option('--no_out', action='store_true',        help='resubmit failed jobs'                )
 parser.add_option('--dryrun',   action='store_true',        help='when --resubmit -> dryrun mode')
 parser.add_option('--debug',    action='store_true',        help='useful printout'                     ) 
 
@@ -81,13 +82,14 @@ for d in job_dir_list :
         if not os.path.isfile(stdout_file):
             print(f'{ct.YELLOW}[WARNING]{ct.END} out file {stdout_file} not found')
             job_is_ok = False
+            if opt.no_out : Failed_jobID.append(ijob)
             continue
         # read the error file
         N_access_error = 0
         if os.path.isfile(error_file):
             error_file_lines = open(error_file).readlines()
             for l in error_file_lines:
-                if access_error in l:
+                if (access_error in l and ijob < (Nsub_jobs-1)): # last job can have access error
                     N_access_error += 1
                 elif execution_error in l:
                     job_is_ok = False
@@ -159,31 +161,33 @@ for d in job_dir_list :
     print(f'\ttotal processed events : {N_processed_events}')
     print(f'\ttotal saved events     : {N_saved_events}')
     print('\n')
+
     # *** RESUBMITTING JOBS ***
     if (opt.resubmit and Failed_jobID) :
         print('****** resubmitting failed jobs ******')
-        job_src             = [d + '/src/submit_' + str(Failed_jobID[j]) + '.src' for j in range(len(Failed_jobID))]
         condor_script       = d + '/condor_submit.condor'
-        resub_condor_script = d + '/condor_resubmit.condor'
-        # copy the original condor setup with only the failed jobs
+        # save the original condor script
         with open(condor_script, 'r') as f:
             lines = f.readlines()
         f.close()
-        # condor env setup
-        with open(resub_condor_script, 'w') as f: 
-            [ f.write(l) for l in lines if not ('arguments' in l or 'queue' in l)  ]
-            # job to resub
-            for src in job_src:
-                    f.write(f'arguments = {os.path.abspath(src)}\n')
-                    f.write('queue 1 \n')   
-        f.close()
-        # resubmit the jobs
-        command = f'condor_submit {resub_condor_script}'
-        if(opt.dryrun) : print(f'{ct.BOLD}[DRYRUN]{ct.END} {command}')
-        else :
-            print(f'{ct.BOLD}[EXEC]{ct.END} resubmitting jobs -> {command}') 
-            os.system(command)
+        # loop on the failed jobs
+        for j in Failed_jobID:
+            # copy only the condor env setup
+            job_src             = d + '/src/submit_' + str(j) + '.src' 
+            resub_condor_script = d + '/condor_resub_'+ str(j) +'.condor'
+            new_lines =  [ l.replace('$(ProcId)', str(j)) for l in lines]
+            with open(resub_condor_script, 'w') as f: 
+                # put the correct $(ProcId)
+                [ f.write(l) for l in new_lines if not ('arguments' in l or 'queue' in l)  ]
+                # job to resub
+                f.write(f'arguments = {os.path.abspath(job_src)}\n')
+                f.write('queue 1 \n')   
+            f.close()
+            # resubmit the jobs
+            command = f'condor_submit {resub_condor_script}'
+            if(opt.dryrun) : print(f'{ct.BOLD}[DRYRUN]{ct.END} {command}')
+            else :
+                print(f'{ct.BOLD}[EXEC]{ct.END} resubmitting jobs -> {command}') 
+                os.system(command)
 
     print('\n')
-        
-                    
