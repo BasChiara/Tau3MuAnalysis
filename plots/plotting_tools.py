@@ -200,5 +200,5 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], to_ploton = [], file_nam
     c.SaveAs(file_name + '.pdf')
     c.SaveAs(file_name + '.root')
 
-    c.Clear()
-    return c
+    c.Close()
+    return 1

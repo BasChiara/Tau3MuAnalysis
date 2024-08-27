@@ -9,12 +9,12 @@ import math
 import argparse
 # import custom configurations
 import sys
-sys.path.append('..')
-from mva.config import LumiVal_plots, mass_range_lo, mass_range_hi, cat_selection_dict, cat_color_dict,cat_eta_selection_dict
-from plots.plotting_tools import *
+sys.path.append(os.path.abspath(os.path.dirname(__file__) + '/' + '..'))
+import mva.config as config
+import plots.plotting_tools as plotting_tools
 
 
-def draw_by_category(cat_dict, histo_list, x_lim = [-1,-1]):
+def draw_by_category(cat_dict, histo_list, x_lim = [-1,-1], fit = False, print_mean = False):
      
     x_min = histo_list[0].GetBinLowEdge(histo_list[0].FindFirstBinAbove(0.)) if (x_lim[0] == x_lim[1]) else x_lim[0] 
     x_max = histo_list[0].GetBinLowEdge(histo_list[0].FindLastBinAbove(0.)+1) if (x_lim[0] == x_lim[1]) else x_lim[1] 
@@ -31,20 +31,46 @@ def draw_by_category(cat_dict, histo_list, x_lim = [-1,-1]):
                     extraSpace=0.01, 
                     iPos=11
     ) 
-    #legend = ROOT.TLegend(0.55, 0.70, 0.85, 0.85)
-    legend = CMS.cmsLeg(0.55, 0.85 - 0.06 * len(histo_list), 0.95, 0.85, textSize=0.04) 
+    leg_x1, leg_y1, leg_x2, leg_y2 = 0.60, 0.85, 0.90, 0.90
+    legend = CMS.cmsLeg(leg_x1, leg_y1 - 0.06 * len(histo_list), leg_x2, leg_y2, textSize=0.05)
+    # text-box for fit results
+    text_box = ROOT.TLatex()
+    text_box.SetNDC()
+    text_box.SetTextSize(0.035)
+    text_box.SetTextFont(42)
+    text_box.SetTextAlign(11)
+
     cat_list = list(cat_dict)
     for i,histo in enumerate(histo_list):
-        #histo.Draw('hist' + ('same' if i >0 else ''))
+
         CMS.cmsDraw(histo, 
-            'histe' + ('same' if i >0 else ''),
+            'hist ' + ('same' if i >0 else ''),
             lwidth = 2,
             marker = histo.GetMarkerStyle(),
             mcolor = histo.GetLineColor(), 
             fcolor = histo.GetFillColor(),
         )
+        if fit:
+            fit = ROOT.TF1('fit', 'gaus', x_min + 0.1, x_max - 0.1)
+            histo.Fit(fit, 'R')
+            histo.GetFunction('fit').SetLineColor(histo.GetLineColor())
+            histo.GetFunction('fit').SetLineStyle(2)
+            histo.GetFunction('fit').SetLineWidth(2)
+            histo.GetFunction('fit').Draw('same')
+            mass = histo.GetFunction('fit').GetParameter(1)
+            mass_err = histo.GetFunction('fit').GetParError(1)
+            sigma = histo.GetFunction('fit').GetParameter(2)
+            sigma_err = histo.GetFunction('fit').GetParError(2)
+            text_box.DrawLatex(leg_x1 - 0.05, 0.6 - 0.05 * i, 
+                               '#sigma/M_{'+ f'{cat_list[i]}'+'}' + f' = ({sigma/mass * 1000:.2f} #pm {(sigma/mass * sqrt( (sigma_err/sigma)**2 + (mass_err/mass)**2)) * 1000:.2f})#times 10^{{-3}}')
+                               #f'#sigma_{{M}}({cat_list[i]}) = ({sigma * 1000:.2f} #pm {sigma_err * 1000:.2f}) MeV')
+        if print_mean:
+            mean = histo.GetMean()
+            mean_err = histo.GetMeanError()
+            #text_box.DrawLatex(leg_x1, 0.5 - 0.05 * i, f'mean_{{cat_list[i]}} = {mean*1000:.1f} #times 10^{{-3}}')
+
         legend.AddEntry(histo.GetName(), f'cat {cat_list[i]}')
-    
+    CMS.fixOverlay()
     c.Update()
     c.RedrawAxis()
     return c, legend
@@ -72,7 +98,7 @@ ROOT.gStyle.SetLegendBorderSize(0)
 ROOT.gStyle.SetLegendTextSize(0.035)
 ROOT.TH1.SetDefaultSumw2()
 CMS.SetExtraText("Preliminary") if not args.isMC else CMS.SetExtraText("Simulation Preliminary") 
-CMS.SetLumi(LumiVal_plots[args.year]) if not args.isMC else CMS.SetLumi('') 
+CMS.SetLumi(config.LumiVal_plots[args.year]) if not args.isMC else CMS.SetLumi('') 
 CMS.SetEnergy(13.6)
 
 # import MC
@@ -116,6 +142,8 @@ else:
 #data = ['/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_WTau3Mu_DATA_apply_bkgW3MuNu_LxyS0_2024May01.root']
 phi_mass = 1.020 #GeV
 phi_window = 0.020 #GeV
+mass_range_lo = config.mass_range_lo if not args.isMC else 1.6
+mass_range_hi = config.mass_range_hi if not args.isMC else 2.0
 phi_veto = '''(fabs(tau_mu12_fitM- {mass:.3f})> {window:.3f} & fabs(tau_mu23_fitM - {mass:.3f})> {window:.3f} & fabs(tau_mu13_fitM -  {mass:.3f})>{window:.3f}) & (tau_Lxy_sign_BS > 1.5)'''.format(mass =phi_mass , window = phi_window/2. )
 base_selection = f'(tau_fit_mass > {mass_range_lo} & tau_fit_mass < {mass_range_hi} ) & (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu) & {phi_veto}'
 print('\n---------------------------------------------')
@@ -129,13 +157,16 @@ print(f'   {data_rdf.Count().GetValue()} entries passed selection')
 print('---------------------------------------------')
 
 # divide by mass_resolution
-max_y = 0.12 if not args.isMC else 1.4
+max_y = 0.12 if not args.isMC else 0.5
 min_y = 0.09 if not args.isMC else 0.0
+mass_bin_w     = 0.01 if args.isMC else 0.05
+mass_bins = int((mass_range_hi - mass_range_lo) / mass_bin_w)
+
 h_bShape = []
 h_eta    = []
 h_bShape_etaCat = []
 h_resolM_etaCat = []
-h_bShape_inclusive = data_rdf.Histo1D(('h_bShape_incl', '', 10, mass_range_lo, mass_range_hi), 'tau_fit_mass').GetPtr() 
+h_bShape_inclusive = data_rdf.Histo1D(('h_bShape_incl', '', mass_bins, mass_range_lo, mass_range_hi), 'tau_fit_mass').GetPtr() 
 h_bShape_inclusive.Scale(1./h_bShape_inclusive.Integral())
 h_bShape_inclusive.SetMaximum(max_y)
 h_bShape_inclusive.SetMinimum(min_y)
@@ -145,49 +176,52 @@ h_bShape_inclusive.SetMarkerColor(ROOT.kBlack)
 h_bShape_inclusive.SetMarkerStyle(20)
 h_bShape_inclusive.SetLineWidth(2)
 
-for cat in list(cat_selection_dict):
-    # relative mass resolution bkg shape
-    h   = data_rdf.Filter(cat_selection_dict[cat]).Histo1D(('h_bShape_%s'%cat, '', 10, mass_range_lo, mass_range_hi), 'tau_fit_mass').GetPtr()
+# loop over categories
+for cat in list(config.cat_selection_dict):
+    # ** rel. mass resolution based 
+    # -> mass shape
+    h   = data_rdf.Filter(config.cat_selection_dict[cat]).Histo1D(('h_bShape_%s'%cat, '', mass_bins, mass_range_lo, mass_range_hi), 'tau_fit_mass').GetPtr()
     h.Scale(1./h.Integral())
-    h.SetLineColor(cat_color_dict[cat])
-    h.SetMarkerColor(cat_color_dict[cat])
-    h.SetMarkerStyle(20)
+    h.SetLineColor(config.cat_color_dict[cat])
+    h.SetMarkerColor(config.cat_color_dict[cat])
+    h.SetMarkerStyle(20 if not args.isMC else 1)
     h.SetMaximum(max_y)
     h.SetMinimum(min_y)
     h.GetXaxis().SetTitle('M_{3#mu} (GeV)')
     h_bShape.append(h)
-    # relative mass resolution eta
-    he   = data_rdf.Filter(cat_selection_dict[cat]).Histo1D(('h_eta_%s'%cat, '', 26, 0, 2.6), 'tau_fit_absEta').GetPtr()
+    # -> eta
+    he   = data_rdf.Filter(config.cat_selection_dict[cat]).Histo1D(('h_eta_%s'%cat, '', 26, 0, 2.6), 'tau_fit_absEta').GetPtr()
     he.Scale(1./he.Integral())
     he.SetMaximum(.4)
-    he.SetLineColor(cat_color_dict[cat])
-    he.SetMarkerColor(cat_color_dict[cat])
+    he.SetLineColor(config.cat_color_dict[cat])
+    he.SetMarkerColor(config.cat_color_dict[cat])
     he.GetXaxis().SetTitle('|#eta_{3#mu}|')
     h_eta.append(he)
-    # eta based bkg Shape  
-    h_be   = data_rdf.Filter(cat_eta_selection_dict[cat]).Histo1D(('h_bShapeEta_%s'%cat, '', 10, mass_range_lo, mass_range_hi), 'tau_fit_mass').GetPtr()
+    # ** eta based 
+    # -> mass shape 
+    h_be   = data_rdf.Filter(config.cat_eta_selection_dict[cat]).Histo1D(('h_bShapeEta_%s'%cat, '', mass_bins, mass_range_lo, mass_range_hi), 'tau_fit_mass').GetPtr()
     h_be.Scale(1./h_be.Integral())
     h_be.SetMaximum(max_y)
     h_be.SetMinimum(min_y)
-    h_be.SetLineColor(cat_color_dict[cat])
-    h_be.SetMarkerColor(cat_color_dict[cat])
-    h_be.SetMarkerStyle(20)
+    h_be.SetLineColor(config.cat_color_dict[cat])
+    h_be.SetMarkerColor(config.cat_color_dict[cat])
+    h_be.SetMarkerStyle(20 if not args.isMC else 1)
     h_be.GetXaxis().SetTitle('M_{3#mu} (GeV)')
     h_bShape_etaCat.append(h_be)
-    # mass-resol with eta cat
-    h_me   = data_rdf.Filter(cat_eta_selection_dict[cat]).Histo1D(('h_MresolEta_%s'%cat, '', 25, 0.0, 0.025), 'tau_fit_mass_resol').GetPtr()
+    # -> rel. mass resolution
+    h_me   = data_rdf.Filter(config.cat_eta_selection_dict[cat]).Histo1D(('h_MresolEta_%s'%cat, '', 25, 0.0, 0.025), 'tau_fit_mass_resol').GetPtr()
     h_me.Scale(1./h_me.Integral())
     h_me.SetMaximum(1.3 * h_me.GetMaximum())
-    h_me.SetLineColor(cat_color_dict[cat]) 
+    h_me.SetLineColor(config.cat_color_dict[cat]) 
     h_me.GetXaxis().SetTitle('#sigma_{M}/M(3#mu)')
     h_resolM_etaCat.append(h_me)
 
     
     
-    
+# draw plots  
     
 plot_name = f'{args.plot_outdir}/ResolMassCategories_bShape_{tag}'
-c, l = draw_by_category(cat_selection_dict, h_bShape, [mass_range_lo, mass_range_hi])
+c, l = draw_by_category(config.cat_selection_dict, h_bShape, [mass_range_lo, mass_range_hi])
 l.SetHeader('#sigma_{M}/M categorization')
 c.Draw()
 h_bShape_inclusive.Draw('same pe')
@@ -195,24 +229,24 @@ l.AddEntry(h_bShape_inclusive.GetName(), 'inclusive')
 l.Draw()
 c.SaveAs(plot_name+'.png')
 c.SaveAs(plot_name+'.pdf')
-
-ratio_plot_CMSstyle(
-    h_bShape, 
-    h_bShape_inclusive,
-    to_ploton       = [l],
-    x_lim           = [mass_range_lo, mass_range_hi],
-    draw_opt_den    = 'histe',
-    draw_opt_num    = 'pe',
-    file_name       = plot_name+'_ratio', 
-    ratio_w         = 0.08, 
-    ratio_yname     = 'cat /incl',
-    CMSextraText    = 'Preliminary' if not args.isMC else 'Simulation Preliminary',
-    isMC            = args.isMC,
-    year            = args.year
-)
+if not args.isMC:   
+    plotting_tools.ratio_plot_CMSstyle(
+        h_bShape, 
+        h_bShape_inclusive,
+        to_ploton       = [l],
+        x_lim           = [mass_range_lo, mass_range_hi],
+        draw_opt_den    = 'histe',
+        draw_opt_num    = 'pe',
+        file_name       = plot_name+'_ratio', 
+        ratio_w         = 0.08, 
+        ratio_yname     = 'cat /incl',
+        CMSextraText    = 'Preliminary', 
+        isMC            = args.isMC,
+        year            = args.year
+    )
 
 plot_name = f'{args.plot_outdir}/ResolMassCategories_AbsEta_{tag}'
-c, l = draw_by_category(cat_selection_dict, h_eta, [0, 2.6])
+c, l = draw_by_category(config.cat_selection_dict, h_eta, [0, 2.6])
 l.SetHeader('#sigma_{M}/M categorization')
 c.Draw()
 l.Draw()
@@ -220,7 +254,7 @@ c.SaveAs(plot_name+'.png')
 c.SaveAs(plot_name+'.pdf')
 
 plot_name = f'{args.plot_outdir}/EtaCategories_MassResol_{tag}'
-c, l = draw_by_category(cat_selection_dict, h_resolM_etaCat, [0, 0.025])
+c, l = draw_by_category(config.cat_selection_dict, h_resolM_etaCat, [0, 0.025], print_mean = True)
 hdf = CMS.GetcmsCanvasHist(c)
 hdf.GetXaxis().SetMaxDigits(2)
 hdf.GetXaxis().CenterTitle(True)
@@ -233,25 +267,27 @@ c.SaveAs(plot_name+'.png')
 c.SaveAs(plot_name+'.pdf')
 
 plot_name = f'{args.plot_outdir}/EtaCategories_bShape_{tag}'
-c, l = draw_by_category(cat_selection_dict, h_bShape_etaCat, [mass_range_lo, mass_range_hi])
+c, l = draw_by_category(config.cat_selection_dict, h_bShape_etaCat, [mass_range_lo, mass_range_hi], fit= args.isMC)
 l.SetHeader('|#eta| categorization')
 c.Draw()
-h_bShape_inclusive.Draw('same pe')
-l.AddEntry(h_bShape_inclusive.GetName(), 'inclusive')
+if not args.isMC:
+    h_bShape_inclusive.Draw('same pe')
+    l.AddEntry(h_bShape_inclusive.GetName(), 'inclusive')
 l.Draw()
 c.SaveAs(plot_name+'.png')
 c.SaveAs(plot_name+'.pdf')
-ratio_plot_CMSstyle(
-    h_bShape_etaCat, 
-    h_bShape_inclusive, 
-    to_ploton       = [l],
-    x_lim           = [mass_range_lo, mass_range_hi],
-    draw_opt_den    = 'histe',
-    draw_opt_num    = 'pe',
-    file_name       = plot_name+'_ratio', 
-    ratio_w         = 0.08,  
-    ratio_yname     = 'cat /incl', 
-    CMSextraText    = 'Preliminary' if not args.isMC else 'Simulation Preliminary', 
-    isMC            = args.isMC,
-    year            = args.year
-)
+if not args.isMC:
+    plotting_tools.ratio_plot_CMSstyle(
+        h_bShape_etaCat, 
+        h_bShape_inclusive, 
+        to_ploton       = [l],
+        x_lim           = [mass_range_lo, mass_range_hi],
+        draw_opt_den    = 'histe',
+        draw_opt_num    = 'pe',
+        file_name       = plot_name+'_ratio', 
+        ratio_w         = 0.08,  
+        ratio_yname     = 'cat /incl', 
+        CMSextraText    = 'Preliminary' if not args.isMC else 'Simulation Preliminary', 
+        isMC            = args.isMC,
+        year            = args.year
+    )

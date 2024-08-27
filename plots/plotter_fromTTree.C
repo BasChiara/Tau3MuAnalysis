@@ -28,9 +28,9 @@ TString treeName_    = "Tau3Mu_HLTemul_tree";
 
 float legend_x1 = 0.55;
 float legend_x2 = 0.80;
-float legend_y1 = 0.80;
-float legend_y2 = 0.85;
-float leg_entry_dy = 0.04;
+float legend_y1 = 0.85;
+float legend_y2 = 0.90;
+float leg_entry_dy = 0.03;
 
 
 void SetInputFile(const TString& inFile = ""){
@@ -143,7 +143,7 @@ int draw_many_histos(std::vector<TString> branches, std::vector<TString> categor
       stk->Add(h);
    }
    float max_f = 1.4;
-   if (logY) max_f = 3.0;
+   if (logY) max_f = 5.0;
    stk->SetMaximum(max_f*maxY);
    stk->Draw("nostack HIST");
    legend->Draw();
@@ -352,7 +352,7 @@ int efficiencyVsPU( std::vector<TString> selections, std::vector<TString> descri
 
    THStack* stk = new THStack("profStack",";" + x_name + ";" + y_name);
    const float y_low  = 0.; 
-   const float y_high = 1.2; 
+   const float y_high = 1.4; 
    TString sel_PUbin = "";
    for(unsigned int i = 0; i < selections.size(); i++){
       TH1F* h_eff = new TH1F(Form("h_eff_%d",i), "", Nbins, x_low, x_high);
@@ -375,7 +375,7 @@ int efficiencyVsPU( std::vector<TString> selections, std::vector<TString> descri
    c->cd();
    stk->SetMaximum(y_high);
    stk->Draw("nostack pe plc pmc");
-   legend->Draw();
+   if (selections.size() > 1) legend->Draw();
    // save
    CMS_lumi( c, 0 );
    c->Update();
@@ -383,6 +383,7 @@ int efficiencyVsPU( std::vector<TString> selections, std::vector<TString> descri
    gPad->RedrawAxis();
    TString outName = outPath_ + out_name;
    c->SaveAs(outName+".png");
+   c->SaveAs(outName+".pdf");
 
    return 0;
 
