@@ -3,7 +3,7 @@ import sys
 import argparse
 import glob
 import sys
-sys.path.append('..')
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from plots.color_text import color_text as ct
 
 usage = 'usage : python hadd_file.py'

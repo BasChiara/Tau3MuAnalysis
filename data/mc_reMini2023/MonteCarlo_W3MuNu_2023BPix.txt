@@ -1,3 +1,4 @@
+# 29 Aug - miniAODv4 
 # central production + ext
-/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano_2024May03/WTo3MuNu_smfull_TuneCP5_13p6TeV_madgraph-pythia8/crab_W3MuNu_2023BPix/240503_130358/0000/
-/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano_2024May03/WTo3MuNu_smfull_TuneCP5_13p6TeV_madgraph-pythia8/crab_W3MuNu_2023BPixext/240503_130403/0000/
+/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano_2024Aug29/WTo3MuNu_smfull_TuneCP5_13p6TeV_madgraph-pythia8/crab_W3MuNu_2023BPix/240829_133448/0000/
+/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano_2024Aug29/WTo3MuNu_smfull_TuneCP5_13p6TeV_madgraph-pythia8/crab_W3MuNu_2023BPixext/240829_133454/0000/

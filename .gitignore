@@ -1,7 +1,6 @@
 # Job support files
-job_report/*
-jobs_report/*
-*/*/job_report/*
+*job*_report*/*
+*/*/job*_report*/*
 
 # Text files
 #*.txt

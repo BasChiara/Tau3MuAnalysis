@@ -162,17 +162,17 @@ namespace LumiRun3
 {
     inline std::map<TString, float> LumiFactor{
         {"DEFAULT"        , 1.0}, 
-        {"2022preEE"      , 0.00014111}, 
-        {"2022EE"         , 0.00005537}, 
-        {"2023preBPix"    , 0.00004177}, 
-        {"2023BPix"       , 0.00004821}, 
+        {"2022preEE"      , 0.0001452},			 
+        {"2022EE"         , 0.0000554},	
+        {"2023preBPix"    , 0.0000574}, 
+        {"2023BPix"       , 0.0000619}, 
     };
     inline std::map<TString, float> LumiFactor_W3MuNu{
         {"DEFAULT"        , 1.0}, 
-        {"2022preEE"      , 0.00174}, 
-        {"2022EE"         , 0.08640}, 
-        {"2023preBPix"    , 0.00173}, 
-        {"2023BPix"       , 0.00100}, 
+        {"2022preEE"      , 0.001791}, 
+        {"2022EE"         , 0.086435}, 
+        {"2023preBPix"    , 0.002380}, 
+        {"2023BPix"       , 0.001286}, 
     };
 }
 

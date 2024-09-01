@@ -121,7 +121,7 @@ void WTau3Mu_analyzer::Loop(){
          tau_mu3_IDrecoSF_sysUP = -1.; tau_mu3_IDrecoSF_sysDOWN = -1.;  
          if(isMC_) applyMuonSF(t);
 
-         weight = lumi_factor * PU_weight * tau_mu1_IDrecoSF * tau_mu2_IDrecoSF * tau_mu3_IDrecoSF; 
+         weight = lumi_factor * PU_weight * NLO_weight * tau_mu1_IDrecoSF * tau_mu2_IDrecoSF * tau_mu3_IDrecoSF; 
 
          // muons kinematics
          tau_mu1_pt  = TauTo3Mu_mu1_pt[t];   tau_mu2_pt  = TauTo3Mu_mu2_pt[t];   tau_mu3_pt  = TauTo3Mu_mu3_pt[t];

@@ -53,14 +53,14 @@ python3 scripts/submit_batch_dev.py -N -1 -s 1 -n ${FILES_PER_JOB} -F 1104 -p jo
 
 ## 2022 era F ##
 # v1
-python3 scripts/submit_batch_dev.py -N -1 -s 1 -n ${FILES_PER_JOB} -F 2.590 -p job_report --eos $EOS_PATH ${DATA_PATH}ParkingDoubleMuonLowMass0_2022Fv1.txt --runtime ${RUNTIME_H} --DsPhiPi --HLT_path ${HLT_CONF}
-python3 scripts/submit_batch_dev.py -N -1 -s 1 -n ${FILES_PER_JOB} -F 2.585 -p job_report --eos $EOS_PATH ${DATA_PATH}ParkingDoubleMuonLowMass1_2022Fv1.txt --runtime ${RUNTIME_H} --DsPhiPi --HLT_path ${HLT_CONF}
-python3 scripts/submit_batch_dev.py -N -1 -s 1 -n ${FILES_PER_JOB} -F 2.597 -p job_report --eos $EOS_PATH ${DATA_PATH}ParkingDoubleMuonLowMass2_2022Fv1.txt --runtime ${RUNTIME_H} --DsPhiPi --HLT_path ${HLT_CONF}
-python3 scripts/submit_batch_dev.py -N -1 -s 1 -n ${FILES_PER_JOB} -F 2.594 -p job_report --eos $EOS_PATH ${DATA_PATH}ParkingDoubleMuonLowMass3_2022Fv1.txt --runtime ${RUNTIME_H} --DsPhiPi --HLT_path ${HLT_CONF}
-python3 scripts/submit_batch_dev.py -N -1 -s 1 -n ${FILES_PER_JOB} -F 2.581 -p job_report --eos $EOS_PATH ${DATA_PATH}ParkingDoubleMuonLowMass4_2022Fv1.txt --runtime ${RUNTIME_H} --DsPhiPi --HLT_path ${HLT_CONF}
-python3 scripts/submit_batch_dev.py -N -1 -s 1 -n ${FILES_PER_JOB} -F 2.582 -p job_report --eos $EOS_PATH ${DATA_PATH}ParkingDoubleMuonLowMass5_2022Fv1.txt --runtime ${RUNTIME_H} --DsPhiPi --HLT_path ${HLT_CONF}
-python3 scripts/submit_batch_dev.py -N -1 -s 1 -n ${FILES_PER_JOB} -F 2.586 -p job_report --eos $EOS_PATH ${DATA_PATH}ParkingDoubleMuonLowMass6_2022Fv1.txt --runtime ${RUNTIME_H} --DsPhiPi --HLT_path ${HLT_CONF}
-python3 scripts/submit_batch_dev.py -N -1 -s 1 -n ${FILES_PER_JOB} -F 2.581 -p job_report --eos $EOS_PATH ${DATA_PATH}ParkingDoubleMuonLowMass7_2022Fv1.txt --runtime ${RUNTIME_H} --DsPhiPi --HLT_path ${HLT_CONF}
+python3 scripts/submit_batch_dev.py -N -1 -s 1 -n ${FILES_PER_JOB} -F 2590 -p job_report --eos $EOS_PATH ${DATA_PATH}ParkingDoubleMuonLowMass0_2022Fv1.txt --runtime ${RUNTIME_H} --DsPhiPi --HLT_path ${HLT_CONF}
+python3 scripts/submit_batch_dev.py -N -1 -s 1 -n ${FILES_PER_JOB} -F 2585 -p job_report --eos $EOS_PATH ${DATA_PATH}ParkingDoubleMuonLowMass1_2022Fv1.txt --runtime ${RUNTIME_H} --DsPhiPi --HLT_path ${HLT_CONF}
+python3 scripts/submit_batch_dev.py -N -1 -s 1 -n ${FILES_PER_JOB} -F 2597 -p job_report --eos $EOS_PATH ${DATA_PATH}ParkingDoubleMuonLowMass2_2022Fv1.txt --runtime ${RUNTIME_H} --DsPhiPi --HLT_path ${HLT_CONF}
+python3 scripts/submit_batch_dev.py -N -1 -s 1 -n ${FILES_PER_JOB} -F 2594 -p job_report --eos $EOS_PATH ${DATA_PATH}ParkingDoubleMuonLowMass3_2022Fv1.txt --runtime ${RUNTIME_H} --DsPhiPi --HLT_path ${HLT_CONF}
+python3 scripts/submit_batch_dev.py -N -1 -s 1 -n ${FILES_PER_JOB} -F 2581 -p job_report --eos $EOS_PATH ${DATA_PATH}ParkingDoubleMuonLowMass4_2022Fv1.txt --runtime ${RUNTIME_H} --DsPhiPi --HLT_path ${HLT_CONF}
+python3 scripts/submit_batch_dev.py -N -1 -s 1 -n ${FILES_PER_JOB} -F 2582 -p job_report --eos $EOS_PATH ${DATA_PATH}ParkingDoubleMuonLowMass5_2022Fv1.txt --runtime ${RUNTIME_H} --DsPhiPi --HLT_path ${HLT_CONF}
+python3 scripts/submit_batch_dev.py -N -1 -s 1 -n ${FILES_PER_JOB} -F 2586 -p job_report --eos $EOS_PATH ${DATA_PATH}ParkingDoubleMuonLowMass6_2022Fv1.txt --runtime ${RUNTIME_H} --DsPhiPi --HLT_path ${HLT_CONF}
+python3 scripts/submit_batch_dev.py -N -1 -s 1 -n ${FILES_PER_JOB} -F 2581 -p job_report --eos $EOS_PATH ${DATA_PATH}ParkingDoubleMuonLowMass7_2022Fv1.txt --runtime ${RUNTIME_H} --DsPhiPi --HLT_path ${HLT_CONF}
 
 ## 2022 era G ##
 python3 scripts/submit_batch_dev.py -N -1 -s 1 -n ${FILES_PER_JOB} -F 420 -p job_report --eos $EOS_PATH ${DATA_PATH}ParkingDoubleMuonLowMass0_2022Gv1.txt --runtime ${RUNTIME_H} --DsPhiPi --HLT_path ${HLT_CONF}

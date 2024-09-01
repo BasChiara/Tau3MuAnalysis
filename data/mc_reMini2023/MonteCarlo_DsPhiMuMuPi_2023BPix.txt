@@ -1,3 +1,3 @@
-# 22 March production 
+# 29 Aug production 
 # reMiniAOD with reconstruction for both Ds and Tau3Mu 
-/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano2023_2024Mar22/DstoPhiPi_Phito2Mu_MuFilter_TuneCP5_13p6TeV_pythia8-evtgen/crab_DstoPhiPi_2023BPix/240322_184457/0000/
+/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano_2024Aug29/DstoPhiPi_Phito2Mu_MuFilter_TuneCP5_13p6TeV_pythia8-evtgen/crab_DstoPhiPi_2023BPix/240829_133443/0000/
