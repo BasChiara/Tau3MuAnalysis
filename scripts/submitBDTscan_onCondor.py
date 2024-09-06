@@ -11,61 +11,6 @@ import numpy as np
 from condor_job_manager import *
 
 
-def setup_executable(exe_file, category, options):
-
-    # dump the text datacard
-    with open(exe_file, 'w') as exe:
-        exe.write(
-    '''
-#! /usr/bin/bash
-
-WORK_DIR="{workdir}"
-BASE_DIR="{basedir}/models/"
-
-TAG="{tag}"
-
-COMBINE_DIR="$WORK_DIR/input_combine"
-
-EOS_DIR="{eos}"
-YEAR="{year}"
-SIGNAL="{signal}"
-DATA="{data}"
-
-CATEGORY="{cat}"
-
-echo -e "\n"
-echo    "|  CATEGORY $CATEGORY  |"
-echo -e "\n"
-echo 'TIME TO FIT'
-python3 $BASE_DIR/Tau3Mu_fitSB.py --plot_outdir $EOS_DIR --combine_dir $COMBINE_DIR -s $SIGNAL -d $DATA --category $CATEGORY -y $YEAR --tag $TAG --optim_bdt --save_ws --bkg_func dynamic --BDTmin 0.9900 --BDTmax 0.9995 --BDTstep 0.0005
-#echo 'TIME TO CALCULATE LIMITS'
-# with AsymptoticLimits
-#python3 $BASE_DIR/runBDTOptimCombine.py -i $COMBINE_DIR -o $EOS_DIR --scan_sensitivity input_combine/sensitivity_tree_bdt_scan_{full_tag}.root -d {full_tag} -n {full_tag} --BDTmin 0.9900 --BDTmax 0.9995 --BDTstep 0.0005 -s all
-# with HybridNew 
-#python3 $BASE_DIR/runBDTOptimCombine.py -i $COMBINE_DIR -o $EOS_DIR --scan_sensitivity input_combine/sensitivity_tree_bdt_scan_WTau3Mu_{full_tag}.root -d {full_tag} -n {full_tag} -M HybridNew --BDTmin 0.9900 --BDTmax 0.9995 --BDTstep 0.0005 -s all
-#echo 'TIME TO COMPARE THE METHODS'
-# compare the methods
-python3 $BASE_DIR/compareLimitScan.py --inputs input_combine/Tau3MuCombine.{full_tag}_BDTscan.AsymptoticLimits.root --labels AsymptoticLimits --inputs input_combine/Tau3MuCombine.{full_tag}_BDTscan.HybridNew.root --labels HybridNew -o $EOS_DIR -d {full_tag} -n {full_tag} -y 20$YEAR -c $CATEGORY
-    '''.format(
-        workdir = os.path.abspath(options.workdir),
-        basedir = os.getcwd(),
-        tag     = options.tag,
-        eos     = options.plot_outdir,
-        year    = options.year,
-        signal  = options.signal,
-        data    = options.data,
-        cat     = category,
-        full_tag= f'WTau3Mu_{category}{options.year}_{options.tag}'
-    )
-    )
-
-    os.system(f'chmod +x {exe_file}')
-    
-    return
-    
-
-    
-
 def main():
     
     ############# USAGE #############
@@ -84,6 +29,9 @@ def main():
     parser.add_option('--category',          choices=['A', 'B', 'C', 'ABC'],   dest='category',        help='events category',                                         default = 'A')
     parser.add_option('--year',              choices=['22', '23'],      dest='year',            help='data taking year',                                        default = '22')
     parser.add_option('--debug',             action='store_true',       dest='debug',           help='useful printouts',                                        default = False)
+    parser.add_option('--BDTmin',            action='store',            dest='BDTmin',          help='minimum BDT value',                                       default = 0.9800) 
+    parser.add_option('--BDTmax',            action='store',            dest='BDTmax',          help='maximum BDT value',                                       default = 0.9980)
+    parser.add_option('--BDTstep',           action='store',            dest='BDTstep',         help='step for BDT scan',                                       default = 0.0010)
     (opt, args) = parser.parse_args()
 
     print("\n\n")
@@ -129,9 +77,6 @@ def main():
     srcfiles = []
     for i, cat in enumerate(categories):
     
-        # --> setup the executable
-        #executable_file_path = f'{opt.workdir}/{opt.application}_{cat}.sh'
-        #setup_executable(executable_file_path, cat, opt)
         # --> setup the command sequence to run
         src_filename = f'{jobdir}/src/submit_{str(i)}.src'
         with open(src_filename, 'w') as src:
@@ -143,7 +88,8 @@ cmsenv
 cd {pwd} 
 echo $PWD\n
 
-python3 models/Tau3Mu_fitSB.py --plot_outdir {eos} --combine_dir {workdir}/input_combine -s {signal} -d {data} --category {cat} -y {year} --tag {tag} --optim_bdt --save_ws --bkg_func dynamic --BDTmin 0.9900 --BDTmax 0.9995 --BDTstep 0.0005
+python3 models/Tau3Mu_fitSB.py --plot_outdir {eos} --combine_dir {workdir}/input_combine -s {signal} -d {data} --category {cat} -y {year} --tag {tag} --optim_bdt --save_ws --bkg_func dynamic --BDTmin {bdtmin} --BDTmax {bdtmax} --BDTstep {bdtstep} --goff
+
     '''.format(
         pwd = pwd,
         tag     = opt.tag,
@@ -153,6 +99,9 @@ python3 models/Tau3Mu_fitSB.py --plot_outdir {eos} --combine_dir {workdir}/input
         signal  = opt.signal,
         data    = opt.data,
         cat     = cat,
+        bdtmin  = opt.BDTmin,
+        bdtmax  = opt.BDTmax,
+        bdtstep = opt.BDTstep
         )
             )
         srcfiles.append(src_filename)

@@ -58,6 +58,7 @@ def plot_sWeights(observable, mc_norm = 1.0 ,selection = '', nbins = 100, lo = 0
         h_mc,
         to_ploton = to_ploton,
         file_name = f'{args.plot_outdir}/DsPhiPi_SW{observable.GetName()}_{tag}{add_tag}',
+        year      = args.year,
         draw_opt_num = 'pe',
         draw_opt_den = 'hist',
         ratio_w      = 1.0,
@@ -73,7 +74,7 @@ parser.add_argument('--tag',            default= 'reMini', help='tag to the trai
 parser.add_argument('--debug',          action = 'store_true' ,help='set it to have useful printout')
 
 args = parser.parse_args()
-tag = args.tag 
+tag = f'{args.year}_{args.tag}' 
 
 # **** USEFUL CONSTANT VARIABLES *** #
 mass_window_lo, mass_window_hi = config.Ds_mass_range_lo, config.Ds_mass_range_hi # GeV
@@ -100,7 +101,7 @@ mass = wspace_data['Ds_fit_mass']
 
 var_list = [mass]
 # weights
-weight    = ROOT.RooRealVar('weight', 'weight', -10,  np.inf, '' )
+weight    = ROOT.RooRealVar('weight', 'weight', -np.inf,  np.inf, '' )
 var_list.append(weight)
 year_id   = ROOT.RooRealVar('year_id', 'year_id'  , 210,  270, '' )
 var_list.append(year_id)
@@ -108,7 +109,7 @@ var_list.append(year_id)
 eta      = ROOT.RooRealVar('Ds_fit_eta', '#eta_{3#mu}'  , -3,  3)
 var_list.append(eta)
 # observables for selection 
-dspl_sig = ROOT.RooRealVar('tau_Lxy_sign_BS', ''  , 0.0,  np.inf)
+dspl_sig = ROOT.RooRealVar('tau_Lxy_sign_BS', ''  , 2.0,  np.inf)
 sv_prob  = ROOT.RooRealVar('tau_fit_vprob', ''  , 0.0,  1.0)
 phi_mass = ROOT.RooRealVar('phi_fit_mass', ''  , 0.5,  2.0, 'GeV')
 var_list.append(dspl_sig)
@@ -146,8 +147,8 @@ base_selection = '(' + ' & '.join([
 ]) + ')'
 print('[i] base_selection = %s'%base_selection)
 input_tree_name = 'tree_w_BDT'
-mc_file     = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_DsPhiMuMuPi_MC_Optuna_HLT_overlap_LxyS2.1_2024Jul11.root' ]
-data_file   = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_DsPhiMuMuPi_DATA_Optuna_HLT_overlap_LxyS2.1_2024Jul11.root' ]
+mc_file     = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output//XGBout_DsPhiMuMuPi_MC_Optuna_HLT_overlap_LxyS2.1_2024Jul11.root' ]
+data_file   = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output//XGBout_DsPhiMuMuPi_DATA_Optuna_HLT_overlap_LxyS2.1_2024Jul11.root' ]
 
 # signal MC 
 mc_tree = ROOT.TChain(input_tree_name)
@@ -156,10 +157,10 @@ mc_tree = ROOT.TChain(input_tree_name)
 data_tree = ROOT.TChain(input_tree_name)
 [data_tree.AddFile(f) for f in data_file]
 
-fullmc = ROOT.RooDataSet('mc_DsPhiMuMuPi', 'mc_DsPhiMuMuPi', mc_tree, thevars, base_selection, 'weight')
+fullmc = ROOT.RooDataSet('mc_DsPhiMuMuPi', 'mc_DsPhiMuMuPi', mc_tree, thevars, base_selection)
 fullmc.Print()
 print('[+] MC entries = %.2f'%fullmc.sumEntries() )
-datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, base_selection, 'weight')
+datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, base_selection)
 datatofit.Print()
 print('[+] DATA entries = %.2f'%datatofit.sumEntries() )
 
@@ -270,8 +271,8 @@ CAT_txt.SetTextAlign(11)
 CAT_txt.SetNDC()
 for i, cat in enumerate(config.Ds_category_selection.keys()):
     if cat == 'ABC': continue
-    CAT_txt.SetText(0.30, 0.90, "CAT %s"%cat)
-    plot_sWeights(bdt, fnorm_mc.evaluate(), f'({sWeigths_selection} & {cat_selection_dict[cat]})', 25, 0.0, 1.0, ROOT.kRed, [CAT_txt], add_tag=f'_cat{cat}')
+    CAT_txt.SetText(0.40, 0.60, "CAT %s"%cat)
+    plot_sWeights(bdt, fnorm_mc.evaluate(), f'({sWeigths_selection} & {config.Ds_category_selection[cat]})', 25, 0.0, 1.0, ROOT.kRed, [CAT_txt], add_tag=f'_cat{cat}')
 
 ## sPlot - MET
 #METalgos = [puppi_met, deep_met, raw_met]

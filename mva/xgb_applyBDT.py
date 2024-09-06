@@ -36,7 +36,7 @@ parser.add_argument('--save_output',    action = 'store_true' ,                 
 parser.add_argument('--process',        choices= ['WTau3Mu', 'W3MuNu', 'data', 'DsPhiMuMuPi', 'fake_rate'],   help='what process is in the input sample')
 parser.add_argument('--isMC',           action = 'store_true' ,                                         help='set if running on MonteCarlo')
 parser.add_argument('--isMulticlass',   action = 'store_true' ,                                         help='set if applying a multiclass classifier')
-parser.add_argument('--LxySign_cut',    default=  0.05,  type = float,                               help='cut over 3muons SV displacement significance')
+parser.add_argument('--LxySign_cut',    default=  0.0,  type = float,                               help='cut over 3muons SV displacement significance')
 parser.add_argument('-d', '--data',     action = 'append',                                              help='dataset to apply BDT weights')
 
 args = parser.parse_args()
@@ -60,7 +60,7 @@ else:
     ]) 
 
 print(f'{ct.BOLD}[!] base-selection : %s'%base_selection)
-print(f'---------------------------------------------{ct.BOLD}')
+print(f'---------------------------------------------{ct.END}')
 
  # ------------ INPUT DATASET ------------ # 
 
@@ -117,15 +117,17 @@ else:
     dat['bdt_score'] =  np.zeros(dat.shape[0])
 for i, iclas in classifiers.items():
     print ('[BDT] evaluating %d/%d classifier' %(i+1, n_class))
+    # make prediction using the iterations after the transient up to the best iteration
+    starting_epoch = 0 #int(0.01 * len(iclas.evals_result()['validation_0']['auc']))
     best_iteration = iclas.get_booster().best_iteration
     print('\tbest iteration %d' %(best_iteration))
     if args.isMulticlass :
-        dat.loc[:,'bdt_fold%d_score_t3m' %i] = iclas.predict_proba(dat[bdt_inputs])[:, 0]
-        dat.loc[:,'bdt_score_t3m'] += iclas.predict_proba(dat[bdt_inputs])[:, 0] / n_class
-        dat.loc[:,'bdt_fold%d_score_b' %i] = iclas.predict_proba(dat[bdt_inputs])[:, 1]
-        dat.loc[:,'bdt_score_b']   += iclas.predict_proba(dat[bdt_inputs])[:, 1] / n_class
-        dat.loc[:,'bdt_fold%d_score_w3m' %i] = iclas.predict_proba(dat[bdt_inputs])[:, 2]
-        dat.loc[:,'bdt_score_w3m'] += iclas.predict_proba(dat[bdt_inputs])[:, 2] / n_class
+        dat.loc[:,'bdt_fold%d_score_t3m' %i]    = iclas.predict_proba(dat[bdt_inputs], iteration_range = (starting_epoch, best_iteration +1))[:, 0]
+        dat.loc[:,'bdt_score_t3m']             += iclas.predict_proba(dat[bdt_inputs], iteration_range = (starting_epoch, best_iteration +1))[:, 0] / n_class
+        dat.loc[:,'bdt_fold%d_score_b' %i]      = iclas.predict_proba(dat[bdt_inputs], iteration_range = (starting_epoch, best_iteration +1))[:, 1]
+        dat.loc[:,'bdt_score_b']               += iclas.predict_proba(dat[bdt_inputs], iteration_range = (starting_epoch, best_iteration +1))[:, 1] / n_class
+        dat.loc[:,'bdt_fold%d_score_w3m' %i]    = iclas.predict_proba(dat[bdt_inputs], iteration_range = (starting_epoch, best_iteration +1))[:, 2]
+        dat.loc[:,'bdt_score_w3m']             += iclas.predict_proba(dat[bdt_inputs], iteration_range = (starting_epoch, best_iteration +1))[:, 2] / n_class
     else:
         dat.loc[:,'bdt_fold%d_score' %i] = iclas.predict_proba(dat[bdt_inputs])[:, 1]
         dat.loc[:,'bdt_score'] += iclas.predict_proba(dat[bdt_inputs])[:, 1] / n_class

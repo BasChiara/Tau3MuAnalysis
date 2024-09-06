@@ -9,9 +9,10 @@ from glob import glob
 from pdb import set_trace
 from array import array 
 import math
+import numpy as np
 import argparse
 import sys
-sys.path.append('..')
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import mva.config as config
 
 
@@ -28,7 +29,7 @@ parser.add_argument('--year',       choices=['2022', '2023'], default = '2022', 
 parser.add_argument('--bdt_cut',    default = -1.0, type=float,                help='BDT cut value')
 
 args = parser.parse_args()
-tag = f'cat{args.category}' + (f'_bdt{args.bdt_cut:,.2f}' if args.bdt_cut > 0. else '') + f'_{args.tag}'
+tag = f'cat{args.category}{args.year}' + (f'_bdt{args.bdt_cut:,.2f}' if args.bdt_cut > 0. else '') + f'_{args.tag}'
 
 # *** ROOT STYLES *** #
 ROOT.gROOT.SetBatch(True)
@@ -38,14 +39,15 @@ ROOT.TH1.SetDefaultSumw2()
 # **** CONSTANT VARIABLES **** #
 fit_range_lo = config.Ds_mass_range_lo
 fit_range_hi = config.Ds_mass_range_hi
-nbins = 40 if not args.fake_cand else 25 # needed just for plotting, fits are all unbinned
+binwidth = 0.01
+nbins = 65#int((fit_range_hi-fit_range_lo)/binwidth) if not args.fake_cand else 25 # needed just for plotting, fits are all unbinned
 
 
 # *** INPUT DATA AND MONTE CARLO ***
 #input_tree_name = 'DsPhiMuMuPi_tree' if not args.fake_cand else 'WTau3Mu_tree'
 input_tree_name = 'tree_w_BDT'
-mc_file     = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_DsPhiMuMuPi_MC_Optuna_HLT_overlap_LxyS2.1_2024Jul11.root' ]
-data_file   = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_DsPhiMuMuPi_DATA_Optuna_HLT_overlap_LxyS2.1_2024Jul11.root' ]
+mc_file     = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output//XGBout_DsPhiMuMuPi_MC_Optuna_HLT_overlap_LxyS2.1_2024Jul11.root' ]
+data_file   = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output//XGBout_DsPhiMuMuPi_DATA_Optuna_HLT_overlap_LxyS2.1_2024Jul11.root' ]
 # *** OUTPUT FILE *** #
 f_out_name = "DsPhiPi2022_wspace_%s.root"%(tag)
 f_out = ROOT.TFile(f_out_name, "RECREATE")
@@ -56,18 +58,16 @@ mass = ROOT.RooRealVar('Ds_fit_mass' if not args.fake_cand else 'tau_MuMuPi_mass
 mass.setRange('fit_range', fit_range_lo, fit_range_hi)
 mass.setRange('full_range', config.Ds_mass_range_lo, config.Ds_mass_range_lo)
 
-weight   = ROOT.RooRealVar('weight', 'weight'  , -1000,  1000, '')
+weight   = ROOT.RooRealVar('weight', 'weight'  , -np.inf,  np.inf, '')
 year_id  = ROOT.RooRealVar('year_id', 'year_id'  , 210,  270, '')
-mass_err = ROOT.RooRealVar('tau_fit_mass_err', '#sigma_{M(3 #mu)}/ M(3 #mu)'  , 0.0,  0.03, 'GeV' )
 eta      = ROOT.RooRealVar('Ds_fit_eta', '#eta_{#mu#mu#pi}'  , -4.0,  4.0)
-dspl_sig = ROOT.RooRealVar('tau_Lxy_sign_BS', ''  , 0.0,  1000)
+dspl_sig = ROOT.RooRealVar('tau_Lxy_sign_BS', ''  , 0.0,  np.inf)
 sv_prob  = ROOT.RooRealVar('tau_fit_vprob', ''  , 0.0,  1.0)
 phi_mass = ROOT.RooRealVar('phi_fit_mass' if not args.fake_cand else 'tau_phiMuMu_mass', ''  , 0.5,  2.0, 'GeV')
-bdt_score= ROOT.RooRealVar('bdt_score', 'bdt_score', args.bdt_cut, 1.0)
+bdt_score= ROOT.RooRealVar('bdt_score', 'bdt_score', 0.0, 1.0)
 
 thevars = ROOT.RooArgSet()
 thevars.add(mass)
-#thevars.add(mass_err)
 thevars.add(weight)
 thevars.add(year_id)
 thevars.add(eta)
@@ -76,7 +76,7 @@ thevars.add(sv_prob)
 thevars.add(phi_mass)
 thevars.add(bdt_score)
 
-### MC SIGNAL - FIT ###
+# --- common selection --- #
 base_selection = '(' + ' & '.join([
     config.year_selection[args.year],
     config.Ds_base_selection,
@@ -88,6 +88,8 @@ if args.bdt_cut > 0.:
     base_selection += ' & (bdt_score > %.2f)'%args.bdt_cut
 print('[i] base_selection = %s'%base_selection)
 
+
+### MC SIGNAL - FIT ###
 mc_tree = ROOT.TChain(input_tree_name)
 [mc_tree.AddFile(f) for f in mc_file]
 N_mc = mc_tree.GetEntries(base_selection)
@@ -298,3 +300,4 @@ except Exception as e:
 wspace_data.Write()
 f_out.Close()
 print(' -- saved workspace in %s'%f_out_name)
+

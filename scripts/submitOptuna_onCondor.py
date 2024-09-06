@@ -9,6 +9,8 @@ import numpy as np
 from condor_job_manager import *
 
 def setup_executable(exe_file, LxyS, options):
+
+    default_optuna = f'./optimization/BestTrial_OptunaXGBopt_LxyS2.1_HLT_overlap_2024Jul10_lessOT.json'
     
     with open(exe_file, 'w') as exe :
         exe.write(
@@ -18,10 +20,10 @@ cd $T3M_ANA
 cmsenv
 cd {workdir}
 
-echo **BDT hyperparameter optimization with Optuna**
-python3 xgb_hp_optimizer.py --prep_sig {signal} --prep_bkg {data} --LxySign_cut {L_cut} -N {Ntrials} --tag {tag}
-#echo **Train the model with optimal hyperparams**
-#python3 xgb_trainer_kFold.py --prep_sig {signal} --prep_bkg {data} --LxySign_cut {L_cut} --opt_parameters {workdir}/optimization/BestTrial_OptunaXGBopt_LxyS{L_cut}_{tag}_{today}.json --plot_outdir {out_plt} --save_output --tag Optuna_{tag}
+#echo **BDT hyperparameter optimization with Optuna**
+#python3 xgb_hp_optimizer.py --prep_sig {signal} --prep_bkg {data} --LxySign_cut {L_cut} -N {Ntrials} --tag {tag}
+echo **Train the model with optimal hyperparams**
+python3 xgb_trainer_kFold.py --prep_sig {signal} --prep_bkg {data} --LxySign_cut {L_cut} --opt_parameters {optuna} --plot_outdir {out_plt} --save_output --data_outdir {data_dir} --tag {tag}
 
 '''.format(
     pwd     = os.environ['PWD'],
@@ -29,6 +31,8 @@ python3 xgb_hp_optimizer.py --prep_sig {signal} --prep_bkg {data} --LxySign_cut 
     signal  = options.signal,
     data    = options.data,
     L_cut   = LxyS,
+    optuna  = default_optuna,
+    data_dir= options.data_outdir,
     Ntrials = options.Trials,
     tag     = options.tag,
     today   = datetime.date.today().strftime('%Y%b%d'),
@@ -50,6 +54,7 @@ def setup_condor_jobs():
     parser.add_option('--workdir',           action='store',            dest='workdir',         help='copy the output datacard and .root in the specified path',default='./mva/')
     parser.add_option('--tag',               action='store',            dest='tag',             help='tag that identifies the task')
     parser.add_option('--plot_outdir',       action='store',            dest='plot_outdir',     help='copy the output plot in the specified EOS path',          default = '')
+    parser.add_option('--data_outdir',       action='store',            dest='data_outdir',     help='save data specified EOS path',          default = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/')
     parser.add_option('--debug',             action='store_true',       dest='debug',           help='useful printouts',                                        default = False)
     (opt, args) = parser.parse_args()
     print('\n')
@@ -72,7 +77,7 @@ def setup_condor_jobs():
 
     # --> split the jobs
 
-    disp_cut_list = [1.4, 1.9, 2.0, 2.1]
+    disp_cut_list = [0.0]
     disp_cut_list = opt.LxySign_cut 
     print(f'\n run optimization for Lxy significance working points : {disp_cut_list}')
     srcfiles = []

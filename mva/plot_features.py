@@ -41,10 +41,10 @@ parser.add_argument('--LxySign_cut',    default=  0.0,  type = float,           
 parser.add_argument('-p', '--process',  choices = ['Tau3Mu', 'W3MuNu', 'DsPhiPi'], default = 'Tau3Mu',help='which process in the simulation')
 parser.add_argument('-s', '--signal',   action = 'append',                                           help='file with signal events with BDT applied')
 parser.add_argument('-d', '--data',     action = 'append',                                           help='file with data events with BDT applied')
-parser.add_argument('-y', '--year',     choices= ['2022', '2023'],   default= '2022',                 help='data-taking year to process')
+parser.add_argument('-y', '--year',     choices= ['2022', '2023', 'Run3'],   default= '2022',                 help='data-taking year to process')
 
 args = parser.parse_args()
-tag = args.tag
+tag = args.tag + '_%s'%args.year
 removeNaN = False
 
 # ------------ INPUT/OUTPUT ------------ # 
@@ -59,7 +59,9 @@ else:
 base_selection = ' & '.join([
     cfg.base_selection,
     cfg.phi_veto,
+    cfg.year_selection[args.year],
     f' (tau_Lxy_sign_BS > {args.LxySign_cut})',
+
 ])
 sig_selection  = base_selection 
 bkg_selection  = base_selection + f'& {cfg.sidebands_selection}'

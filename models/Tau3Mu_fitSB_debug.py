@@ -60,7 +60,7 @@ ROOT.TH1.SetDefaultSumw2()
 mass_window = 0.060 # GeV
 tau_mass = 1.777 # GeV
 fit_range_lo  , fit_range_hi   = 1.68, 1.87 # GeV
-mass_window_lo, mass_window_hi = config.mass_range_lo, config.mass_range_hi # GeV #tau_mass-mass_window, tau_mass+mass_window
+mass_window_lo, mass_window_hi = config.mass_range_lo, 2.1 #config.mass_range_hi # GeV
 
 bin_w = 0.01
 nbins = int(np.rint((mass_window_hi-mass_window_lo)/bin_w)) # needed just for plotting, fits are all unbinned
@@ -92,7 +92,8 @@ eta = ROOT.RooRealVar('tau_fit_eta', '#eta_{3 #mu}'  , -4.0,  4.0)
 # BDT score
 bdt = ROOT.RooRealVar('bdt_score', 'BDT score'  , 0.0,  1.0, '' )
 # data weights
-weight = ROOT.RooRealVar('weight', 'weight', -1000, 1000, '')
+weight = ROOT.RooRealVar('weight', 'weight', -np.inf, np.inf, '')
+lumi_weight = ROOT.RooRealVar('lumi_factor', 'lumi_factor', 0.00005, 3.0, '')
 # di-muon mass
 mu12_mass = ROOT.RooRealVar('tau_mu12_fitM', 'tau_mu12_fitM'  , -10.0,  10.0, 'GeV' )
 mu23_mass = ROOT.RooRealVar('tau_mu23_fitM', 'tau_mu23_fitM'  , -10.0,  10.0, 'GeV' )
@@ -101,17 +102,21 @@ mu13_mass = ROOT.RooRealVar('tau_mu13_fitM', 'tau_mu13_fitM'  , -10.0,  10.0, 'G
 Lsign = ROOT.RooRealVar('tau_Lxy_sign_BS', 'tau_Lxy_sign_BS', 0, np.inf)
 # year/era tag
 year_id = ROOT.RooRealVar('year_id', 'year_id', 0, 500, '')
+# run
+run = ROOT.RooRealVar('run', 'run'  , 0,  362800)
 
 thevars = ROOT.RooArgSet()
 thevars.add(mass)
 thevars.add(eta)
 thevars.add(bdt)
 thevars.add(weight)
+thevars.add(lumi_weight)
 thevars.add(mu12_mass)
 thevars.add(mu13_mass)
 thevars.add(mu23_mass)
 thevars.add(Lsign)
 thevars.add(year_id)
+thevars.add(run)
 
 # ** data frame to scan Punzi sensitivity
 
@@ -128,7 +133,7 @@ if args.optim_bdt :
     AMS_val         = []
 
 # **** EVENT SELEctION ****
-phi_veto            = config.phi_veto 
+phi_veto            = '''(fabs(tau_mu12_fitM- {mass:.3f})> {window:.3f} & fabs(tau_mu23_fitM - {mass:.3f})> {window:.3f} & fabs(tau_mu13_fitM -  {mass:.3f})>{window:.3f})'''.format(mass =1.020 , window = 0.010 )
 cat_selection       = f'({config.cat_selection_dict[args.category]})' if not category_by_eta else config.cat_eta_selection_dict_fit[args.category]
 sidebands_selection = config.sidebands_selection
 year_selection      = config.year_selection['20'+args.year]
@@ -142,7 +147,7 @@ for cut in set_bdt_cut:
     bdt_selection       = f'(bdt_score > {cut:,.4f})'
     base_selection      = ' & '.join([
         cat_selection, 
-        year_selection, 
+        ' & (run < 362800)', 
         phi_veto,
     ])
     sgn_selection       = ' & '.join([bdt_selection, base_selection])

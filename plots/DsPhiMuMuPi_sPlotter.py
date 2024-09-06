@@ -5,7 +5,7 @@ import os
 import numpy as np
 import plotting_tools as pt
 import sys
-sys.path.append('../')
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 import mva.config as cfg
 
 def make_sPlot(
@@ -60,6 +60,7 @@ def make_sPlot(
         y_lim = [0, 1.5 * np.max([h_mc.GetMaximum(), h_sData.GetMaximum()])],
         x_lim = [lo, hi],
         log_y = log_scale,
+        year = args.year,
     )
     return 0
 
@@ -143,6 +144,7 @@ def apply_reweighting(observable, h_ratio, nbins = 30, lo = -3, hi = 3, selectio
         y_lim = [0, 1.5 * h_reweighted.GetMaximum()],
         x_lim = [lo, hi],
         log_y = False,
+        year = args.year,
     )
     return 0
     # draw plot
@@ -158,6 +160,7 @@ def apply_reweighting(observable, h_ratio, nbins = 30, lo = -3, hi = 3, selectio
 parser = argparse.ArgumentParser()
 parser.add_argument('-i', '--input', type=str, default='../models/sWeights_Optuna_HLT_overlap_LxyS2.1_2024Jul11_2022only_DataMc.root')
 parser.add_argument('--plot_outdir', type=str, default='/eos/user/c/cbasile/www/Tau3Mu_Run3/BDTtraining/cut_LxySign/Training_kFold_Optuna_HLT_overlap_LxyS2.1_2024Jul11/DsPhiPi_control/')
+parser.add_argument('-y','--year',   type=str, default='2022')
 parser.add_argument('--tag', type=str, default='')
 args = parser.parse_args()
 
@@ -184,20 +187,28 @@ if not sData_tree:
     sys.exit(1)
 
 # --- do sPlot
+base_selection = '(' + ' & '.join([
+    cfg.year_selection[args.year],
+    cfg.Ds_base_selection,
+    cfg.Ds_phi_selection,
+    cfg.Tau_sv_selection,
+    '(tau_Lxy_sign_BS > 2.0)',
+]) + ')'
+print('[i] base_selection = %s'%base_selection)
 # BDT input features
 observable_list = cfg.features + ['bdt_score']
 for obs in observable_list:
     make_sPlot(
         observable = obs,
         mc_norm = 'norm_factor',
-        selection = '1',
+        selection = base_selection,
         nbins   = cfg.features_NbinsXloXhiLabelLog[obs][0],
         lo      = cfg.features_NbinsXloXhiLabelLog[obs][1],
         hi      = cfg.features_NbinsXloXhiLabelLog[obs][2],
         x_axis_title = cfg.features_NbinsXloXhiLabelLog[obs][3],
         y_axis_title= 'Events',
         log_scale   = cfg.features_NbinsXloXhiLabelLog[obs][4],
-        color   = ROOT.kOrange + 2,
+        color   = ROOT.kOrange + 2 if not 'bdt' in obs else ROOT.kRed,
         to_ploton = [],
         add_tag = '',
     )
@@ -205,10 +216,10 @@ for obs in observable_list:
 make_sPlot(
     observable = 'Ds_fit_eta',
     mc_norm = 'norm_factor',
-    selection = '1',
+    selection = base_selection,
     nbins   = 30,
     lo      = -3,
-    hi      = 3,
+    hi      =  3,
     x_axis_title = '#eta(#mu#mu#pi)',
     y_axis_title= 'Events',
     log_scale   = False,
@@ -221,7 +232,7 @@ make_sPlot(
 h_ratio = reweight_by_eta()
 #apply_reweighting('Ds_fit_eta', h_ratio) # closure test
 # bdt_score
-apply_reweighting('bdt_score', h_ratio, nbins=25, lo=0, hi=1, selection='1')
+apply_reweighting('bdt_score', h_ratio, nbins=25, lo=0, hi=1, selection=base_selection, add_tag=args.tag)
 
 CAT_txt = ROOT.TText()
 CAT_txt.SetTextFont(43)
@@ -236,7 +247,7 @@ for cat in cfg.Ds_category_selection:
     apply_reweighting('bdt_score', h_ratio, 
                       nbins=25, lo=0, hi=1, 
                       selection=cfg.Ds_category_selection[cat], 
-                      add_tag=f'cat{cat}', 
+                      add_tag=f'cat{cat}{args.tag}', 
                       to_ploton=[CAT_txt], 
                       cat=cat)
 

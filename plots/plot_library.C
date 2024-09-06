@@ -65,8 +65,11 @@ Color_t PtlColorMap(const TString& particle){
   PtlColor["PuppiMET"] = kViolet + 2;
   PtlColor["DeepMET"] = kCyan +2;
 
-  PtlColor["W"] = kOrange;
+  PtlColor["W"]     = kOrange;
   PtlColor["W_gen"] = kBlack;
+
+  PtlColor["MCno_weight"] = kBlack;
+  PtlColor["MC_weight"]   = kRed;
 
   return PtlColor[particle];
 }
@@ -89,6 +92,8 @@ TString CategoryLegend(const TString& category){
   Leg_entry["W"] = "W reco-level";
   Leg_entry["W_gen"] = "W gen-level";
 
+  Leg_entry["MCno_weight"] = "MC no weight";
+  Leg_entry["MC_weight"]   = "MC with weight";
 
   return Leg_entry[category];
 }

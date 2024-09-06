@@ -18,14 +18,14 @@ blind_range_hi = 1.84 # GeV
 ###                ###
 Ds_mass = 1.9678 # GeV
 D_mass  = 1.8693 # GeV
-Ds_mass_range_lo  = 1.70 # GeV
+Ds_mass_range_lo  = 1.40 # GeV
 Ds_mass_range_hi  = 2.05 # GeV
 
 ###                ###
 #   EVENT SELECTION  #
 ###  at mva level  ###
-Phi_mass_, Phi_window_ = 1.020, 0.040#0.020
-LxtSign_cut    = 2.1
+Phi_mass_, Phi_window_ = 1.020, 0.040
+LxySign_cut    = 2.1
 Ds_phi_mass_lo, Ds_phi_mass_hi = 0.98, 1.05
 Ds_minSVprob = 0.10
 
@@ -33,13 +33,13 @@ Ds_minSVprob = 0.10
 base_selection      = f'(tau_fit_mass > {mass_range_lo} & tau_fit_mass < {mass_range_hi} ) & (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu)'
 phi_veto            = '''(fabs(tau_mu12_fitM- {mass:.3f})> {window:.3f} & fabs(tau_mu23_fitM - {mass:.3f})> {window:.3f} & fabs(tau_mu13_fitM -  {mass:.3f})>{window:.3f})'''.format(mass =Phi_mass_ , window = Phi_window_/2. )
 sidebands_selection = f'((tau_fit_mass < {blind_range_lo} )|| (tau_fit_mass > {blind_range_hi}))'
-displacement_selection = f'(tau_Lxy_sign_BS > {LxtSign_cut})'
+displacement_selection = f'(tau_Lxy_sign_BS > {LxySign_cut})'
 
 # Ds->Phi(MuMu)Pi
-Ds_base_selection   = f'(Ds_fit_mass > {Ds_mass_range_lo} & Ds_fit_mass < {Ds_mass_range_hi} ) & (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu)'
+Ds_base_selection   = f'(Ds_fit_mass > {Ds_mass_range_lo} & Ds_fit_mass < {Ds_mass_range_hi} )' #& (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu)'
 Ds_phi_selection    = f'(phi_fit_mass > {Ds_phi_mass_lo} & phi_fit_mass < {Ds_phi_mass_hi} )'
 Ds_sv_selection     = f'(Ds_Lxy_sign_BS > 0.0 & Ds_fit_vprob > {Ds_minSVprob} )'
-Tau_sv_selection    = f'(tau_Lxy_sign_BS > 0.0 & tau_fit_vprob > {Ds_minSVprob} )'
+Tau_sv_selection    = f'(tau_Lxy_sign_BS > {LxySign_cut} & tau_fit_vprob > {Ds_minSVprob} )'
 
 ###              ###
 #   DATASET INFO   #
@@ -47,20 +47,24 @@ Tau_sv_selection    = f'(tau_Lxy_sign_BS > 0.0 & tau_fit_vprob > {Ds_minSVprob} 
 year_selection = {
     '2022preEE'     : '((year_id == 220) | ((year_id > 222) & (year_id < 225))) ', # era CD
     '2022EE'        : '((year_id == 221) | ((year_id > 224) & (year_id < 230))) ', # era EFG
-    '2022'          : '((year_id >  219) & (year_id < 230))',
+    '2022'          : '((year_id >  219) & (year_id <  230))',
     '2023preBPix'   : '((year_id == 230) | ((year_id > 231) & (year_id < 234))) ', # era BC
     '2023BPix'      : '((year_id == 231) | ((year_id > 233) & (year_id < 240))) ', # era D
-    '2023'          : '((year_id >  229 )& (year_id < 240))',
-    'Run3'          : '((year_id >  219 )& (year_id < 240))',
+    '2023'          : '((year_id >  229) & (year_id < 240))',
+    'Run3'          : '((year_id >  219) & (year_id < 240))',
 }
 LumiVal_plots = {
-    '2022preEE' : "8",
-    '2022EE'    : "27",
-    '2022'      : "34.7", 
-    '2023preBPix' : "18",
-    '2023BPix'    : "9",
-    '2023'        : "27.9",
-    'Run3' : "62.6",
+    '2022preEE'     : "13.6",
+    '2022EE'        : "20.8",
+    '2022'          : "34.5", 
+    '2023preBPix'   : "18.0",
+    '2023BPix'      : "9.7",
+    '2023'          : "27.7",
+    'Run3'          : "62.2",
+}
+Lumi_systematics = {
+    '2022'          : 1.014,
+    '2023'          : 1.013,
 }
 
 ###                     ###
@@ -147,20 +151,20 @@ DsPhiPi_signals = [
 
 DsPhiPi_data = [
     #2022
-    data_path + 'reMini2022_eosbkp/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Cv1_HLT_overlap.root',
-    data_path + 'reMini2022_eosbkp/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv1_HLT_overlap.root',
-    data_path + 'reMini2022_eosbkp/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv2_HLT_overlap.root',
-    data_path + 'reMini2022_eosbkp/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Ev1_HLT_overlap.root',
-    data_path + 'reMini2022_eosbkp/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Fv1_HLT_overlap.root',
-    data_path + 'reMini2022_eosbkp/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Gv1_HLT_overlap.root',
+    data_path + 'reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Cv1_HLT_overlap.root',
+    data_path + 'reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv1_HLT_overlap.root',
+    data_path + 'reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv2_HLT_overlap.root',
+    data_path + 'reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Ev1_HLT_overlap.root',
+    data_path + 'reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Fv1_HLT_overlap.root',
+    data_path + 'reMini2022/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2022Gv1_HLT_overlap.root',
     #2023
-    data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023B_HLT_overlap.root',
+    data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023Bv1_HLT_overlap.root',
     data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv1_HLT_overlap.root',
     data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv2_HLT_overlap.root',
     data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv3_HLT_overlap.root',
-    data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023C_HLT_overlap.root',
+    data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv4_HLT_overlap.root',
     data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv1_HLT_overlap.root',
-    data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023D_HLT_overlap.root',
+    data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv2_HLT_overlap.root',
 ]
 
 data_background  = [

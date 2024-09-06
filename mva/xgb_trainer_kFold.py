@@ -14,7 +14,7 @@ import shutil
 sns.set(style="white")
 
 #import xgboost
-from xgboost import XGBClassifier, plot_importance
+from xgboost import XGBClassifier, callback, plot_importance
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics         import roc_curve, roc_auc_score, accuracy_score
 from sklearn.model_selection import train_test_split, StratifiedKFold
@@ -28,9 +28,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import mva.config as config
 from plots.color_text import color_text as ct
 from data_preprocessing_lib import kFold_splitting
-
-##########################################################################################
-# Define the gini metric - from https://www.kaggle.com/c/ClaimPredictionChallenge/discussion/703#5897
 
 ##########################################################################################
 
@@ -105,8 +102,8 @@ sig_selection  = base_selection
 bkg_selection  = base_selection
 print('\n---------------------------------------------')
 print(f'[!] base-selection   : {base_selection}')
-print(f'{ct.RED}[S]{ct.END} signal-selection :{sig_selection}')
-print(f'{ct.BLUE}[B]{ct.END} data-selection  :{bkg_selection}')
+print(f'{ct.RED}[S]{ct.END} signal-selection : {sig_selection}')
+print(f'{ct.BLUE}[B]{ct.END} data-selection   : {bkg_selection}')
 print('---------------------------------------------')
 
 # ------------ BDT settings ------------ #
@@ -139,8 +136,8 @@ else :
         exit(-1)
 
 print('... processing input ...')
-print('[+] adding WTau3Mu SIGNAL samples')
-print('[+] adding data-sidebands background samples')
+print(f'{ct.RED}[+]{ct.END} adding WTau3Mu SIGNAL samples')
+print(f'{ct.BLUE}[+]{ct.END} adding data-sidebands background samples')
 sig_rdf = ROOT.RDataFrame(tree_name, signals).Filter(sig_selection)
 sig = pd.DataFrame( sig_rdf.AsNumpy() )
 print(' SIGNAL      : %s entries passed selection' %len(sig.index))
@@ -171,7 +168,7 @@ if args.preprocess:
     sig.loc[sig.tau_fit_charge<0,'tau_charge_weight'] = Nplus/Nminus #* np.ones(sig[sig.tau_fit_charge<0].shape[0]).astype(float)
     print(f' N+ = {Nplus} \t N- = {Nminus} -> weight = {Nplus/Nminus:.2f}')
 
-    sig.loc[:,'train_weight'] = sig.NLO_weight * sig.tau_charge_weight * sig.tau_mu1_IDrecoSF * sig.tau_mu2_IDrecoSF * sig.tau_mu3_IDrecoSF
+    sig.loc[:,'train_weight'] = sig.NLO_weight * sig.tau_charge_weight 
     bkg.loc[:,'train_weight'] = np.ones(bkg.shape[0]).astype(float)
 
     # REBIN ETA
@@ -215,15 +212,16 @@ else:
 
 # ------------ MODEL TRAINING ------------ #
 if (args.load_model is None) or (args.plot_only is None):
-    
-    # .pkl file to save BDT weights
-    classifier_file = open('classifiers/classifiers_%s.pck' % tag, 'wb')
-    classifiers = OrderedDict()
-    
-    # hyperparameters of the model
+
+    # ------------ BDT HPARAMETERS ------------ # 
     # - default -
     parameters = {
         'booster'               :  'gbtree',
+        'device'                :  'cuda',
+        'tree_method'           :  'hist',
+        'objective'             :  'binary:logistic',
+        'eval_metric'           :  'auc',
+        #hyperparameters
         'n_estimators'          :  15000,   # number of sequential trees to be modeled
         'max_depth'             :  7,       # max depth of a single tree
         'eta'                   :  0.01,    # step size shrinkage used in update to prevent overfitting (learning rate) 
@@ -234,10 +232,8 @@ if (args.load_model is None) or (args.plot_only is None):
         # scale_pos_weight      :  0.5,     # control the balance of positive and negative weights
         'reg_alpha'             :  5.0,     # L1 regularization term on weights [0, inf)
         'reg_lambda'            :  5.0,     # L2 regularization term on weights [0, inf)
-        'early_stopping_rounds' :  100,
+        #'early_stopping_rounds' :  100,
         'use_label_encoder'     :  False,
-        'eval_metric'           :  'auc',
-        'objective'             :  'binary:logistic',
         'seed'                  :  args.seed,
         'verbosity'             :  0,
     }
@@ -252,15 +248,20 @@ if (args.load_model is None) or (args.plot_only is None):
         parameters.update(opt_parameters)
 
     [print(f' - {key} : {parameters[key]}') for key in parameters]
+
+    # open .pkl file to save BDT weights
+    classifier_file = open('/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/classifiers/classifiers_%s.pck' % tag, 'wb')
+    classifiers = OrderedDict()
     
     # https://www.kaggle.com/sudosudoohio/stratified-kfold-xgboost-eda-tutorial-0-281
     # (K-1)/K to train 1/K to use in the analysis
     #for i, (train_index, apply_index) in enumerate(skf.split(train[bdt_inputs].values, train['target'].values)):
     for i in range(kfold):
 
-        print('[fold %d/%d]' % (i + 1, kfold))
+        print(f'{ct.BOLD}[fold {i+1}/{kfold}]{ct.END}')
         kdataset        = data[data[f'bdt_fold{i}_isTrainSet'] == 1]
         print('  using %.2f percent of the full dataset'% (kdataset.shape[0]/data.shape[0]*100.))    
+        
         # create a copy of the apply-dataset to check the performance 
         sub = data[data[f'bdt_to_apply'] == i].copy()
         sub.loc[:, 'score']  = np.zeros_like(sub.id)
@@ -275,40 +276,53 @@ if (args.load_model is None) or (args.plot_only is None):
         if(args.debug) : print(max(y_train))
         if(args.debug) : print(min(y_train))
 
-        # classifier definition
+# ------------ MODEL SETUP ------------ #
+        # early stopping callback
+        # https://xgboost.readthedocs.io/en/latest/python/python_api.html#module-xgboost.callback
+        early_stopping = callback.EarlyStopping(
+            data_name   = 'validation_1',
+            rounds      = 150,
+            min_delta   = 1e-5,
+            metric_name = 'auc', 
+            save_best   = True,
+        ) 
         clf = XGBClassifier(
-            **parameters
+            **parameters,
+            callbacks             = [early_stopping],
         )
-
+# ------ MODEL FITTING & ON-THE-FLY EVALUATION ------ #
         clf.fit(
             X_train, 
             y_train,
+            sample_weight         = ktrain.train_weight,
             eval_set              = [(X_train, y_train),(X_valid, y_valid)],
             verbose               = True,
-            sample_weight         = ktrain.train_weight,
         )
-        
-        best_iteration = clf.get_booster().best_iteration
-        print('[fold %d/%d] - best iteration %d' %(i+1, kfold, best_iteration))
         classifiers[i] = clf
         
-        # Predict on our test data (if early stopping in training best_iteration automatically used) 
-        #       return (n_samples, n_classes) array
-        print('[fold %d/%d Prediciton:]' % (i + 1, kfold))
-        # plot evaluation metric vs epochs
+        # get #epoch & best iteration
         results = clf.evals_result()
         epochs  = len(results['validation_0']['auc'])
+        best_iteration = clf.get_booster().best_iteration
+        print(f'[fold {i+1}/{kfold}] - best iteration / #epochs : {best_iteration}/{epochs}')
+
+        
+        print(' > prediciton:')
+        # plot evaluation metric vs epochs
         x_axis  = range(0, epochs)
         fig, ax = plt.subplots(figsize=(9,5))
         ax.plot(x_axis, results['validation_0']['auc'], label='Train')
         ax.plot(x_axis, results['validation_1']['auc'], label='Validation')
-        ax.set_yscale('log')
-        ax.legend()
+        #ax.set_yscale('log')
+        ax.grid()
+        ax.set_ylim(0.96, 1)
+        ax.legend(fontsize = 15)
         plt.ylabel('AUC')
         plt.title('Fold number %d / %d'%(i+1, kfold))
         plt.savefig('%sevalMetricVSepochs_%s_fold%d.png' %(plot_outpath,tag, i+1))
 
-        p_test = clf.predict_proba(sub[bdt_inputs])[:, 1]
+        # eval performance on the apply-dataset
+        p_test = clf.predict_proba(sub[bdt_inputs], iteration_range = (0, best_iteration +1))[:, 1]
         sub.loc[:,'score'] += p_test #/kfold
 
         # adjust the score to match 0,1
@@ -316,22 +330,23 @@ if (args.load_model is None) or (args.plot_only is None):
         smax = max(p_test)
         sub.loc[:,'score_norm'] = (p_test - smin) / (smax - smin)
 
-        print ('round %d' %(i+1))
         print ('\tcross validation error      %.5f' %(np.sum(np.abs(sub['score_norm'] - sub['target']))/len(sub)))
-        print ('\tcross validation signal     %.5f' %(np.sum(np.abs(sub[sub.target>0.5]['score_norm'] - sub[sub.target>0.5]['target']))/len(sub)))
-        print ('\tcross validation background %.5f' %(np.sum(np.abs(sub[sub.target<0.5]['score_norm'] - sub[sub.target<0.5]['target']))/len(sub)))
+        print ('\tcross validation signal     %.5f' %(np.sum(np.abs(sub[sub.target>0.5]['score_norm'] - sub[sub.target>0.5]['target']))/len(sub[sub.target>0.5])))
+        print ('\tcross validation background %.5f' %(np.sum(np.abs(sub[sub.target<0.5]['score_norm'] - sub[sub.target<0.5]['target']))/len(sub[sub.target<0.5])))
 
     # save the models
     pickle.dump(classifiers, classifier_file)
     classifier_file.close()
-# ------------ APPLY EXISTING WEIGHTS ------------ #
+    print(f'{ct.BOLD}[OUT]{ct.END} saved classifiers in classifiers/classifiers_{tag}.pck')
+
+# ------------ PARSE EXISTING WEIGHTS ------------ #
 else:
     print(f'{ct.BOLD}[+]{ct.END} load model from {args.load_model}')
     with open(args.load_model, 'rb') as f:
         classifiers = pickle.load(f)
 
 
-# ------------ FINALLY SAVE BDT SCORES ------------ # 
+# ------------ SAVE BDT SCORES ------------ # 
 if not args.plot_only:
     print('-----------------------------')
     print('SAVE the scores')
@@ -341,13 +356,15 @@ if not args.plot_only:
     for i, iclas in classifiers.items():
         
         print (f' evaluating {i+1}/{n_class} classifier')
-        
+        epochs = len(iclas.evals_result()['validation_0']['auc'])
         best_iteration = iclas.get_booster().best_iteration
-        print(f'\tbest iteration {best_iteration}')  
+        print(f'\tbest iteration/epochs {best_iteration}/{epochs}')  
         
-        data.loc[:,'bdt_fold%d_score' %i] = iclas.predict_proba(data[bdt_inputs])[:, 1]
-        data.loc[data.bdt_to_apply == i,'bdt_score'] = iclas.predict_proba(data.loc[data.bdt_to_apply == i, bdt_inputs])[:, 1]
-        data.loc[data['bdt_fold%d_isTrainSet' %i] == 1,'bdt_training'] += iclas.predict_proba(data.loc[data['bdt_fold%d_isTrainSet' %i] == 1, bdt_inputs])[:, 1]/(n_class-1)
+        # save scores
+        # remove initial transient
+        data.loc[:,'bdt_fold%d_score' %i]                               = iclas.predict_proba(data[bdt_inputs], iteration_range = (0, best_iteration +1))[:, 1]
+        data.loc[data.bdt_to_apply == i,'bdt_score']                    = iclas.predict_proba(data.loc[data.bdt_to_apply == i, bdt_inputs], iteration_range = (0, best_iteration +1))[:, 1]
+        data.loc[data['bdt_fold%d_isTrainSet' %i] == 1,'bdt_training'] += iclas.predict_proba(data.loc[data['bdt_fold%d_isTrainSet' %i] == 1, bdt_inputs], iteration_range = (0, best_iteration +1))[:, 1]/(n_class-1)
 
     # save data & MC as root trees
     if(args.save_output):
@@ -368,7 +385,7 @@ plot_data = data[(data.target == 1) | ((data.target == 0) & ((data.tau_fit_mass 
 
 # ------------ ROC CURVE ------------ # 
 plt.clf()
-cuts_to_display = [0.500, 0.990, 0.995, 0.999]
+cuts_to_display = [0.500, 0.900, 0.950, 0.990, 0.995, 0.999]
 
 xy = [i*j for i,j in product([10.**i for i in range(-8, 0)], [1,2,4,8])]+[1]
 fig = plt.figure(figsize = (8,6))
@@ -459,10 +476,11 @@ rax.errorbar((binning[:-1]+binning[1:])/2, ratio_sig, yerr = err_ratio_sig , fmt
 ratio_bkg     = hist_test_bkg[0]/hist_train_bkg[0]
 err_ratio_bkg = ratio_bkg * np.sqrt( 1./hist_test_bkg[0] + 1./ hist_train_bkg[0]) 
 rax.errorbar((binning[:-1]+binning[1:])/2, ratio_bkg, yerr = err_ratio_bkg, fmt = 'bo', ls='none')
+rax.grid(True)
 
 rax.set_xlabel('BDT output')
 rax.set_ylabel('test / train')
-rax.set_ylim(0.75, 2.0)
+rax.set_ylim(0.5, 1.5)
 ax.set_ylabel('Counts')
 ax.legend(loc='best')
 ax.set_yscale('log')

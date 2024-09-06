@@ -56,6 +56,9 @@ Color_t PtlColorMap(const TString& particle){
   PtlColor["unbalanced"] = kBlue;
   PtlColor["rebalanced"] = kRed;
 
+  PtlColor["MCno_weight"] = kBlack;
+  PtlColor["MC_weight"]   = kRed;
+
 
   return PtlColor[particle];
 }
@@ -99,6 +102,9 @@ TString CategoryLegend(const TString& category){
   Leg_entry["2023BPix"] = "2023 post-BPix";
   Leg_entry["unbalanced"] = "original";
   Leg_entry["rebalanced"] = "resampled";
+
+  Leg_entry["MCno_weight"] = "MC no weight";
+  Leg_entry["MC_weight"]   = "MC with weight";
 
   return Leg_entry[category];
 }
