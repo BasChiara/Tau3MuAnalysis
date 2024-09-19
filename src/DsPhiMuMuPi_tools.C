@@ -460,6 +460,37 @@ int DsPhiMuMuPi_tools::applyMuonSF(const int& idx){
    return 0;
 }//applyMuonSF
 
+
+int DsPhiMuMuPi_tools::parseHLT_SF(){
+
+   return 0;
+
+}//parseHLT_SF()
+
+int DsPhiMuMuPi_tools::applyHLT_SF(const TString & era){
+   float L1_sf = 1.0, HLT_sf = 1.0;
+   float L1_sf_unc = 1.0, HLT_sf_unc = 1.0;
+
+   float dimuonDR = ROOT::Math::VectorUtil::DeltaR(RecoMu1_P4, RecoMu2_P4);
+   if (debug) std::cout << " apply HLT SF " << std::endl;
+   if ( era.Contains("202")){
+      L1_sf      = SF_HLT_DoubleMu_src::L1_SF_2022(RecoMu2_P4.Pt(), RecoMu2_P4.Eta(), dimuonDR);
+      L1_sf_unc  = SF_HLT_DoubleMu_src::L1_SF_unc_2022(RecoMu2_P4.Pt(), RecoMu2_P4.Eta(), dimuonDR);
+      HLT_sf     = SF_HLT_DoubleMu_src::HLT_SF_2022(RecoMu2_P4.Pt(), RecoMu2_P4.Eta(),dimuonDR);
+      HLT_sf_unc = SF_HLT_DoubleMu_src::HLT_SF_unc_2022(RecoMu2_P4.Pt(), RecoMu2_P4.Eta(),dimuonDR);
+   } else if (era.Contains("2023")){
+      // no yet there
+   }else {
+      std::cout << "[ERROR] era " << era << " not found for HLT SF" << std::endl;
+   }
+
+   Ds_DoubleMu4_3_LowMass_SF = L1_sf * HLT_sf;
+   Ds_DoubleMu4_3_LowMass_SF_sysUP   = Ds_DoubleMu4_3_LowMass_SF + sqrt( L1_sf_unc*L1_sf_unc + HLT_sf_unc*HLT_sf_unc);
+   Ds_DoubleMu4_3_LowMass_SF_sysDOWN = Ds_DoubleMu4_3_LowMass_SF - sqrt( L1_sf_unc*L1_sf_unc + HLT_sf_unc*HLT_sf_unc); 
+   return 0;
+
+}//applyHLT_SF()
+
 int DsPhiMuMuPi_tools::parsePUweights(const TString & era){
 
    TFile * file_weights = new TFile(scale_factor_src::PUweight_rootfile);

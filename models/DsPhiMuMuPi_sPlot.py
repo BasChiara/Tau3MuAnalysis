@@ -26,7 +26,7 @@ ROOT.RooMsgService.instance().setSilentMode(True)
 def plot_sWeights(observable, mc_norm = 1.0 ,selection = '', nbins = 100, lo = 0, hi = 100, color = ROOT.kRed, to_ploton = None, add_tag = ''):
     frame_sw = observable.frame(Title=" ", Bins= nbins)
     # MC matched
-    mc_tree.Draw(f'{observable.GetName()}>>h_{observable.GetName()}({nbins}, {lo}, {hi})', f'({selection}) * weight', 'goff')
+    mc_tree.Draw(f'{observable.GetName()}>>h_{observable.GetName()}({nbins}, {lo}, {hi})', f'({selection}) * (weight)', 'goff')
     h_mc = ROOT.gDirectory.Get(f"h_{observable.GetName()}")
     h_mc.Scale(mc_norm)
     h_mc.SetFillColor(color)
@@ -157,7 +157,7 @@ mc_tree = ROOT.TChain(input_tree_name)
 data_tree = ROOT.TChain(input_tree_name)
 [data_tree.AddFile(f) for f in data_file]
 
-fullmc = ROOT.RooDataSet('mc_DsPhiMuMuPi', 'mc_DsPhiMuMuPi', mc_tree, thevars, base_selection)
+fullmc = ROOT.RooDataSet('mc_DsPhiMuMuPi', 'mc_DsPhiMuMuPi', mc_tree, thevars, base_selection, 'weight')
 fullmc.Print()
 print('[+] MC entries = %.2f'%fullmc.sumEntries() )
 datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, base_selection)
@@ -273,18 +273,6 @@ for i, cat in enumerate(config.Ds_category_selection.keys()):
     if cat == 'ABC': continue
     CAT_txt.SetText(0.40, 0.60, "CAT %s"%cat)
     plot_sWeights(bdt, fnorm_mc.evaluate(), f'({sWeigths_selection} & {config.Ds_category_selection[cat]})', 25, 0.0, 1.0, ROOT.kRed, [CAT_txt], add_tag=f'_cat{cat}')
-
-## sPlot - MET
-#METalgos = [puppi_met, deep_met, raw_met]
-##METalgos = ['tau_met_pt', 'tau_DeepMet_pt', 'tau_rawMet_pt']
-#met_bins = 25
-#for met in METalgos:
-#    plot_sWeights(met, fnorm_mc.evaluate(), sWeigths_selection, met_bins, 0, 100, ROOT.kViolet, [])
-## sPlot - Lxy significance
-#lxy_bins = 40
-#lxy_max = 100
-#plot_sWeights(dspl_sig, fnorm_mc.evaluate(), sWeigths_selection, lxy_bins, 0, lxy_max, ROOT.kGreen, [])
-
 
 # *** save results on file *** #
 sWeights_file_base = f'sWeights_{tag}_'

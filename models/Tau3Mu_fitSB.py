@@ -16,31 +16,50 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import mva.config as config
 from plots.color_text import color_text as ct
+import models.datacard_utils as du
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--plot_outdir',    default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/SigBkg_models/Tau3Mu_massFit/reMini', help='output directory for plots')
-parser.add_argument('--goff',           action = 'store_true' ,                                                             help='set it to produce no plots')
-parser.add_argument('--combine_dir',                                default= 'input_combine/',                              help='output directory for combine datacards and ws')
-parser.add_argument('-s', '--signal',                                                                                       help='input Tau3Mu MC')
-parser.add_argument('-d', '--data',                                                                                         help='input DATA')
-parser.add_argument('--tag',                                        default= 'emulateRun2',                                 help='tag to the training')
-parser.add_argument('--debug',          action = 'store_true' ,                                                             help='set it to have useful printout')
-parser.add_argument('-u','--unblind',   action = 'store_true' ,                                                             help='set it to run UN-blind')
-parser.add_argument('--save_ws',        action = 'store_true' ,                                                             help='set it to save the workspace for combine')
-parser.add_argument('-b','--bkg_func',  choices = ['expo', 'const', 'poly1', 'dynamic'], default = 'expo',                  help='background model, \'dynamic\' : fit constant as Nb < --lowB_th')
-parser.add_argument('--lowB_th',        type= float,                default= 35.0,                                          help='if --const_lowB is given specyfies the min bkg events to fit with expo')
-parser.add_argument('--category',       choices = ['A', 'B', 'C'],  default = 'A',                                          help='which categories to fit')
-parser.add_argument('-y','--year',      choices = ['22','23'],      default = '22',                                         help='which CMS dataset to use')
-parser.add_argument('--optim_bdt',      action = 'store_true',                                                              help='run BDT cut optimization')
-parser.add_argument('--BDTmin',         type =float,                default = 0.9900,                                       help='if --optim_bdt defines in the min BDT threshold in the scan')
-parser.add_argument('--BDTmax',         type =float,                default = 0.9995,                                       help='if --optim_bdt defines in the max BDT threshold in the scan')
-parser.add_argument('--BDTstep',        type =float,                default = 0.0005,                                       help='if --optim_bdt defines in the step value in the scan')
-parser.add_argument('--bdt_cut',        type= float,                default = 0.9900,                                       help='single value of the BDT threshold to fit')
+parser.add_argument('-s', '--signal',                                                                       help='input Tau3Mu MC')
+parser.add_argument('-d', '--data',                                                                         help='input DATA')
+parser.add_argument('--plot_outdir',    default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/SigBkg_models/',      help='output directory for plots')
+parser.add_argument('--goff',           action = 'store_true' ,                                             help='NO plots')
+parser.add_argument('--save_ws',        action = 'store_true' ,                                             help='set it to save the workspace for combine')
+parser.add_argument('--sys_unc',        action = 'store_true' ,                                             help='put systematics in the datacard')
+parser.add_argument('--combine_dir',                                default= 'input_combine/',              help='output directory for combine datacards and ws')
+parser.add_argument('--tag',                                                                                help='tag to the training')
+parser.add_argument('-u','--unblind',   action = 'store_true' ,                                             help='set it to run UN-blind')
+parser.add_argument('-b','--bkg_func',  choices = ['expo', 'const', 'poly1', 'dynamic'], default = 'expo',  help='background model, \'dynamic\' : fit constant as Nb < --lowB_th')
+parser.add_argument('--lowB_th',        type= float,                default= 35.0,                          help='if --const_lowB is given specyfies the min bkg events to fit with expo')
+parser.add_argument('-c','--category',  choices = ['A', 'B', 'C'],  default = 'A',                          help='which categories to fit')
+parser.add_argument('-y','--year',      choices = ['22','23'],      default = '22',                         help='which CMS dataset to use')
+parser.add_argument('--optim_bdt',      action = 'store_true',                                              help='run BDT cut optimization')
+parser.add_argument('--BDTmin',         type =float,                default = 0.9900,                       help='if --optim_bdt defines in the min BDT threshold in the scan')
+parser.add_argument('--BDTmax',         type =float,                default = 0.9995,                       help='if --optim_bdt defines in the max BDT threshold in the scan')
+parser.add_argument('--BDTstep',        type =float,                default = 0.0005,                       help='if --optim_bdt defines in the step value in the scan')
+parser.add_argument('--bdt_cut',        type= float,                default = 0.9900,                       help='single value of the BDT threshold to fit')
+parser.add_argument('--debug',          action = 'store_true' ,                                             help='set it to have useful printout')
 
 args = parser.parse_args()
 
 category_by_eta = True
+runblind = not args.unblind # don't show (nor fit!) data in the signal mass window
+
+# **** INPUT ****
+if not os.path.exists(args.signal):
+    print(f'{ct.RED}[ERROR]{ct.END} MC file {mc_file} does NOT exist')
+    exit()
+if not os.path.exists(args.data):
+    print(f'{ct.RED}[ERROR]{ct.END} DATA file {data_file} does NOT exist')
+    exit()
+
+input_tree_name = 'tree_w_BDT'
+
+mc_file     = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_signal_kFold_HLT_overlap_LxyS150_2024Apr29.root' if not args.signal else args.signal
+print(f'{ct.BOLD}{ct.BOLD}[+]{ct.END}{ct.END} added MC file :\n {mc_file}')
+
+data_file   = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_data_kFold_HLT_overlap_LxyS150_2024Apr29_open.root' if not args.data else args.data
+print(f'{ct.BOLD}[+]{ct.END} added DATA file :\n {data_file}')
 
 # **** OUTPUT settings **** 
 process_name = 'WTau3Mu_%s%s'%(args.category, args.year)
@@ -56,30 +75,18 @@ ROOT.gROOT.SetBatch(True)
 ROOT.gStyle.SetOptStat(True)
 ROOT.TH1.SetDefaultSumw2()
 
-# **** USEFUL CONSTANT VARIABLES *** #
-mass_window = 0.060 # GeV
+# **** USEFUL CONSTANTS  *** #
 tau_mass = 1.777 # GeV
 fit_range_lo  , fit_range_hi   = 1.68, 1.87 # GeV
-mass_window_lo, mass_window_hi = config.mass_range_lo, config.mass_range_hi # GeV #tau_mass-mass_window, tau_mass+mass_window
-
+mass_window_lo, mass_window_hi = config.mass_range_lo, config.mass_range_hi # GeV
+blind_region_lo, blind_region_hi = config.blind_range_lo, config.blind_range_hi # GeV
+# binning
 bin_w = 0.01
 nbins = int(np.rint((mass_window_hi-mass_window_lo)/bin_w)) # needed just for plotting, fits are all unbinned
 if (args.debug): print(f'{ct.BOLD}[INFO]{ct.END} binning {nbins} of type {type(nbins)}')
-runblind = not args.unblind # don't show (nor fit!) data in the signal mass window
-blind_region_lo, blind_region_hi = 1.72, 1.84
 
-# **** INPUT DATA ****
-input_tree_name = 'tree_w_BDT'
-mc_file     = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_signal_kFold_HLT_overlap_LxyS150_2024Apr29.root' if not args.signal else args.signal
-if not os.path.exists(args.signal):
-    print(f'{ct.RED}[ERROR]{ct.END} MC file {mc_file} does NOT exist')
-print(f'{ct.BOLD}{ct.BOLD}[+]{ct.END}{ct.END} added MC file :\n {mc_file}')
-data_file   = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_data_kFold_HLT_overlap_LxyS150_2024Apr29_open.root' if not args.data else args.data
-if not os.path.exists(args.data):
-    print(f'{ct.RED}[ERROR]{ct.END} DATA file {data_file} does NOT exist')
-print(f'{ct.BOLD}[+]{ct.END} added DATA file :\n {data_file}')
 
-# ** RooFit Variables
+# *** RooFit Variables ***
 # tau mass
 mass = ROOT.RooRealVar('tau_fit_mass', '3-#mu mass'  , mass_window_lo,  mass_window_hi, 'GeV' )
 mass.setRange('left_SB', mass_window_lo, blind_region_lo)
@@ -87,12 +94,13 @@ mass.setRange('right_SB', blind_region_hi, mass_window_hi)
 mass.setRange('fit_range', fit_range_lo,fit_range_hi)
 mass.setRange('sig_range', blind_region_lo,blind_region_hi)
 mass.setRange('full_range', mass_window_lo, mass_window_hi)
+
 # tau mass resolution
 eta = ROOT.RooRealVar('tau_fit_eta', '#eta_{3 #mu}'  , -4.0,  4.0)
 # BDT score
 bdt = ROOT.RooRealVar('bdt_score', 'BDT score'  , 0.0,  1.0, '' )
 # data weights
-weight = ROOT.RooRealVar('weight', 'weight', -1000, 1000, '')
+weight = ROOT.RooRealVar('weight', 'weight', -np.inf, np.inf, '')
 # di-muon mass
 mu12_mass = ROOT.RooRealVar('tau_mu12_fitM', 'tau_mu12_fitM'  , -10.0,  10.0, 'GeV' )
 mu23_mass = ROOT.RooRealVar('tau_mu23_fitM', 'tau_mu23_fitM'  , -10.0,  10.0, 'GeV' )
@@ -113,8 +121,7 @@ thevars.add(mu23_mass)
 thevars.add(Lsign)
 thevars.add(year_id)
 
-# ** data frame to scan Punzi sensitivity
-
+# *** Punzi Sensitivity and AMS ***
 if args.optim_bdt :
     df_columns      = ['bdt_cut', 'sig_Nexp', 'sig_eff', 'bkg_Nexp', 'bkg_Nexp_Sregion', 'bkg_eff', 'PunziS_val', 'PunziS_err', 'AMS_val']
     bdt_cut         = []  
@@ -127,24 +134,25 @@ if args.optim_bdt :
     PunziS_err      = []
     AMS_val         = []
 
-# **** EVENT SELEctION ****
-phi_veto            = config.phi_veto 
-cat_selection       = f'({config.cat_selection_dict[args.category]})' if not category_by_eta else config.cat_eta_selection_dict_fit[args.category]
-sidebands_selection = config.sidebands_selection
-year_selection      = config.year_selection['20'+args.year]
+# **** EVENT SELECTION ****
+#phi_veto            = config.phi_veto 
+#cat_selection       = f'({config.cat_selection_dict[args.category]})' if not category_by_eta else config.cat_eta_selection_dict_fit[args.category]
+#sidebands_selection = config.sidebands_selection
+#year_selection      = config.year_selection['20'+args.year]
+base_selection      = ' & '.join([
+    #config.base_selection,
+    config.cat_eta_selection_dict_fit[args.category], 
+    config.year_selection['20'+args.year], 
+    config.phi_veto,
+])
 
 if args.save_ws : file_ws = ROOT.TFile(wspace_filename, "RECREATE")
-
+# loop on BDT cuts
 for cut in set_bdt_cut:
     # output tag
-    point_tag           = f'{args.category}{args.year}' + (('_' + args.tag ) if not (args.tag is None) else '') + f'_bdt{cut:,.4f}'
-    # common event selection
+    point_tag           = f'{args.category}{args.year}' + (('_' + args.tag ) if args.tag else '') + f'_bdt{cut:,.4f}'
+    # BDT selection
     bdt_selection       = f'(bdt_score > {cut:,.4f})'
-    base_selection      = ' & '.join([
-        cat_selection, 
-        year_selection, 
-        phi_veto,
-    ])
     sgn_selection       = ' & '.join([bdt_selection, base_selection])
 
     # **** IMPORT SIGNAL ****
@@ -155,12 +163,13 @@ for cut in set_bdt_cut:
     fullmc = ROOT.RooDataSet('mc_%s'%process_name, 'mc_%s'%process_name, mc_tree, thevars, sgn_selection, "weight")
     fullmc.Print()
     sig_efficiency = mc_tree.GetEntries(sgn_selection)/N_mc
+    sig_efficiency_error = np.sqrt(sig_efficiency*(1-sig_efficiency)/N_mc)
 
     print(f'\n\n{ct.PURPLE}------ SIGNAL MC ------- {ct.END}')
-    print(f' entries   : {N_mc}')
-    print(f' selection : {sgn_selection}')
-    print(f' total entries = %.2f'%fullmc.sumEntries() )
-    print(f' signal efficiency = %.4e'%sig_efficiency)
+    print(f' MC events    : {N_mc}')
+    print(f' selection    : {sgn_selection}')
+    print(f' weighted entries (BDT > {cut:.3f})    = {fullmc.sumEntries():.2f}' )
+    print(f' signal efficiency                = {sig_efficiency*100:.2f}%')
     print(f'{ct.PURPLE}------------------------{ct.END}\n')
     # skip if no signal events
     if fullmc.sumEntries() == 0: continue
@@ -168,29 +177,32 @@ for cut in set_bdt_cut:
     # **** IMPORT DATA ****
     data_tree = ROOT.TChain(input_tree_name)
     data_tree.AddFile(data_file)
-    N_data = data_tree.GetEntries(base_selection + f' & {sidebands_selection}' if runblind else '') 
+    N_data    = data_tree.GetEntries(base_selection) 
+    N_data_SB = data_tree.GetEntries(base_selection + f' & {config.sidebands_selection}') 
 
     data_selection = ' & '.join([
         base_selection, 
         bdt_selection,
-        sidebands_selection if runblind else '(1)',
+        config.sidebands_selection if runblind else '(1)',
     ])
-    if runblind:
-        print('\n *** running BLIND')
-        # cut for blinding
-        blinder   = ROOT.RooFormulaVar('blinder', 'blinder',  data_selection, ROOT.RooArgList(thevars))
-        datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, blinder)
-    else:
-        print('\n *** running OPEN')
-        datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, data_selection)
+    datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, data_selection)
+    #if runblind:
+    #    print('\n *** running BLIND')
+    #    # cut for blinding
+    #    blinder   = ROOT.RooFormulaVar('blinder', 'blinder',  data_selection, ROOT.RooArgList(thevars))
+    #    datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, blinder)
+    #else:
+    #    print('\n *** running OPEN')
+        
     datatofit.Print()
-    bkg_efficiency = datatofit.sumEntries()/N_data
+    bkg_efficiency = datatofit.sumEntries(config.sidebands_selection)/N_data_SB
 
     print(f'\n{ct.BLUE}------ DATA SIDEBANDS -------{ct.END}')
-    print(f' entries in SB  : {N_data}')
-    print(f' selection      : {data_selection}')
-    print(f' total entries  : %.2f'%datatofit.sumEntries() )
-    print(f' background efficiency : %.4e'%bkg_efficiency)
+    print(f' entries in mass range   : {N_data}')
+    print(f' entries in SB           : {N_data_SB}')
+    print(f' selection               : {data_selection}')
+    print(f' total entries           : %.2f'%datatofit.sumEntries() )
+    print(f' background efficiency   : %.4e'%bkg_efficiency)
     print(f'{ct.BLUE}------------------------{ct.END}\n\n')
     # skip if no events in data 
     if datatofit.sumEntries() == 0: continue
@@ -202,8 +214,8 @@ for cut in set_bdt_cut:
     Mtau.setConstant(True)
     dMtau  = ROOT.RooRealVar('dM', 'dM', 0, -0.04, 0.04)
     mean   = ROOT.RooFormulaVar('mean','mean', '(@0+@1)', ROOT.RooArgList(Mtau,dMtau) )
-    width  = ROOT.RooRealVar('width',  'width',  0.01,    0.005, 0.05)
-    width2 = ROOT.RooRealVar('width2', 'width2', 0.025,    0.005, 0.05)
+    width  = ROOT.RooRealVar(f'width_{args.category}{args.year}',  'width',  0.01,    0.005, 0.05)
+    width2 = ROOT.RooRealVar(f'width2_{args.category}{args.year}', 'width2', 0.025,    0.005, 0.05)
 
     f      = ROOT.RooRealVar('f', 'f', 0.5, 0., 1.0)
     nsig   = ROOT.RooRealVar('model_sig_%s_norm'%process_name, 'model_sig_%s_norm'%process_name, fullmc.sumEntries(), 0.001, 3*fullmc.sumEntries())
@@ -216,7 +228,7 @@ for cut in set_bdt_cut:
     # **** BACKGROUND MODEL ****
     bkg_model_name = f'model_bkg_{process_name}' 
     # exponential
-    slope = ROOT.RooRealVar('slope', 'slope', -1.0, -10.0, -0.001)
+    slope = ROOT.RooRealVar(f'slope_{args.category}{args.year}', f'slope_{args.category}{args.year}', -1.0, -10.0, 10.0)
     expo  = ROOT.RooExponential(bkg_model_name, bkg_model_name, mass, slope)
     # constant
     const = ROOT.RooPolynomial(bkg_model_name,bkg_model_name, mass)
@@ -247,7 +259,7 @@ for cut in set_bdt_cut:
         ROOT.RooFit.Save(),
         ROOT.RooFit.Extended(ROOT.kTRUE),
         ROOT.RooFit.SumW2Error(True),
-        ROOT.RooFit.PrintLevel(1),
+        ROOT.RooFit.PrintLevel(-1),
     )
     # * draw & save
     frame = mass.frame()
@@ -312,7 +324,29 @@ for cut in set_bdt_cut:
         datatofit, 
         ROOT.RooFit.Range('left_SB,right_SB'), 
         ROOT.RooFit.Save(),
-        ROOT.RooFit.PrintLevel(1)
+        ROOT.RooFit.Extended(ROOT.kTRUE),
+        ROOT.RooFit.SumW2Error(True),
+        ROOT.RooFit.PrintLevel(1),
+    )
+    # * draw & save
+    frame = mass.frame()
+    frame.SetTitle('#tau -> 3#mu signal - CAT %s BDTscore > %.4f'%(args.category, cut))
+
+    fullmc.plotOn(
+        frame, 
+        ROOT.RooFit.Binning(nbins), 
+        ROOT.RooFit.XErrorSize(0), 
+        ROOT.RooFit.LineWidth(2),
+        ROOT.RooFit.FillColor(ROOT.kRed),
+        ROOT.RooFit.DataError(1),
+    )
+    signal_model.plotOn(
+        frame, 
+        ROOT.RooFit.LineColor(ROOT.kRed),
+        ROOT.RooFit.Range('fit_range'),
+        ROOT.RooFit.NormRange('fit_range'),
+        ROOT.RooFit.MoveToBack(),
+        ROOT.RooFit.PrintLevel(-1),
     )
     nbkg.Print()
     ext_bkg_model.plotOn(
@@ -339,9 +373,9 @@ for cut in set_bdt_cut:
     )
     # print N signal and N background on plot
     text_S = ROOT.TText(tau_mass, 0.90*frame_b.GetMaximum(), "Ns = %.2f +/- %.2f"%(nsig.getValV(), nsig.getError()))
-    text_eS= ROOT.TText(tau_mass, 0.85*frame_b.GetMaximum(), "effS = %.2f"%(sig_efficiency))
+    text_eS= ROOT.TText(tau_mass, 0.85*frame_b.GetMaximum(), "#epsilon S = %.2f"%(sig_efficiency))
     text_B = ROOT.TText(tau_mass, 0.80*frame_b.GetMaximum(), "Nb = %.2f +/- %.2f"%(nbkg.getValV(), nbkg.getError()))
-    text_eB= ROOT.TText(tau_mass, 0.75*frame_b.GetMaximum(), "effB = %.2e"%(bkg_efficiency))
+    text_eB= ROOT.TText(tau_mass, 0.75*frame_b.GetMaximum(), "#epsilon B = %.2e"%(bkg_efficiency))
     text_S.SetTextSize(0.035)
     text_eS.SetTextSize(0.035)
     text_B.SetTextSize(0.035)
@@ -363,21 +397,28 @@ for cut in set_bdt_cut:
         c2.SaveAs('%s/SigBkg_mass_Log_%s.png'%(args.plot_outdir, point_tag)) 
         c2.SaveAs('%s/SigBkg_mass_Log_%s.pdf'%(args.plot_outdir, point_tag))
 
-    print(f'\n\n{ct.BOLD}---------- SUMMARY ----------{ct.END}')
-    print(' ** selection : \n%s'%base_selection)
-    print(' RooExtendPdf = %.2f'%ext_bkg_model.expectedEvents(ROOT.RooArgSet(mass)))
-    #B = (nbkg.getValV())*(ext_bkg_model.createIntegral(ROOT.RooArgSet(mass), ROOT.RooFit.NormSet(mass), ROOT.RooFit.Range('sig_range')).getValV())
+    # S/B in SR
     B = (nbkg.getValV())*(ext_bkg_model.createIntegral(ROOT.RooArgSet(mass), ROOT.RooArgSet(mass), 'sig_range').getValV())
-    print(' B in sig-region : %.2f'%B)
+    Berr = np.sqrt(B) if B > 0.5 else 3.0
     S = nsig.getValV() 
-    print('  Ns = %.2f +/- %.2f'%(nsig.getValV(), nsig.getError()))
-    print('  == S efficiency %.4f '%sig_efficiency)
-    print('  Nb = %.2f +/- %.2f'%(nbkg.getValV(), nbkg.getError()))
-    print('  == B efficiency %.4e '%bkg_efficiency)
     Punzi_S = sig_efficiency/(0.5 + sqrt(B))
-    print(' ** Punzi sensitivity = %.4f'%Punzi_S)
+    Punzi_S_err = Punzi_S * np.sqrt( (sig_efficiency_error/sig_efficiency)**2 + (Berr/(2*sqrt(B)*(0.5 + np.sqrt(B)))**2 ))
     AMS = sqrt(2 * ( (S + B)*np.log(1+S/B) - S) )
+
+    print(f'\n\n{ct.BOLD}---------- SUMMARY ----------{ct.END}')
+    print(f'{ct.GREEN}SELECTION{ct.END} :')
+    print(base_selection)
+    #print(' RooExtendPdf = %.2f'%ext_bkg_model.expectedEvents(ROOT.RooArgSet(mass)))
+    print(' Nb in SR : %.2f +/- %.2f'%(B, Berr))
+    print(' Ns = %.2f +/- %.2f'%(nsig.getValV(), nsig.getError()))
+    print('  == S efficiency %.4f '%sig_efficiency)
+    print(' Nb = %.2f +/- %.2f'%(nbkg.getValV(), nbkg.getError()))
+    print('  == B efficiency %.4e '%bkg_efficiency)
+    print(' ** Punzi sensitivity = %.3f +/- %.3f'%(Punzi_S, Punzi_S_err))
+   
     print(' ** AMS = %.4f'%AMS)
+    print(f'{ct.BOLD}---------------------------------{ct.END}\n\n')
+
     if args.optim_bdt :
         bdt_cut.append(cut)
         sig_Nexp.append(nsig.getValV())
@@ -386,7 +427,7 @@ for cut in set_bdt_cut:
         bkg_Nexp_Sregion.append(B)
         bkg_eff.append(bkg_efficiency)
         PunziS_val.append(Punzi_S)
-        PunziS_err.append(0)
+        PunziS_err.append(Punzi_S_err)
         AMS_val.append(AMS)
 
     if not args.save_ws : continue
@@ -394,6 +435,7 @@ for cut in set_bdt_cut:
     #### SAVE MODEL TO A WORKSPACE ####
     wspace_tag      = f'WTau3Mu_{point_tag}'
     wspace_name     = f'wspace_{wspace_tag}'
+    print(f'{ct.BOLD}[i]{ct.END} saving workspace {wspace_name} to {wspace_filename}')
     # fix both signal & background shape
     dMtau.setConstant(True)
     width.setConstant(True)
@@ -404,12 +446,12 @@ for cut in set_bdt_cut:
     fulldata = ROOT.RooDataSet('full_data', 'full_data', data_tree, thevars, sgn_selection)
     mass.setBins(2*nbins)
     if runblind:
+        print(f'{ct.RED}[i]{ct.END} running BLIND -- asimov dataset into workspace')
         # GenerateAsimovData() generates binned data following the binning of the observables
-        #asimov_data = ROOT.RooStats.AsymptoticCalculator.GenerateAsimovData(ext_bkg_model, ROOT.RooArgSet(mass) )
         data = ROOT.RooStats.AsymptoticCalculator.GenerateAsimovData(ext_bkg_model, ROOT.RooArgSet(mass) )
-        #data = ROOT.RooDataSet("data_obs", "data_obs", mass, asimov_data)
         data.SetName('data_obs') 
     else :
+        print(f'{ct.GREEN}[i]{ct.END} running OPEN -- real data into workspace !!!!')
         #data     = ROOT.RooDataSet('data_obs','data_obs', fulldata, ROOT.RooArgSet(mass))
         data = ROOT.RooDataHist("data_obs", "data_obs", mass, fulldata)
     data.Print()
@@ -422,56 +464,29 @@ for cut in set_bdt_cut:
     # save workspace
     file_ws.cd()
     ws.Write()
+    print(f'{ct.BOLD}[o]{ct.END} workspace saved to {wspace_filename}')
 
     #### WRITE THE DATACARD ####
-    # make bkg normalization a nuisance parameter 
-    #   floating in an interval marked by Clopper Pearson distribution for binomial proportion confidence level
-    #   signal strenght for bkg normalizaion varies around 1.0 
-    #   within an interval covering 99% CL of efficincy p.d.f. in counting experiment
-    bkg_norm_lo, bkg_norm_hi = config.cp_intervals(Nobs = nbkg.getVal(), Ntot= N_data, cl = 0.99, verbose = True)
-
+    print(f'{ct.BOLD}[i]{ct.END} writing datacard')
     datacard_name = f'{args.combine_dir}/datacard_{wspace_tag}.txt'
-    # dump the text datacard
-    with open(datacard_name, 'w') as card:
-        card.write(
-    '''
-imax 1 number of channels
-jmax * number of background sources
-kmax * number of nuisance parameters
---------------------------------------------------------------------------------
-shapes bkg         {proc}       {ws_file} {ws_name}:{bkg_model}
-shapes sig         {proc}       {ws_file} {ws_name}:{sig_model}
-shapes data_obs    {proc}       {ws_file} {ws_name}:data_obs
---------------------------------------------------------------------------------
-bin                {proc}
-observation        {obs:d}
---------------------------------------------------------------------------------
-bin                              {proc}         {proc}
-process                          sig                 bkg
-process                          0                   1
-rate                             {signal:.4f}              {bkg:.4f}
---------------------------------------------------------------------------------
-lumi               lnN           {Lsys}               -
-bkgNorm_{proc}     rateParam     {proc}              bkg      1.      [{bkg_lo:.2f},{bkg_hi:.2f}]
-bkgNorm_{proc}     flatParam
-{activator}slope_{proc}       param  {slopeval:.4f} {slopeerr:.4f}
-    '''.format(
-            proc     = process_name, 
-            ws_file  = os.path.basename(wspace_filename), 
-            ws_name  = wspace_name, 
-            bkg_model= b_model.GetName(),
-            sig_model= gsum.GetName(),
-            obs      = fulldata.numEntries() if runblind==False else -1, # number of observed events
-            signal   = nsig.getVal(), #number of EXPEctED signal events, INCLUDES the a priori normalisation. Combine fit results will be in terms of signal strength relative to this inistial normalisation
-            bkg      = nbkg.getVal(), # number of expected background events **over the full mass range** using the exponential funciton fitted in the sidebands 
-            Lsys     = config.Lumi_systematics['20'+args.year],          # luminosity uncertainty
-            bkg_lo   = bkg_norm_lo,
-            bkg_hi   = bkg_norm_hi, 
-            slopeval = slope.getVal(),
-            slopeerr = slope.getError(),
-            activator= '' if args.bkg_func == 'expo' else '#'
-            )
-        )
+    du.combineDatacard_writer(
+        workspace    = wspace_filename,
+        ws_name      = wspace_name,
+        datacard_name= datacard_name,
+        year         = args.year,
+        cat          = args.category,
+        sig_model    = gsum,
+        bkg_model    = b_model,
+        bkg_func     = args.bkg_func,
+        Nobs         = -1 if runblind else fulldata.numEntries(),
+        Nsig         = nsig.getVal(),
+        Nbkg         = nbkg.getVal(),
+        Ndata        = N_data,
+        slope        = slope,   
+        width        = width,
+        write_sys    = args.sys_unc,
+    )
+
 if not args.optim_bdt: exit()
 tree_dict = dict(zip(df_columns, np.array([bdt_cut, sig_Nexp, sig_eff, bkg_Nexp, bkg_Nexp_Sregion, bkg_eff, PunziS_val, PunziS_err, AMS_val])))
 #if (ROOT.gROOT.GetVersion() == '6.22/09' ):

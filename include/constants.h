@@ -196,6 +196,8 @@ namespace scale_factor_src
         {"2023preBPix"    , base_dir + "/include/scale_factors/ScaleFactors_Muon_Z_ID_ISO_2023_schemaV2.json"}, 
         {"2023BPix"       , base_dir + "/include/scale_factors/"}, 
     };
+    // HLT_DoubleMu
+    inline std::string HLTeff_rootfile = base_dir + "corrections/HLT_DoubleMu4_3_LowMass/HLT_DoubleMu_efficiency2022.root";
     // PU weights
     // - central weights
     inline TString PUweight_rootfile = base_dir + "corrections/pileup/weights/puWeights_CollisionsRun3_GoldenJson_2024Aug26.root"; 

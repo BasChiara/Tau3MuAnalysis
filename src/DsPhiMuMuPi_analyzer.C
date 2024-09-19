@@ -97,13 +97,16 @@ void DsPhiMuMuPi_analyzer::Loop(){
          Ds_mu1_IDrecoSF= 1.; Ds_mu2_IDrecoSF= 1.;
          Ds_mu1_IDrecoSF_sysUP = -1.; Ds_mu1_IDrecoSF_sysDOWN = -1.;  
          Ds_mu2_IDrecoSF_sysUP = -1.; Ds_mu2_IDrecoSF_sysDOWN = -1.;
-         PU_weight = 1.; PU_weight_up = -1.; PU_weight_down = -1.;
+         Ds_DoubleMu4_3_LowMass_SF = 1.; 
+         Ds_DoubleMu4_3_LowMass_SF_sysUP = -1.; Ds_DoubleMu4_3_LowMass_SF_sysDOWN = -1.;
+         PU_weight = 1.; 
+         PU_weight_up = -1.; PU_weight_down = -1.;
          if(isMC_){
             applyMuonSF(t);
+            if (flag_HLT_DoubleMu) applyHLT_SF(year_);
             applyPUreweight();
          }
-         weight = lumi_factor * PU_weight * Ds_mu1_IDrecoSF * Ds_mu2_IDrecoSF; // PU weights to be understood !!
-         //weight = lumi_factor * Ds_mu1_IDrecoSF * Ds_mu2_IDrecoSF;
+         weight = lumi_factor * PU_weight * Ds_mu1_IDrecoSF * Ds_mu2_IDrecoSF * Ds_DoubleMu4_3_LowMass_SF; // PU weights to be understood !!
 
          // muons kinematics
          phi_mu1_pt  = DsPhiPi_mu1_pt[t];   phi_mu2_pt  = DsPhiPi_mu2_pt[t];
@@ -238,9 +241,12 @@ void DsPhiMuMuPi_analyzer::outTreeSetUp(){
    outTree_->Branch("Ds_mu2_IDrecoSF",          &Ds_mu2_IDrecoSF,          "Ds_mu2_IDrecoSF/F");
    outTree_->Branch("Ds_mu2_IDrecoSF_sysUP",    &Ds_mu2_IDrecoSF_sysUP,    "Ds_mu2_IDrecoSF_sysUP/F");
    outTree_->Branch("Ds_mu2_IDrecoSF_sysDOWN",  &Ds_mu2_IDrecoSF_sysDOWN,  "Ds_mu2_IDrecoSF_sysDOWN/F");
+   outTree_->Branch("Ds_DoubleMu4_3_LowMass_SF",&Ds_DoubleMu4_3_LowMass_SF,"Ds_DoubleMu4_3_LowMass_SF/F");
+   outTree_->Branch("Ds_DoubleMu4_3_LowMass_SF_sysUP", &Ds_DoubleMu4_3_LowMass_SF_sysUP,  "Ds_DoubleMu4_3_LowMass_SF_sysUP/F");
+   outTree_->Branch("Ds_DoubleMu4_3_LowMass_SF_sysDOWN", &Ds_DoubleMu4_3_LowMass_SF_sysDOWN,"Ds_DoubleMu4_3_LowMass_SF_sysDOWN/F");
    outTree_->Branch("PU_weight",                &PU_weight,                "PU_weight/F");
-   outTree_->Branch("PU_weight_up",             &PU_weight_up,             "PU_weight_up/F");
-   outTree_->Branch("PU_weight_down",           &PU_weight_down,           "PU_weight_down/F");
+   outTree_->Branch("PU_weight_sysUP",             &PU_weight_up,             "PU_weight_sysUP/F");
+   outTree_->Branch("PU_weight_sysDOWN",           &PU_weight_down,           "PU_weight_sysDOWN/F");
    outTree_->Branch("isMCmatching",             &isMCmatching,             "isMCmatching/I");
    // * HLT
    outTree_->Branch("HLT_isfired_Tau3Mu",     &HLT_isfired_Tau3Mu,   "HLT_isfired_Tau3Mu/I");

@@ -1,0 +1,28 @@
+
+imax 1 number of channels
+jmax * number of background sources
+kmax * number of nuisance parameters
+--------------------------------------------------------------------------------
+shapes bkg         WTau3Mu_A22       wspace_bdt0.9970_WTau3Mu_A22_prova.root wspace_WTau3Mu_A22_prova_bdt0.9970:model_bkg_WTau3Mu_A22
+shapes sig         WTau3Mu_A22       wspace_bdt0.9970_WTau3Mu_A22_prova.root wspace_WTau3Mu_A22_prova_bdt0.9970:model_sig_WTau3Mu_A22
+shapes data_obs    WTau3Mu_A22       wspace_bdt0.9970_WTau3Mu_A22_prova.root wspace_WTau3Mu_A22_prova_bdt0.9970:data_obs
+--------------------------------------------------------------------------------
+bin                WTau3Mu_A22
+observation        -1
+--------------------------------------------------------------------------------
+bin                              WTau3Mu_A22         WTau3Mu_A22
+process                          sig                 bkg
+process                          0                   1
+rate                             1.6183              9.8130
+--------------------------------------------------------------------------------
+lumi22             lnN           1.014               -
+tau_mu1_IDrecoSF_A22   lnN    1.0022/0.9978   -
+tau_mu2_IDrecoSF_A22   lnN    1.0023/0.9977   -
+tau_mu3_IDrecoSF_A22   lnN    1.0026/0.9974   -
+NLO_weight_A22   lnN    1.0058/0.9649   -
+PU_weight_A22   lnN    0.9976/1.0027   -
+width_A22       param  0.0107 0.0111
+bkgNorm_A22       rateParam     WTau3Mu_A22              bkg      1.      [0.37,2.15]
+bkgNorm_A22       flatParam
+slope_A22        param  -0.0128 1.7241
+        

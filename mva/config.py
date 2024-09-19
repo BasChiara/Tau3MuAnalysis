@@ -2,7 +2,7 @@
 # useful global variables for python code
 from collections import OrderedDict
 import numpy  as np
-import pandas as pd
+import os
 import ROOT
 
 ###                ###
@@ -62,9 +62,20 @@ LumiVal_plots = {
     '2023'          : "27.7",
     'Run3'          : "62.2",
 }
+###             ###
+#   SYSTEMATICS   #
+###             ###
 Lumi_systematics = {
     '2022'          : 1.014,
     '2023'          : 1.013,
+}
+uncorrelated_systematics = {
+    '2022'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/2022_sysJson.json'),
+    '2023'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/2023_sysJson.json'),
+}
+shape_systematics = {
+    '2022'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/signal_model/signal_shape_comparison_2022.json'),
+    '2023'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/signal_model/signal_shape_comparison_2023.json'),
 }
 
 ###                     ###
@@ -193,6 +204,15 @@ W3MuNu_background = [
      mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onW3MuNu.root',
 ]
 
+Peaking_background = [
+    #2022
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap_onDsPhiPi.root',
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_onDsPhiPi.root',
+    #2023
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap_onDsPhiPi.root',
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onDsPhiPi.root',
+]
+
 mc_samples = {
     'WTau3Mu'       : WTau3Mu_signals,
     'DsPhiMuMuPi'   : DsPhiPi_signals,
@@ -293,20 +313,20 @@ def tauEta(eta):
 
 features_NbinsXloXhiLabelLog = {
     'tau_fit_pt'        : [ 20, 10, 50,  'p_{T}(3 #mu) (GeV)',      0],
-    'tau_fit_mt'        : [ 20, 0, 80,  'M_{T}(3 #mu)',            0],
+    'tau_fit_mt'        : [ 60, 0, 120,   'M_{T}(3 #mu)',            0],
     'tau_relIso'        : [ 20, 0, 0.5,  'rel. Isolation (3 #mu)',  1],
     'tau_met_Dphi'      : [ 32, 0, 6.4,  '#Delta #phi (3 #mu, MET)',0],
     'tau_met_pt'        : [ 40, 0, 100., 'MET (GeV)',               0],
     'tau_met_ratio_pt'  : [ 30, 0., 3.,  'MET/p_{T}(3 #mu)',        0],
-    'W_pt'              : [ 40, 0, 120,  'p_{T}(W) (GeV)',          0],
-    'miss_pz_min'       : [50, -300, 300, 'min p_{z}^{#nu} (GeV)',  0],
-    'miss_pz_max'       : [50,-1500, 1500,'max p_{z}^{#nu} (GeV)',  0],
+    'W_pt'              : [ 20, 0, 100,  'p_{T}(W) (GeV)',          0],
+    'miss_pz_min'       : [40, -200, 200, 'min p_{z}^{#nu} (GeV)',  0],
+    'miss_pz_max'       : [40,-1500, 1500,'max p_{z}^{#nu} (GeV)',  0],
     'tau_mu12_dZ'       : [ 20, 0, 0.2, '#Delta z (#mu_1, #mu_2)',  0],
     'tau_mu13_dZ'       : [ 20, 0, 0.2, '#Delta z (#mu_1, #mu_3)',  0],
     'tau_mu23_dZ'       : [ 20, 0, 0.2, '#Delta z (#mu_2, #mu_3)',  0],
-    'tau_Lxy_sign_BS'   : [ 40, 0, 20,  'SV L_{xy}/#sigma',        0],
+    'tau_Lxy_sign_BS'   : [ 20, 0, 20,  'SV L_{xy}/#sigma',         0],
     'tau_fit_vprob'     : [ 20, 0,  1,  'SV probability',           0],
-    'tau_cosAlpha_BS'   : [ 10, 0.98,1,  'cos_{#alpha}(SV, BS)',     1],
+    'tau_cosAlpha_BS'   : [ 10, 0.98,1,  'cos_{#alpha}(SV, BS)',    1],
     'tau_mu1_TightID_PV': [  2,-0.5,1.5, '#mu_1 ID',                0],
     'tau_mu2_TightID_PV': [  2,-0.5,1.5, '#mu_2 ID',                0],
     'tau_mu3_TightID_PV': [  2,-0.5,1.5, '#mu_3 ID',                0],
@@ -418,23 +438,3 @@ features_Run3toRun2 = {
     'tau_mu3_TightID_PV':'mu3ID',
     'tau_mu3_TightID_PV':'mu3ID',
 }
-
-###               ###
-#   COMBINE UTILS   #
-###               ###
-
-from statsmodels.stats.proportion import proportion_confint
-def cp_intervals(Nobs, Ntot, cl=0.68, verbose = False):
-
-    eff = 1.*Nobs/Ntot
-    lo, hi = proportion_confint(Nobs, Ntot, 1.-cl, method='beta')
-
-    lor = lo/eff if eff else -99
-    hir = hi/eff if eff else -99
-    if verbose :
-        print('-- Clopper Pearson --')
-        print('\n\t'.join([
-        'Ntot:  {T}','Nobs:  {O}','eff:  {E}','low:  {L}','high:  {H}'
-        ]).format(T=Ntot, O=Nobs, E=eff, L=lor, H=hir))
-
-    return lor, hir

@@ -122,7 +122,7 @@ def apply_reweighting(observable, h_ratio, nbins = 30, lo = -3, hi = 3, selectio
     h_reweighted.GetXaxis().SetLabelSize(0.04)
     h_reweighted.GetXaxis().SetTitleOffset(1.5)
     h_reweighted.SetMinimum(0)
-    h_reweighted.SetMaximum(1.3 * h_reweighted.GetMaximum())
+    #h_reweighted.SetMaximum(1.3 * h_reweighted.GetMaximum())
 
     # create legend
     leg = ROOT.TLegend(0.40, 0.70, 0.75, 0.85)
@@ -250,6 +250,17 @@ for cat in cfg.Ds_category_selection:
                       add_tag=f'cat{cat}{args.tag}', 
                       to_ploton=[CAT_txt], 
                       cat=cat)
+    
+# -- input features
+for obs in observable_list:
+    apply_reweighting(obs, h_ratio, 
+                      nbins   = cfg.features_NbinsXloXhiLabelLog[obs][0],
+                      lo      = cfg.features_NbinsXloXhiLabelLog[obs][1],
+                      hi      = cfg.features_NbinsXloXhiLabelLog[obs][2],
+                      selection = base_selection,
+                      to_ploton = [],
+                      add_tag = args.tag,
+    )
 
 # --- close input file
 infile.Close()

@@ -15,6 +15,8 @@
 #include "Math/GenVector/PtEtaPhiM4D.h"
 #include "TH2Poly.h"
 
+#include "../corrections/HLT_DoubleMu4_3_LowMass/trigger_SFs_2022.h"
+
 class DsPhiMuMuPi_tools : public DsPhiMuMuPi_base{
 
    public:
@@ -46,10 +48,16 @@ class DsPhiMuMuPi_tools : public DsPhiMuMuPi_base{
    // sort candidates by transverse mass
    std::vector<unsigned int> sorted_cand_mT();
    // scale factors
+   // muon ID
    int    parseMuonSF(const TString & era = "2022preEE", const TString & pTrange = "low" );
    int    applyMuonSF(const int& TauIdx);
+   // HLT DoubleMu4_3_LowMass
+   int    parseHLT_SF();
+   int    applyHLT_SF(const TString & era = "2022preEE");
+   // PU re-weight
    int    parsePUweights(const TString & era = "2022preEE");
    int    applyPUreweight();
+
 
    const std::string muons_IDsf_set_ = "NUM_MediumID_DEN_TrackerMuons";
 
@@ -74,6 +82,9 @@ class DsPhiMuMuPi_tools : public DsPhiMuMuPi_base{
    float Ds_mu1_IDrecoSF, Ds_mu2_IDrecoSF;
    float Ds_mu1_IDrecoSF_sysUP, Ds_mu2_IDrecoSF_sysUP;
    float Ds_mu1_IDrecoSF_sysDOWN, Ds_mu2_IDrecoSF_sysDOWN;
+
+   // HLT
+   float Ds_DoubleMu4_3_LowMass_SF, Ds_DoubleMu4_3_LowMass_SF_sysUP, Ds_DoubleMu4_3_LowMass_SF_sysDOWN;
 
    // PU weights
    TH1D* h_PUweights             =0;

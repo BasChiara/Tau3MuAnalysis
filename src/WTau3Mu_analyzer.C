@@ -74,12 +74,13 @@ void WTau3Mu_analyzer::Loop(){
       for(unsigned int t: tau_idxs){ 
 
          if(debug && nTauTo3Mu > 1) std::cout << " + tau cand with mT " << TauPlusMET_Tau_Puppi_mT[t] << std::endl; 
-         // check muons MediumID
+         // ------- muons MediumID ------
          if(!RecoPartFillP4(t)) continue;
 
-         // trigger matching
-         //if(!TriggerMatching(t, HLTconf_)) continue;
+         // ------- HLT matching ------
+         //  HLT_DoubleMu4_3_LowMass scale factor included in TriggerMatching()
          flag_HLT_Tau3mu = false; flag_HLT_DoubleMu = false; 
+         tau_DoubleMu4_3_LowMass_SF = 1; tau_DoubleMu4_3_LowMass_SF_sysUP = -1; tau_DoubleMu4_3_LowMass_SF_sysDOWN = -1;
          if(HLTconf_ == HLT_paths::HLT_Tau3Mu)   flag_HLT_Tau3mu = TriggerMatching(t, HLTconf_);
          if(HLTconf_ == HLT_paths::HLT_DoubleMu) flag_HLT_DoubleMu = TriggerMatching(t, HLTconf_);
          if(HLTconf_ == HLT_paths::HLT_overlap){
@@ -89,6 +90,8 @@ void WTau3Mu_analyzer::Loop(){
          if(!(flag_HLT_Tau3mu || flag_HLT_DoubleMu)) continue;
          nTauFired3Mu++;
          HLT_isfired_DoubleMu = (int)flag_HLT_DoubleMu; HLT_isfired_Tau3Mu = (int)flag_HLT_Tau3mu; 
+         
+
 
          n_tau = nTauTo3Mu;
 
@@ -106,6 +109,7 @@ void WTau3Mu_analyzer::Loop(){
          if (flag_HLT_DoubleMu && !HLT_DoubleMu_reinforcement(t)) continue;
          if (flag_reinfHLT) nEvReinforcedHLT++;
          nTauReinforcedHLT++; 
+         if (isMC_) applyHLT_SF();
 
          // muonsID
          tau_mu1_MediumID   = Muon_isMedium[TauTo3Mu_mu1_idx[t]];   tau_mu2_MediumID   = Muon_isMedium[TauTo3Mu_mu2_idx[t]];   tau_mu3_MediumID   = Muon_isMedium[TauTo3Mu_mu2_idx[t]];
@@ -114,7 +118,7 @@ void WTau3Mu_analyzer::Loop(){
          tau_mu1_SoftID_BS  = Muon_isSoft_BS[TauTo3Mu_mu1_idx[t]];  tau_mu2_SoftID_BS  = Muon_isSoft_BS[TauTo3Mu_mu2_idx[t]];  tau_mu3_SoftID_BS  = Muon_isSoft_BS[TauTo3Mu_mu3_idx[t]];
          tau_mu1_TightID_PV = Muon_isTight[TauTo3Mu_mu1_idx[t]];    tau_mu2_TightID_PV = Muon_isTight[TauTo3Mu_mu2_idx[t]];    tau_mu3_TightID_PV = Muon_isTight[TauTo3Mu_mu3_idx[t]];
          tau_mu1_TightID_BS = Muon_isTight_BS[TauTo3Mu_mu1_idx[t]]; tau_mu2_TightID_BS = Muon_isTight_BS[TauTo3Mu_mu2_idx[t]]; tau_mu3_TightID_BS = Muon_isTight_BS[TauTo3Mu_mu3_idx[t]];
-         // muons SF in MC
+         // muonID SF in MC
          tau_mu1_IDrecoSF=1.; tau_mu2_IDrecoSF=1.; tau_mu3_IDrecoSF=1.;
          tau_mu1_IDrecoSF_sysUP = -1.; tau_mu1_IDrecoSF_sysDOWN = -1.;  
          tau_mu2_IDrecoSF_sysUP = -1.; tau_mu2_IDrecoSF_sysDOWN = -1.;  
@@ -262,6 +266,8 @@ void WTau3Mu_analyzer::saveOutput(){
       h_muonSF_lowpT->Write();
       h_muonSF_lowpT_sysUP->Write();
       h_muonSF_lowpT_sysDOWN->Write();
+      // HLT
+      h_DiMuon_HLTcand->Write();
       // PU
       h_PUweights->Write();
       h_PUweights_sysUP->Write();
@@ -301,9 +307,12 @@ void WTau3Mu_analyzer::outTreeSetUp(){
    outTree_->Branch("tau_mu3_IDrecoSF",         &tau_mu3_IDrecoSF,         "tau_mu3_IDrecoSF/F");
    outTree_->Branch("tau_mu3_IDrecoSF_sysUP",   &tau_mu3_IDrecoSF_sysUP,   "tau_mu3_IDrecoSF_sysUP/F");
    outTree_->Branch("tau_mu3_IDrecoSF_sysDOWN", &tau_mu3_IDrecoSF_sysDOWN, "tau_mu3_IDrecoSF_sysDOWN/F");
+   outTree_->Branch("tau_DoubleMu4_3_LowMass_SF", &tau_DoubleMu4_3_LowMass_SF, "tau_DoubleMu4_3_LowMass_SF/F");
+   outTree_->Branch("tau_DoubleMu4_3_LowMass_SF_sysUP", &tau_DoubleMu4_3_LowMass_SF_sysUP, "tau_DoubleMu4_3_LowMass_SF_sysUP/F");
+   outTree_->Branch("tau_DoubleMu4_3_LowMass_SF_sysDOWN", &tau_DoubleMu4_3_LowMass_SF_sysDOWN, "tau_DoubleMu4_3_LowMass_SF_sysDOWN/F");
    outTree_->Branch("PU_weight",                &PU_weight,                "PU_weight/F");
-   outTree_->Branch("PU_weight_up",             &PU_weight_up,             "PU_weight_up/F");
-   outTree_->Branch("PU_weight_down",           &PU_weight_down,           "PU_weight_down/F");
+   outTree_->Branch("PU_weight_sysUP",          &PU_weight_up,             "PU_weight_sysUP/F");
+   outTree_->Branch("PU_weight_sysDOWN",        &PU_weight_down,           "PU_weight_sysDOWN/F");
    outTree_->Branch("NLO_weight",               &NLO_weight,               "NLO_weight/F");
    outTree_->Branch("NLO_weight_sysUP",         &NLO_weight_up,            "NLO_weight_sysUP/F");
    outTree_->Branch("NLO_weight_sysDOWN",       &NLO_weight_down,          "NLO_weight_sysDOWN/F");

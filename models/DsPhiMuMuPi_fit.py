@@ -14,6 +14,7 @@ import argparse
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import mva.config as config
+from plots.color_text import color_text as ct
 
 
 category_list = ['A', 'B', 'C', 'ABC']
@@ -49,7 +50,7 @@ input_tree_name = 'tree_w_BDT'
 mc_file     = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output//XGBout_DsPhiMuMuPi_MC_Optuna_HLT_overlap_LxyS2.1_2024Jul11.root' ]
 data_file   = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output//XGBout_DsPhiMuMuPi_DATA_Optuna_HLT_overlap_LxyS2.1_2024Jul11.root' ]
 # *** OUTPUT FILE *** #
-f_out_name = "DsPhiPi2022_wspace_%s.root"%(tag)
+f_out_name = "workspaces/DsPhiPi_wspace_%s.root"%(tag)
 f_out = ROOT.TFile(f_out_name, "RECREATE")
 
 # ** RooFit Variables
@@ -86,7 +87,6 @@ base_selection = '(' + ' & '.join([
 ]) + ')'
 if args.bdt_cut > 0.:
     base_selection += ' & (bdt_score > %.2f)'%args.bdt_cut
-print('[i] base_selection = %s'%base_selection)
 
 
 ### MC SIGNAL - FIT ###
@@ -96,8 +96,6 @@ N_mc = mc_tree.GetEntries(base_selection)
 
 fullmc = ROOT.RooDataSet('mc_DsPhiMuMuPi', 'mc_DsPhiMuMuPi', mc_tree, thevars, base_selection, 'weight')
 fullmc.Print()
-print('entries = %.2f'%fullmc.sumEntries() )
-print('weight  = %e'%fullmc.weight() )
 sig_efficiency = fullmc.sumEntries()/N_mc/fullmc.weight()
 
 # signal PDF : double gaussian + constant
@@ -197,8 +195,8 @@ datatofit.Print()
 bkg_efficiency = datatofit.sumEntries()/N_data
 
 # Ds -> phi pi signal 
-width1 = ROOT.RooRealVar('width1',  'width1', width1_mc.getVal())
-width2 = ROOT.RooRealVar('width2',  'width2', width2_mc.getVal())
+width1 = ROOT.RooRealVar('width1',  'width1', width1_mc.getVal(), width2_mc.getVal(), 0.03)
+width2 = ROOT.RooRealVar('width2',  'width2', width2_mc.getVal(), 0.001, width1_mc.getVal())
 dMass  = ROOT.RooRealVar('dM', 'dM', dMass_mc.getVal(), -0.1, 0.1)
 mean   = ROOT.RooFormulaVar('mean_mc','mean_mc', '(@0+@1)', ROOT.RooArgList(Mass,dMass) )
 
@@ -218,7 +216,7 @@ a  = ROOT.RooRealVar("a", "",  -1.0, -5, -0.1)
 comb_bkg = ROOT.RooExponential('model_bkg_Ds', 'model_bkg_Ds', mass, a)
 
 # + polynomial background
-p1  = ROOT.RooRealVar("p1", "p1", -0.1, -1., 1.)
+p1  = ROOT.RooRealVar("p1", "p1", -0.1, -1., -0.0001)
 poly = ROOT.RooPolynomial('poly', 'poly', mass, ROOT.RooArgList(p1))
 
 # D+ fraction
@@ -280,10 +278,14 @@ c2.SaveAs('%s/DsPhiPi_mass_%s.pdf'%(args.plot_outdir, tag))
 c2.SetLogy(1)
 c2.SaveAs('%s/DsPhiPi_mass_log_%s.png'%(args.plot_outdir, tag)) 
 c2.SaveAs('%s/DsPhiPi_mass_log_%s.pdf'%(args.plot_outdir, tag)) 
-print(' -- RooExtendPdf = %.2f'%full_model.expectedEvents(ROOT.RooArgSet(mass)))
-print(' -- BaseSelection %s'%base_selection)
-print(' == S efficiency %.2f '%sig_efficiency)
-print(' == B efficiency %.2e '%bkg_efficiency)
+
+print(f'\n\n {ct.BOLD} ------------ SUMMARY ------------{ct.END}')
+print('base_selection    = \n %s'%base_selection)
+print('[MC] entries(w)   =  %.2f'%fullmc.sumEntries())
+print('nDs in MC         = %.2f +/- %.2f'%(nMC.getValV(), nMC.getError()))
+print('[DATA] exp-events = %.2f'%full_model.expectedEvents(ROOT.RooArgSet(mass)))
+print(' nDs in data       = %.2f +/- %.2f'%(nDs.getValV(), nDs.getError()))
+print(f'{ct.BOLD} --------------------------------------{ct.END}\n\n')
 
 
 # *** SAVE WORKSPACE ***
@@ -292,7 +294,7 @@ wspace_data = ROOT.RooWorkspace("DsPhiPi_data_wspace", "DsPhiPi_data_wspace")
 try:
     getattr(wspace_data, 'import')(full_model)
     print("full_model imported successfully.")
-    wspace_data.Print()
+    #wspace_data.Print()
 except Exception as e:
     print("Error importing full_model:", e)
 
@@ -300,4 +302,3 @@ except Exception as e:
 wspace_data.Write()
 f_out.Close()
 print(' -- saved workspace in %s'%f_out_name)
-
