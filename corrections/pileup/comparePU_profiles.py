@@ -29,7 +29,8 @@ out_file_data = f'{out_dir}/pileupDATA_{era}.root'
 # mc files
 histo_name_mc = 'h_mc_PU'
 out_file_mc   = {
-    'central' : f'{out_dir}/pileupMC_central_{era}.root',
+    'central_69p2mb' : f'{out_dir}/pileupMC_central_MinBxsec69p2mb_{era}.root',
+    'central_80mb' : f'{out_dir}/pileupMC_central_MinBxsec80mb_{era}.root',
     'miniAOD' : f'{out_dir}/pileupMC_miniAOD_{era}.root',
     'nanoAOD' : f'{out_dir}/pileupMC_nanoAOD_{era}.root',
 }
@@ -40,12 +41,18 @@ pu_lo, pu_hi = 0, 100
 
 # ------- MC PILEUP ------- #
 # central configuration
-h_central_mc = get_histo(out_file_mc['central'], histo_name_mc) 
+h_central_mc = get_histo(out_file_mc['central_69p2mb'], histo_name_mc) 
 h_central_mc.Scale(1./h_central_mc.Integral())
 h_central_mc.SetLineColor(ROOT.kBlack)
 h_central_mc.SetLineWidth(2)
 h_central_mc.SetTitle(f'MC pileup profile - {era}')
 h_central_mc.GetXaxis().SetTitle('n True Interactions')
+# --
+h_central_mc_80mb = get_histo(out_file_mc['central_80mb'], histo_name_mc) 
+h_central_mc_80mb.Scale(1./h_central_mc.Integral())
+h_central_mc_80mb.SetLineColor(ROOT.kBlack)
+h_central_mc_80mb.SetLineStyle(ROOT.kDashed)
+h_central_mc_80mb.SetLineWidth(2)
 # miniAOD 
 h_miniAOD_mc = get_histo(out_file_mc['miniAOD'], histo_name_mc) 
 h_miniAOD_mc.Scale(1./h_miniAOD_mc.Integral())
@@ -68,9 +75,11 @@ leg.SetBorderSize(0)
 # all
 c = ROOT.TCanvas('c', 'c', 800, 600)
 h_central_mc.Draw('hist')
+h_central_mc_80mb.Draw('hist same')
 h_miniAOD_mc.Draw('hist same')
 h_nanoAOD_mc.Draw('hist same')
-leg.AddEntry(h_central_mc, 'central', 'l')
+leg.AddEntry(h_central_mc, 'central 69.2 mb', 'l')
+leg.AddEntry(h_central_mc_80mb, 'central 80mb', 'l')
 leg.AddEntry(h_miniAOD_mc, 'miniAOD', 'l')
 leg.AddEntry(h_nanoAOD_mc, 'nanoAOD', 'l')
 leg.Draw()
