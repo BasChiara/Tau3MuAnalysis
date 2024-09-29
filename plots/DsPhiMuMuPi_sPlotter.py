@@ -55,7 +55,7 @@ def make_sPlot(
         to_ploton = to_ploton,
         file_name = f'{args.plot_outdir}/DsPhiPi_SW{observable}{tag}',
         draw_opt_num = 'pe',
-        draw_opt_den = 'hist',
+        draw_opt_den = 'histe2',
         ratio_w      = 1.0,
         y_lim = [0, 1.5 * np.max([h_mc.GetMaximum(), h_sData.GetMaximum()])],
         x_lim = [lo, hi],
@@ -70,7 +70,7 @@ def reweight_by_eta():
     selection = '1'
     mc_norm = 'norm_factor'
 
-    mc_tree.Draw(f'{observable}>>h_{observable}_mc({nbins}, {lo}, {hi})', f'({selection}) * (weight * {mc_norm})', 'goff')
+    mc_tree.Draw(f'{observable}>>h_{observable}_mc({nbins}, {lo}, {hi})', f'({selection}) * (weight * {mc_norm} * isMCmatching)', 'goff')
     h_mc = ROOT.gDirectory.Get(f"h_{observable}_mc")
     h_mc.Sumw2()
     sData_tree.Draw(f'{observable}>>h_{observable}_data({nbins}, {lo}, {hi})', f'{selection} * nDs_sw', 'goff')
@@ -139,7 +139,7 @@ def apply_reweighting(observable, h_ratio, nbins = 30, lo = -3, hi = 3, selectio
         to_ploton = to_ploton,
         file_name = f'{args.plot_outdir}/DsPhiPi_reweighted_{observable}{add_tag}',
         draw_opt_num = 'pe',
-        draw_opt_den = 'hist',
+        draw_opt_den = 'histe2',
         ratio_w      = 1.0,
         y_lim = [0, 1.5 * h_reweighted.GetMaximum()],
         x_lim = [lo, hi],
@@ -192,7 +192,6 @@ base_selection = '(' + ' & '.join([
     cfg.Ds_base_selection,
     cfg.Ds_phi_selection,
     cfg.Tau_sv_selection,
-    '(tau_Lxy_sign_BS > 2.0)',
 ]) + ')'
 print('[i] base_selection = %s'%base_selection)
 # BDT input features
@@ -217,9 +216,9 @@ make_sPlot(
     observable = 'Ds_fit_eta',
     mc_norm = 'norm_factor',
     selection = base_selection,
-    nbins   = 30,
-    lo      = -3,
-    hi      =  3,
+    nbins   =   25,
+    lo      = -2.5,
+    hi      =  2.5,
     x_axis_title = '#eta(#mu#mu#pi)',
     y_axis_title= 'Events',
     log_scale   = False,

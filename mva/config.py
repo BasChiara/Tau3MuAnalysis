@@ -18,7 +18,7 @@ blind_range_hi = 1.84 # GeV
 ###                ###
 Ds_mass = 1.9678 # GeV
 D_mass  = 1.8693 # GeV
-Ds_mass_range_lo  = 1.40 # GeV
+Ds_mass_range_lo  = 1.75 # GeV
 Ds_mass_range_hi  = 2.05 # GeV
 
 ###                ###
@@ -40,6 +40,13 @@ Ds_base_selection   = f'(Ds_fit_mass > {Ds_mass_range_lo} & Ds_fit_mass < {Ds_ma
 Ds_phi_selection    = f'(phi_fit_mass > {Ds_phi_mass_lo} & phi_fit_mass < {Ds_phi_mass_hi} )'
 Ds_sv_selection     = f'(Ds_Lxy_sign_BS > 0.0 & Ds_fit_vprob > {Ds_minSVprob} )'
 Tau_sv_selection    = f'(tau_Lxy_sign_BS > {LxySign_cut} & tau_fit_vprob > {Ds_minSVprob} )'
+
+# peaking background
+peakB_mass_lo = 1.7
+peakB_mass_hi = 2.02
+peakB_base_selection = f'(tau_MuMuPi_mass > {peakB_mass_lo} & tau_MuMuPi_mass < {peakB_mass_hi})'
+peakB_phi_selection  = f'(tau_phiMuMu_mass > {Ds_phi_mass_lo} & tau_phiMuMu_mass < {Ds_phi_mass_hi} )'
+peakB_sv_selection   = f'(tau_Lxy_sign_BS > {5.0} & tau_fit_vprob > {0.10} )'
 
 ###              ###
 #   DATASET INFO   #
@@ -217,6 +224,7 @@ mc_samples = {
     'WTau3Mu'       : WTau3Mu_signals,
     'DsPhiMuMuPi'   : DsPhiPi_signals,
     'W3MuNu'        : W3MuNu_background,
+    'peakingBkg'    : Peaking_background,
 }
 data_samples = {
     'WTau3Mu'       : data_background,
@@ -331,7 +339,7 @@ features_NbinsXloXhiLabelLog = {
     'tau_mu2_TightID_PV': [  2,-0.5,1.5, '#mu_2 ID',                0],
     'tau_mu3_TightID_PV': [  2,-0.5,1.5, '#mu_3 ID',                0],
     'tauEta'            : [  8,-0.5,7.5, '3#mu #eta bins',          0],
-    'tau_fit_eta'       : [ 20, -3.5, 3.5,'#eta (3 #mu)',           0],
+    'tau_fit_eta'       : [ 25, -2.5, 2.5,'#eta (3 #mu)',           0],
     'tau_fit_mass'      : [ 40,1.6, 2.0, 'M(3 #mu)',                0],
     'bdt_score'         : [ 25, 0, 1,    'BDT score',               1],
     'bdt_score_t3m'     : [ 50, 0, 1,    'BDT_{#tau 3 #mu} score',  1],

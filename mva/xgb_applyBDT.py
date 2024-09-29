@@ -33,7 +33,7 @@ parser.add_argument('--data_outdir',    default= '/eos/user/c/cbasile/Tau3MuRun3
 parser.add_argument('--tag',            default= 'emulateRun2',                                         help='tag to the training')
 parser.add_argument('--debug',          action = 'store_true' ,                                         help='set it to have useful printout')
 parser.add_argument('--save_output',    action = 'store_true' ,                                         help='set it to save the bdt output')
-parser.add_argument('--process',        choices= ['WTau3Mu', 'W3MuNu', 'data', 'DsPhiMuMuPi', 'fake_rate'],   help='what process is in the input sample')
+parser.add_argument('--process',        choices= ['WTau3Mu', 'W3MuNu', 'data', 'DsPhiMuMuPi', 'peakingBkg'],   help='what process is in the input sample')
 parser.add_argument('--isMC',           action = 'store_true' ,                                         help='set if running on MonteCarlo')
 parser.add_argument('--isMulticlass',   action = 'store_true' ,                                         help='set if applying a multiclass classifier')
 parser.add_argument('--LxySign_cut',    default=  0.0,  type = float,                               help='cut over 3muons SV displacement significance')
@@ -51,8 +51,11 @@ if(args.process == 'DsPhiMuMuPi'):
         config.Ds_phi_selection,
         config.Ds_sv_selection,
     ])
-elif (args.process == 'fake_rate'):
-    base_selection = 'tau_fit_mass > %.2f'%config.mass_range_lo
+elif (args.process == 'peakingBkg'):
+    base_selection = '&'.join([
+        config.base_selection,
+        config.displacement_selection,
+    ])
 else:
     base_selection = ' & '.join([
         config.base_selection,
