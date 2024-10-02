@@ -160,12 +160,36 @@ namespace yearID
 // Lumi-normalization
 namespace LumiRun3
 {
+    // xsec W -> Tau Nu [fb]
+    inline float xsec_ppWxMuNu_SMP_Run3 = 20928000;
+    inline float Br_WtoMuNu  = 0.1063;
+    inline float Br_WtoTauNu = 0.1138;
+    inline float xsec_ppWxTauNu = xsec_ppWxMuNu_SMP_Run3 * Br_WtoTauNu / Br_WtoMuNu;
+    // processed luminosity [/fb]
+    inline std::map<TString, float> Lumi{
+        {"2022preEE"      , 4.990+2.961+5.684 }, 
+        {"2022EE"         , 17.755+3.078}, 
+        {"2023preBPix"    , 0.601+17.516}, 
+        {"2023BPix"       , 9.690}, 
+    };
+    // filter efficiency
+    inline float eff_filter = 1.0;
+    // Nmc @ filter level
+    inline std::map<TString, float> Nmc{
+        {"2022preEE"      , 197789}, 
+        {"2022EE"         , 792640}, 
+        {"2023preBPix"    , 662000}, 
+        {"2023BPix"       , 330000}, 
+    };
+    // Br (tau -> 3mu)
+    inline float Br_t3m = 1e-7;
+    // Lumi normalization factor
     inline std::map<TString, float> LumiFactor{
         {"DEFAULT"        , 1.0}, 
-        {"2022preEE"      , 0.0001452},			 
-        {"2022EE"         , 0.0000554},	
-        {"2023preBPix"    , 0.0000574}, 
-        {"2023BPix"       , 0.0000619}, 
+        {"2022preEE"      , (Lumi["2022preEE"]*xsec_ppWxTauNu*Br_t3m)/Nmc["2022preEE"]},//0.0001452},			 
+        {"2022EE"         , (Lumi["2022EE"]*xsec_ppWxTauNu*Br_t3m)/Nmc["2022EE"]},//0.0000554},	
+        {"2023preBPix"    , (Lumi["2023preBPix"]*xsec_ppWxTauNu*Br_t3m)/Nmc["2023preBPix"]},//0.0000574}, 
+        {"2023BPix"       , (Lumi["2023BPix"]*xsec_ppWxTauNu*Br_t3m)/Nmc["2023BPix"]},//0.0000619}, 
     };
     inline std::map<TString, float> LumiFactor_W3MuNu{
         {"DEFAULT"        , 1.0}, 
