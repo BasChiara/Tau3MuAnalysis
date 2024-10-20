@@ -19,15 +19,15 @@ args = argparser.parse_args()
 wspace_byCat = {}
 if args.year == 2022:
     wspace_byCat ={
-        "A22" : '../../models/workspaces/DsPhiPi_wspace_catA2022_HLT_overlap_LxyS2.1_HLTsf_2024Jul11.root',
-        "B22" : '../../models/workspaces/DsPhiPi_wspace_catB2022_HLT_overlap_LxyS2.1_HLTsf_2024Jul11.root',
-        "C22" : '../../models/workspaces/DsPhiPi_wspace_catC2022_HLT_overlap_LxyS2.1_HLTsf_2024Jul11.root',
+        "A22" : '../../models/workspaces/DsPhiPi_wspace_catA2022_LxyS2.0_2024Jul16.root',
+        "B22" : '../../models/workspaces/DsPhiPi_wspace_catB2022_LxyS2.0_2024Jul16.root',
+        "C22" : '../../models/workspaces/DsPhiPi_wspace_catC2022_LxyS2.0_2024Jul16.root',
     }
 elif args.year == 2023:
     wspace_byCat ={
-        "A23" : '../../models/workspaces/DsPhiPi_wspace_catA2023_HLT_overlap_LxyS2.1_HLTsf_2024Jul11.root',
-        "B23" : '../../models/workspaces/DsPhiPi_wspace_catB2023_HLT_overlap_LxyS2.1_HLTsf_2024Jul11.root',
-        "C23" : '../../models/workspaces/DsPhiPi_wspace_catC2023_HLT_overlap_LxyS2.1_HLTsf_2024Jul11.root',
+        "A23" : '../../models/workspaces/DsPhiPi_wspace_catA2023_LxyS2.0_2024Jul16.root',
+        "B23" : '../../models/workspaces/DsPhiPi_wspace_catB2023_LxyS2.0_2024Jul16.root',
+        "C23" : '../../models/workspaces/DsPhiPi_wspace_catC2023_LxyS2.0_2024Jul16.root',
     }
 else:
     print('Year not supported')
@@ -43,16 +43,16 @@ for cat in wspace_byCat:
     print(f' ---- category: {cat} ----')
     f = ROOT.TFile.Open(wspace_byCat[cat])
     # mc
-    w_mc = f.Get(mc_wspace)
-    mean = getattr(w_mc['mean_mc'], 'evaluate')()
-    width = double_gaussian_width(getattr(w_mc['width1_mc'], 'getVal')(), getattr(w_mc['width2_mc'], 'getVal')(), getattr(w_mc['gfrac'], 'getVal')())
+    w_mc  = f.Get(mc_wspace)
+    mean  = getattr(w_mc['mean_mc'], 'evaluate')()
+    width = getattr(w_mc['width1_mc'], 'getVal')() *1000
     print(f'[MC] mean: {mean:.3f} width: {width:.6f}')
     mc_mean.append(mean)
     mc_width.append(width)
     # data
     w_data = f.Get(data_wspace)
-    mean = getattr(w_data['mean_mc'], 'evaluate')()
-    width = double_gaussian_width(getattr(w_data['width1'], 'getVal')(), getattr(w_data['width2'], 'getVal')(), getattr(w_data['gfrac'], 'getVal')())
+    mean   = getattr(w_data['mean_mc'], 'evaluate')()
+    width  = getattr(w_data['width1'], 'getVal')() * 1000
     print(f'[Data] mean: {mean:.3f} width: {width:.6f}')
     data_mean.append(mean)
     data_width.append(width)
@@ -64,8 +64,8 @@ width_ratio = np.divide(data_width, mc_width)
 sys_dict = {}
 for i, cat in enumerate(wspace_byCat.keys()):
     sys_dict[cat] = {
-        'mean':  mean_ratio[i],
-        'width': width_ratio[i],
+        'mean':  np.abs(mean_ratio[i]  - 1.0),
+        'width': np.abs(width_ratio[i] - 1.0),
     } 
 with open(f'signal_shape_comparison_{args.year}.json', 'w') as f:
     json.dump(sys_dict, f)
@@ -89,7 +89,7 @@ ticks_fontsize = 12
 mean_ratio  = np.abs(mean_ratio  - 1 ) * 100
 width_ratio = np.abs(width_ratio - 1 ) * 100
 
-# plot the data ans mc mean/ width
+# plot the data and mc mean/ width
 ax[0,0].grid(zorder = 1, linestyle='--')
 ax[0,0].scatter(wspace_byCat.keys(), data_mean, c='b', label='Data', zorder=2)
 ax[0,0].scatter(wspace_byCat.keys(), mc_mean, c='r', label='MC', zorder = 3)
@@ -101,7 +101,7 @@ ax[0,1].grid(zorder = 1, linestyle='--')
 ax[0,1].scatter(wspace_byCat.keys(), data_width, c='b', label='Data', zorder = 2)
 ax[0,1].scatter(wspace_byCat.keys(), mc_width, c='r', label='MC', zorder = 3)
 ax[0,1].set_ylabel('Width (MeV)', fontsize=label_fontsize)
-ax[0,1].set_ylim(5.0, 25.0)
+ax[0,1].set_ylim(5.0, 30.0)
 ax[0,1].tick_params(axis='both', labelsize=ticks_fontsize)
 
 
@@ -109,13 +109,13 @@ ax[0,1].tick_params(axis='both', labelsize=ticks_fontsize)
 ax[1,0].grid(zorder = 0, linestyle='--')
 ax[1,0].scatter(wspace_byCat.keys(), mean_ratio, c='k', zorder=2)
 ax[1,0].set_ylabel('|Data/MC - 1| (%)', fontsize=label_fontsize, labelpad=15)
-ax[1,0].set_ylim(0.6*np.min(mean_ratio), 1.6*np.max(mean_ratio))
+ax[1,0].set_ylim(0.0, 1.6*np.max(mean_ratio))
 ax[1,0].tick_params(axis='both', labelsize=ticks_fontsize)
 
 ax[1,1].grid(zorder = 0, linestyle='--')
 ax[1,1].scatter(wspace_byCat.keys(), width_ratio, c='k', zorder=2)
 ax[1,1].set_ylabel('|Data/MC - 1| (%)', fontsize=label_fontsize, labelpad=25)
-ax[1,1].set_ylim(0.1*np.min(width_ratio), 1.6*np.max(width_ratio))
+ax[1,1].set_ylim(0.0, 1.6*np.max(width_ratio))
 ax[1,1].tick_params(axis='both', labelsize=ticks_fontsize)
 
 

@@ -1,0 +1,228 @@
+import ROOT
+ROOT.gROOT.SetBatch(True)
+ROOT.gStyle.SetOptStat(0)
+import os
+import json
+import argparse
+import numpy as np
+
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir)))
+import mva.config as config
+import plots.plotting_tools as pt
+
+
+def make_eta_weights(dataframe_mc, dataframe_data, nbins, lo, hi, selection):
+    # create histograms
+    h_data = dataframe_data.Filter(selection).Histo1D((f'h_data_Ds_fit_eta', f'h_data_Ds_fit_eta', nbins, lo, hi), 'Ds_fit_eta', 'nDs_sw').GetValue()
+    h_data.Sumw2()
+    h_mc = dataframe_mc.Filter(selection).Define('total_w', f'norm_factor*weight').Histo1D((f'h_mc_Ds_fit_eta', f'h_mc_Ds_fit_eta', nbins, lo, hi), 'Ds_fit_eta', 'total_w').GetValue()
+    h_mc.Sumw2()
+
+    # create reweighting histogram
+    h_reweight = h_data.Clone(f'h_reweight_Ds_fit_eta')
+    h_reweight.Divide(h_mc)
+
+    return h_reweight
+
+def weighted_rdf(h_weight, dataframe):
+
+    # Declare the C++ function to calculate the weight based on the mass value
+    ROOT.gInterpreter.Declare(f"""
+    TH1F* h_weight_global = (TH1F*)gROOT->FindObject("{h_weight.GetName()}");
+    
+    double get_weight(double eta_value) {{
+        int bin = h_weight_global->FindBin(eta_value);
+        return h_weight_global->GetBinContent(bin);
+    }}
+    """)
+
+    # Define a new column "sb_weight" using the declared C++ function and the histogram
+    dataframe = dataframe.Define("eta_weight", "get_weight(Ds_fit_eta)")
+    dataframe = dataframe.Define("total_w", "eta_weight*norm_factor*weight")
+    
+    return dataframe
+
+argparser = argparse.ArgumentParser()
+argparser.add_argument('-i', '--input', help='Input root file with sWeigted data', required=True)
+argparser.add_argument('-o', '--output', help='output dest.', default='.')
+argparser.add_argument('-y', '--year', choices = ['2022', '2023'], default='2022', help='Year of the data taking period')
+args = argparser.parse_args()
+
+# check if input file exists
+if not os.path.exists(args.input):
+    print(f'[ERROR]: input file {args.input} not found')
+    sys.exit(1)
+categories = ['A', 'B', 'C']
+eff_data_list = []
+eff_error_data_list = []
+eff_mc_list = []
+eff_error_mc_list = []
+corr_dict = {}
+
+base_selection = '(' + ' & '.join([
+        config.year_selection[args.year],
+        config.Ds_base_selection,
+        config.Ds_phi_selection,
+]) + ')'
+
+h_reweight = make_eta_weights(
+    ROOT.RDataFrame('mc_tree', args.input),
+    ROOT.RDataFrame('RooTreeDataStore_sData_data_fit', args.input), 
+    25, -2.5, 2.5, 
+    base_selection
+)
+
+
+for cat in categories:
+
+    selection = '(' + ' & '.join([
+        base_selection,
+        config.Ds_category_selection[cat]
+    ]) + ')'
+    print(f'[i] CAT: {cat}')
+    print(f' ->  selection: {selection}')
+
+    # put data in RootDataFrame
+    rdf_sData = ROOT.RDataFrame('RooTreeDataStore_sData_data_fit', args.input).Filter(selection)
+    rdf_mc    = ROOT.RDataFrame('mc_tree', args.input).Filter(selection + ' & isMCmatching')
+
+    # apply the weights to MC dataframe
+    rdf_mc = weighted_rdf(h_reweight, rdf_mc)
+
+    # evaluate efficeincy in Data and MC
+    N_Data    = rdf_sData.Sum('nDs_sw').GetValue()
+    eff_Data  = rdf_sData.Filter('tau_Lxy_sign_BS > 2.0').Sum("nDs_sw").GetValue() / N_Data
+    eff_Data_err = np.sqrt(eff_Data*(1-eff_Data)/ N_Data)
+    
+    eff_data_list.append(eff_Data)
+    eff_error_data_list.append(eff_Data_err)
+    
+    N_mc      = rdf_mc.Sum('total_w').GetValue()
+    eff_mc    = rdf_mc.Filter('tau_Lxy_sign_BS > 2.0').Sum('total_w').GetValue() / N_mc
+    eff_mc_err = np.sqrt(eff_mc*(1-eff_mc)/ N_mc)
+    
+    eff_mc_list.append(eff_mc)
+    eff_error_mc_list.append(eff_mc_err)
+
+    print(f'Efficiency Data: {eff_Data:.3f}')
+    print(f'Efficiency MC: {eff_mc:.3f}')
+    print(f'Data/MC: {eff_Data/eff_mc:.3f}')
+
+    corr_dict[cat] = { 'total' : eff_Data/eff_mc, 'sys' : eff_Data/eff_mc * np.sqrt((eff_Data_err/eff_Data)**2 + (eff_mc_err/eff_mc)**2) } 
+
+
+    # draw histograms
+    h_Data = rdf_sData.Histo1D(('h_Data', 'h_Data', 30, 0, 30), 'tau_Lxy_sign_BS', 'nDs_sw').GetValue()
+    #h_mc   = rdf_mc.Define('total_w', 'norm_factor*weight').Histo1D(('h_mc', 'h_mc', 30, 0, 30), 'tau_Lxy_sign_BS', 'total_w').GetValue()
+    h_mc   = rdf_mc.Histo1D(('h_mc', 'h_mc', 30, 0, 30), 'tau_Lxy_sign_BS', 'total_w').GetValue()
+
+    c = ROOT.TCanvas('c', 'c', 800, 600)
+    h_Data.SetMarkerStyle(20)
+    h_Data.SetMarkerColor(ROOT.kBlack)
+    h_Data.SetLineColor(ROOT.kBlack)
+    h_Data.SetLineWidth(2)
+    h_Data.SetTitle('')
+    h_Data.GetXaxis().SetTitle('Lxy Significance')
+    h_Data.GetYaxis().SetTitle('Events')
+    
+    h_mc.SetFillColor(ROOT.kBlue)
+    h_mc.SetFillStyle(3004)
+    h_mc.SetLineColor(ROOT.kBlue)
+    h_mc.SetLineWidth(2)
+
+    leg = ROOT.TLegend(0.6, 0.6, 0.9, 0.85)
+    leg.AddEntry(h_Data, 'sWeighted data', 'lep')
+    leg.AddEntry(h_mc, 'MC', 'f')
+    leg.SetBorderSize(0)
+
+    name = f'{args.output}/LxyS_sPlot_{cat}{args.year}'
+
+    pt.ratio_plot(
+        histo_num = [h_Data],
+        histo_den = h_mc,
+        to_ploton = [leg],
+        file_name = name,
+        ratio_w = 1.0,
+    )
+    
+# save the efficiencies in a json file
+with open(f'{args.output}/LxyS_efficiency_{args.year}.json', 'w') as f:
+    json.dump(corr_dict, f)
+print(f'[o] json file with efficiencies saved as LxyS_efficiency_{args.year}.json')
+    
+
+# plot efficencies and their ratio
+c = ROOT.TCanvas('c', 'c', 800, 800)
+# create two pads for the efficiencies and the ratio
+c.cd()
+up_pad = ROOT.TPad('up_pad', 'up_pad', 0.0, 0.3, 1.0, 1.0)
+up_pad.SetMargin(0.15, 0.1,0.0,0.1) # left, right, bottom, top 
+up_pad.Draw()
+c.cd()
+ratio_pad = ROOT.TPad('ratio_pad', 'ratio_pad', 0.0, 0.0, 1.0, 0.3)
+ratio_pad.SetMargin(0.15,0.1,0.4,0.0) # left, right, bottom, top
+ratio_pad.SetGridy() # vertical grid
+ratio_pad.Draw()
+
+h_mc_eff = ROOT.TH1F('h_mc_eff', 'h_mc_eff', 3, -0.5, 3.5)
+h_data_eff = ROOT.TH1F('h_data_eff', 'h_data_eff', 3, -0.5, 3.5)
+h_ratio = ROOT.TH1F('h_ratio', 'h_ratio', 3, -0.5, 3.5)
+for i, cat in enumerate(categories):
+    h_mc_eff.SetBinContent(i+1, eff_mc_list[i])
+    h_mc_eff.SetBinError(i+1, eff_error_mc_list[i])
+    h_mc_eff.Sumw2()
+    h_data_eff.SetBinContent(i+1, eff_data_list[i])
+    h_data_eff.SetBinError(i+1, eff_error_data_list[i])
+    h_data_eff.Sumw2()
+h_ratio= h_data_eff.Clone('h_ratio')
+h_ratio.Divide(h_mc_eff)
+
+# draw efficiencies
+up_pad.cd()
+h_mc_eff.SetTitle('L_{xy}/#sigma > 2.0'+ f' - {args.year}')
+h_mc_eff.GetXaxis().SetTitle('Category')
+h_mc_eff.GetYaxis().SetTitle('Efficiency')
+h_mc_eff.GetYaxis().SetRangeUser(0.7, 1.1)
+h_mc_eff.SetMarkerStyle(20)
+h_mc_eff.SetMarkerSize(1.2)
+h_mc_eff.SetMarkerColor(ROOT.kBlue)
+h_mc_eff.SetLineColor(ROOT.kBlue)
+h_mc_eff.SetLineWidth(2)
+h_mc_eff.Draw('pe')
+h_data_eff.SetMarkerStyle(20)
+h_data_eff.SetMarkerSize(1.2)
+h_data_eff.SetMarkerColor(ROOT.kBlack)
+h_data_eff.SetLineColor(ROOT.kBlack)
+h_data_eff.SetLineWidth(2)
+h_data_eff.Draw('pe same')
+leg = ROOT.TLegend(0.6, 0.70, 0.9, 0.85)
+leg.SetBorderSize(0)
+leg.AddEntry(h_data_eff, 'Data', 'lep')
+leg.AddEntry(h_mc_eff, 'MC', 'lep')
+leg.Draw()
+
+# draw ratio
+ratio_pad.cd()
+h_ratio.SetTitle('')
+h_ratio.GetXaxis().SetTitle('Category')
+h_ratio.GetXaxis().SetLabelSize(0.1)
+h_ratio.GetXaxis().SetTitleSize(0.1)
+h_ratio.GetXaxis().SetTitleOffset(1.5)
+h_ratio.GetYaxis().SetTitle('Data/MC')
+h_ratio.GetYaxis().SetRangeUser(0.8, 1.2)
+h_ratio.GetYaxis().SetLabelSize(0.1)
+h_ratio.GetYaxis().SetTitleSize(0.1)
+h_ratio.GetYaxis().SetTitleOffset(0.5)
+h_ratio.GetYaxis().SetNdivisions(504)
+h_ratio.SetMarkerStyle(20)
+h_ratio.SetMarkerSize(1.2)
+h_ratio.SetMarkerColor(ROOT.kBlack)
+h_ratio.SetLineColor(ROOT.kBlack)
+h_ratio.SetLineWidth(2)
+h_ratio.Draw('pe')
+
+name = f'{args.output}/LxyS_efficiency_{args.year}'
+c.SaveAs(f'{name}.pdf')
+c.SaveAs(f'{name}.png')
+
