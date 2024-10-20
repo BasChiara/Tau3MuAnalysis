@@ -282,7 +282,7 @@ if (args.load_model is None) or (args.plot_only is None):
         early_stopping = callback.EarlyStopping(
             data_name   = 'validation_1',
             rounds      = 150,
-            min_delta   = 1e-5,
+            #min_delta   = 1e-6,
             metric_name = 'auc', 
             save_best   = True,
         ) 

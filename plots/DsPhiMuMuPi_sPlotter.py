@@ -113,7 +113,7 @@ def apply_reweighting(observable, h_ratio, nbins = 30, lo = -3, hi = 3, selectio
     h_reweighted.SetFillStyle(3004)
     h_reweighted.SetLineColor(ROOT.kGreen+1)
     h_reweighted.SetLineWidth(2)
-    h_reweighted.GetXaxis().SetTitle(f'{observable}')
+    h_reweighted.GetXaxis().SetTitle(cfg.features_NbinsXloXhiLabelLog[observable][3])
     h_reweighted.GetYaxis().SetTitle('Events')
     h_reweighted.GetYaxis().SetTitleOffset(1.5)
     h_reweighted.GetYaxis().SetTitleSize(0.04)
@@ -147,14 +147,7 @@ def apply_reweighting(observable, h_ratio, nbins = 30, lo = -3, hi = 3, selectio
         year = args.year,
     )
     return 0
-    # draw plot
-    #c = ROOT.TCanvas('c_rew', 'c_rew', 800, 800)
-    #h_reweighted.Draw('HISTE')
-    #h_sData.Draw('PE0 same')
-    #leg.Draw()
-    #[obj.Draw() for obj in to_ploton]
-    #c.SaveAs(f'{args.plot_outdir}/DsPhiPi_reweighted_{observable}{add_tag}.png')
-    #c.SaveAs(f'{args.plot_outdir}/DsPhiPi_reweighted_{observable}{add_tag}.pdf')
+    
 
 # --- parse arguments
 parser = argparse.ArgumentParser()
@@ -207,7 +200,7 @@ for obs in observable_list:
         x_axis_title = cfg.features_NbinsXloXhiLabelLog[obs][3],
         y_axis_title= 'Events',
         log_scale   = cfg.features_NbinsXloXhiLabelLog[obs][4],
-        color   = ROOT.kOrange + 2 if not 'bdt' in obs else ROOT.kRed,
+        color   = ROOT.kAzure if not 'bdt' in obs else ROOT.kRed,
         to_ploton = [],
         add_tag = '',
     )

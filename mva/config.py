@@ -25,7 +25,7 @@ Ds_mass_range_hi  = 2.05 # GeV
 #   EVENT SELECTION  #
 ###  at mva level  ###
 Phi_mass_, Phi_window_ = 1.020, 0.040
-LxySign_cut    = 2.1
+LxySign_cut    = 2.0
 Ds_phi_mass_lo, Ds_phi_mass_hi = 0.98, 1.05
 Ds_minSVprob = 0.10
 
@@ -46,6 +46,7 @@ peakB_mass_lo = 1.7
 peakB_mass_hi = 2.02
 peakB_base_selection = f'(tau_MuMuPi_mass > {peakB_mass_lo} & tau_MuMuPi_mass < {peakB_mass_hi})'
 peakB_phi_selection  = f'(tau_phiMuMu_mass > {Ds_phi_mass_lo} & tau_phiMuMu_mass < {Ds_phi_mass_hi} )'
+peakB_phi_veto       = f'fabs(tau_phiMuMu_mass - {Phi_mass_}) > {Phi_window_}'
 peakB_sv_selection   = f'(tau_Lxy_sign_BS > {5.0} & tau_fit_vprob > {0.10} )'
 
 ###              ###
@@ -76,6 +77,9 @@ Lumi_systematics = {
     '2022'          : 1.014,
     '2023'          : 1.013,
 }
+xsec_ppW_sys  = 1.0184
+Br_Wmunu_sys  = 1.0141
+Br_Wtaunu_sys = 1.0185
 uncorrelated_systematics = {
     '2022'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/2022_sysJson.json'),
     '2023'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/2023_sysJson.json'),
@@ -83,6 +87,10 @@ uncorrelated_systematics = {
 shape_systematics = {
     '2022'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/signal_model/signal_shape_comparison_2022.json'),
     '2023'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/signal_model/signal_shape_comparison_2023.json'),
+}
+LxySign_cut_systematics ={
+   '2022' : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/LxyS_efficiency/LxyS_efficiency_2022.json'),
+   '2023' : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/LxyS_efficiency/LxyS_efficiency_2023.json'),
 }
 
 ###                     ###
@@ -120,6 +128,19 @@ Ds_category_selection = {
     'B'  : f'(fabs(Ds_fit_eta) > {eta_thAB} & fabs(Ds_fit_eta) < {eta_thBC})', 
     'C'  : f'(fabs(Ds_fit_eta) > {eta_thBC})',
 }
+
+#########################
+#  BDT working points   #
+#########################
+year_list=['22', '23']
+cat_list=['A', 'B', 'C']
+bdt_cuts_22 = [0.995, 0.996, 0.995]
+bdt_cuts_23 = [0.987, 0.996, 0.992]
+cat_sensitivity_22 = [1.5, 1.7, 4.2]
+cat_sensitivity_23 = [1.6, 2.1, 6.0]
+
+wp_dict = dict(zip(year_list, [dict(zip(cat_list, bdt_cuts_22)), dict(zip(cat_list, bdt_cuts_23))]))
+sensitivity_dict = dict(zip(year_list, [dict(zip(cat_list, cat_sensitivity_22)), dict(zip(cat_list, cat_sensitivity_23))]))
 
 #########################
 #   STYLE per PROCESS   #
@@ -321,10 +342,10 @@ def tauEta(eta):
 
 features_NbinsXloXhiLabelLog = {
     'tau_fit_pt'        : [ 20, 10, 50,  'p_{T}(3 #mu) (GeV)',      0],
-    'tau_fit_mt'        : [ 60, 0, 120,   'M_{T}(3 #mu)',            0],
+    'tau_fit_mt'        : [ 30, 0, 120,   'M_{T}(3 #mu)',            0],
     'tau_relIso'        : [ 20, 0, 0.5,  'rel. Isolation (3 #mu)',  1],
     'tau_met_Dphi'      : [ 32, 0, 6.4,  '#Delta #phi (3 #mu, MET)',0],
-    'tau_met_pt'        : [ 40, 0, 100., 'MET (GeV)',               0],
+    'tau_met_pt'        : [ 20, 0, 100., 'MET (GeV)',               0],
     'tau_met_ratio_pt'  : [ 30, 0., 3.,  'MET/p_{T}(3 #mu)',        0],
     'W_pt'              : [ 20, 0, 100,  'p_{T}(W) (GeV)',          0],
     'miss_pz_min'       : [40, -200, 200, 'min p_{z}^{#nu} (GeV)',  0],
@@ -332,7 +353,7 @@ features_NbinsXloXhiLabelLog = {
     'tau_mu12_dZ'       : [ 20, 0, 0.2, '#Delta z (#mu_1, #mu_2)',  0],
     'tau_mu13_dZ'       : [ 20, 0, 0.2, '#Delta z (#mu_1, #mu_3)',  0],
     'tau_mu23_dZ'       : [ 20, 0, 0.2, '#Delta z (#mu_2, #mu_3)',  0],
-    'tau_Lxy_sign_BS'   : [ 20, 0, 20,  'SV L_{xy}/#sigma',         0],
+    'tau_Lxy_sign_BS'   : [ 30, 0, 30,  'SV L_{xy}/#sigma',         0],
     'tau_fit_vprob'     : [ 20, 0,  1,  'SV probability',           0],
     'tau_cosAlpha_BS'   : [ 10, 0.98,1,  'cos_{#alpha}(SV, BS)',    1],
     'tau_mu1_TightID_PV': [  2,-0.5,1.5, '#mu_1 ID',                0],
@@ -343,9 +364,9 @@ features_NbinsXloXhiLabelLog = {
     'tau_fit_mass'      : [ 40,1.6, 2.0, 'M(3 #mu)',                0],
     'bdt_score'         : [ 25, 0, 1,    'BDT score',               1],
     'bdt_score_t3m'     : [ 50, 0, 1,    'BDT_{#tau 3 #mu} score',  1],
-    'tau_mu12_fitM'     : [ 40, 0.8, 1.2,'M(#mu_{1}#mu_{2})',       0],
-    'tau_mu13_fitM'     : [ 40, 0.8, 1.2,'M(#mu_{1}#mu_{3})',       0],
-    'tau_mu23_fitM'     : [ 40, 0.8, 1.2,'M(#mu_{2}#mu_{3})',       0],
+    'tau_mu12_fitM'     : [ 40, 0.2, 2.0,'M(#mu_{1}#mu_{2})',       0],
+    'tau_mu13_fitM'     : [ 40, 0.2, 2.0,'M(#mu_{1}#mu_{3})',       0],
+    'tau_mu23_fitM'     : [ 40, 0.2, 2.0,'M(#mu_{2}#mu_{3})',       0],
 }
 
 

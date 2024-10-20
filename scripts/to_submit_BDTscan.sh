@@ -7,8 +7,8 @@ INPUT_FOLDER="/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/"
 WORKDIR="$COMBINEv10/WTau3Mu_limits/bdt_cut_optimization"
 PLOT_DIR="/eos/user/c/cbasile/www/Tau3Mu_Run3/BDTtraining/cut_LxySign/"
 
-YYYYMonDD="2024Sep05"
-CUT_LIST=(2.1)
+YYYYMonDD="2024Oct10"
+CUT_LIST=(2.0)
 for CUT in ${CUT_LIST[@]}; do
     for Y in ${YEAR[@]}; do
         

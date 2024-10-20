@@ -16,6 +16,7 @@ def ratio_plot( histo_num = [], histo_den = [], to_ploton = [], file_name = 'rat
     ratio_w = kwargs['ratio_w'] if 'ratio_w' in kwargs else 0.5
     ratio_yname = kwargs['ratio_yname'] if 'ratio_yname' in kwargs else 'Data/MC' 
     
+    
     c = ROOT.TCanvas("c", "", 1024, 1248)
 
     #create upper TPad
@@ -36,7 +37,7 @@ def ratio_plot( histo_num = [], histo_den = [], to_ploton = [], file_name = 'rat
     histo_den.SetTitle("")
     # ... avoid the first label (0) to be clipped.
     histo_den.GetYaxis().ChangeLabel(1, -1, -1, -1, -1, -1, " ")
-    histo_den.SetMaximum(histo_den.GetMaximum())
+    histo_den.SetMaximum(1.5*histo_den.GetMaximum())
     histo_den.GetYaxis().SetLabelSize(0.045)
     histo_den.GetYaxis().SetTitleFont(43)
     histo_den.GetYaxis().SetTitleOffset(1.75)

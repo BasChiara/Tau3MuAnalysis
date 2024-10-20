@@ -113,7 +113,7 @@ fullmc.Print()
 sig_efficiency = fullmc.sumEntries()/N_mc/fullmc.weight()
 
 # signal PDF : double gaussian + constant
-Mass   = ROOT.RooRealVar('Ds_Mmc' , 'Ds_Mmc' , config.Ds_mass)
+Mass      = ROOT.RooRealVar('Ds_Mmc' , 'Ds_Mmc' , config.Ds_mass)
 dMass_mc  = ROOT.RooRealVar('dM_mc', 'dM_mc', 0, -0.1, 0.1)
 mean_mc   = ROOT.RooFormulaVar('mean_mc','mean_mc', '(@0+@1)', ROOT.RooArgList(Mass,dMass_mc) )
 width1_mc = ROOT.RooRealVar('width1_mc',  'width1_mc', 0.05,    0.001, 0.1)
@@ -123,17 +123,19 @@ gfrac       = ROOT.RooRealVar("gfrac", "", 0.2, 0.0, 1.0)
 
 gaus1_mc    = ROOT.RooGaussian('gaus1_mc', 'gaus1', mass, mean_mc, width1_mc)
 gaus2_mc    = ROOT.RooGaussian('gaus2_mc', 'gaus2', mass, mean_mc, width2_mc)
+gaus_mc     = ROOT.RooGaussian('gaus_mc',  'gaus',  mass, mean_mc, width1_mc)
 # gaussian sum for Ds -> phi pi and single gaussian for peaking bkg
-gsum_mc     = ROOT.RooAddModel('gsum_mc', "", [gaus1_mc, gaus2_mc], [gfrac]) if not args.peak_bkg else gaus1_mc 
+gsum_mc     = ROOT.RooAddModel('gsum_mc', '', [gaus1_mc, gaus2_mc], [gfrac]) if not args.peak_bkg else gaus1_mc 
 
 nMC = ROOT.RooRealVar('nMC', 'model_DsPhiMuMuPi_norm', fullmc.sumEntries(), 0.001*fullmc.sumEntries(), 3*fullmc.sumEntries())
 # MC cobinatorial PDF
-poly = ROOT.RooPolynomial('flat_bkg', "flat_bkg", mass, ROOT.RooArgList())
+alpha = ROOT.RooRealVar("alpha", "", -1.0, -10, 10)
+expo  = ROOT.RooExponential('expo_bkg', 'expo_bkg', mass, alpha)
+poly  = ROOT.RooPolynomial('flat_bkg', "flat_bkg", mass, ROOT.RooArgList())
 nBflat = ROOT.RooRealVar('nBflat', 'background', 0.5*fullmc.sumEntries(), 0., fullmc.sumEntries())
 
 # signal + combinatorial
-signal_model = ROOT.RooAddPdf("extMCmodel_DsPhiMuMuPi", "extMCmodel_DsPhiMuMuPi", ROOT.RooArgList(gsum_mc,poly), ROOT.RooArgList(nMC,nBflat))
-
+signal_model = ROOT.RooAddPdf("extMCmodel_DsPhiMuMuPi", "extMCmodel_DsPhiMuMuPi", ROOT.RooArgList(gaus_mc,expo), ROOT.RooArgList(nMC,nBflat))
 # signal fit
 results_gaus = signal_model.fitTo(
     fullmc, 
@@ -153,18 +155,20 @@ fullmc.plotOn(
     ROOT.RooFit.LineWidth(2),
     ROOT.RooFit.FillColor(ROOT.kRed),
 )
-
-sig_curve = signal_model.plotOn(
-    frame,
-    ROOT.RooFit.MoveToBack(),
-)
-print('signal chi2 %.2f'%(frame.chiSquare(4)))
-signal_model.paramOn(
-    frame,
-    ROOT.RooFit.Layout(0.2, 0.50, 0.85),
-    ROOT.RooFit.Format("NEU", ROOT.RooFit.AutoPrecision(1)),
-)
-frame.getAttText().SetTextSize(0.03)
+if results_gaus.status() > -1:
+    print(f'{ct.RED}[-] fit failed: status {results_gaus.status()}{ct.END}')
+else :
+    sig_curve = signal_model.plotOn(
+        frame,
+        ROOT.RooFit.MoveToBack(),
+    )
+    print('signal chi2 %.2f'%(frame.chiSquare(4)))
+    signal_model.paramOn(
+        frame,
+        ROOT.RooFit.Layout(0.2, 0.50, 0.85),
+        ROOT.RooFit.Format("NEU", ROOT.RooFit.AutoPrecision(1)),
+    )
+    frame.getAttText().SetTextSize(0.03)
 
 c = ROOT.TCanvas("c", "c", 1200, 800)
 ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
@@ -174,7 +178,7 @@ c.SaveAs('%s/mcDsPhiPi_mass_%s.pdf'%(args.plot_outdir, tag))
 c.SetLogy(1)
 c.SaveAs('%s/mcDsPhiPi_mass_Log_%s.png'%(args.plot_outdir, tag)) 
 c.SaveAs('%s/mcDsPhiPi_mass_Log_%s.pdf'%(args.plot_outdir, tag)) 
-#if (args.peak_bkg): exit(-1)
+#if (args.peak_bkg): exit()
 
 # save workspace
 f_out.cd()
@@ -214,9 +218,14 @@ mean   = ROOT.RooFormulaVar('mean_mc','mean_mc', '(@0+@1)', ROOT.RooArgList(Mass
 gfrac.setConstant()
 gaus1_data  = ROOT.RooGaussian('gaus1_data', 'gaus1_data', mass, mean, width1)
 gaus2_data  = ROOT.RooGaussian('gaus2_data', 'gaus2_data', mass, mean, width2)
+# fix signal shape for peak bkg
+#if args.peak_bkg:
+    #width1.setConstant(True)
+    #dMass.setConstant(True)
+gaus_data   = ROOT.RooGaussian('gaus_data',  'gaus_data',  mass, mean, width1)
 
 #if args.peak_bkg: dMass.setConstant()
-gsum_data   = ROOT.RooAddModel("gsum_data", "", [gaus1_data, gaus2_data], [gfrac]) if not args.peak_bkg else gaus1_data
+#gsum_data   = ROOT.RooAddModel("gsum_data", "", [gaus1_data, gaus2_data], [gfrac]) if not args.peak_bkg else gaus1_data
 Ds_model = ROOT.RooGaussian('Ds_model', 'Ds_model', mass, mean, width1)
 # background PDF
 # + D+ -> phi pi
@@ -241,13 +250,15 @@ Dp_f     = ROOT.RooRealVar("Dp_f", "", 0.0001, 0.005, 0.5)
 if (args.category == 'C' and args.bdt_cut > 0.9):
     Dp_f.setVal(0.0)
     Dp_f.setConstant(True)
-full_bkg = ROOT.RooAddModel("full_bkg", "", [gaus_Dp, poly], [Dp_f]) if not args.peak_bkg else comb_bkg
 
 nDs = ROOT.RooRealVar('nDs', 'Ds yield', 0.01*datatofit.numEntries(), 0.001*datatofit.numEntries(), 0.5*datatofit.numEntries())
 nDp = ROOT.RooRealVar('nDp', 'D+ yield', 0.01*datatofit.numEntries(), 0.001*datatofit.numEntries(), 0.5*datatofit.numEntries())
 nB  = ROOT.RooRealVar('nB',  'background yield', 0.5*datatofit.numEntries(), 0., 2*datatofit.numEntries())
 
-full_model = ROOT.RooAddPdf("extDATAmodel_DsPhiMuMuPi", "extDATAmodel_DsPhiMuMuPi", ROOT.RooArgList(Ds_model, gaus_Dp, bkg_model), ROOT.RooArgList(nDs, nDp, nB))
+if args.peak_bkg: # no D+ in peak bkg
+    full_model = ROOT.RooAddPdf("extDATAmodel_DsPhiMuMuPi", "extDATAmodel_DsPhiMuMuPi", ROOT.RooArgList(Ds_model, bkg_model), ROOT.RooArgList(nDs, nB))
+else:
+    full_model = ROOT.RooAddPdf("extDATAmodel_DsPhiMuMuPi", "extDATAmodel_DsPhiMuMuPi", ROOT.RooArgList(Ds_model, gaus_Dp, bkg_model), ROOT.RooArgList(nDs, nDp, nB))
 
 frame_b = mass.frame(Title=" ")
 

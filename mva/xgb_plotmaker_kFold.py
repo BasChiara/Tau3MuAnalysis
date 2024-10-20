@@ -45,9 +45,9 @@ tag = args.tag
 removeNaN = False 
 
  # ------------ APPLY SELECTIONS ------------ # 
-base_selection = '(tau_fit_mass > %.2f & tau_fit_mass < %.2f ) & (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu) & (tau_Lxy_sign_BS > %.2f)'%(config.mass_range_lo,config.mass_range_hi, args.LxySign_cut) 
+base_selection = config.base_selection 
 sig_selection  = base_selection 
-bkg_selection  = base_selection + '& (tau_fit_mass < %.2f | tau_fit_mass > %.2f)'%(config.blind_range_lo, config.blind_range_hi) 
+bkg_selection  = '&'.join([base_selection, config.sidebands_selection])
 
 print('[!] base-selection : %s'%base_selection)
 print('[S] signal-selection : %s'%sig_selection)
@@ -484,12 +484,12 @@ test_bkg = plot_data[plot_data.target==0].bdt_score
 low  = 0
 high = 1
 low_high = (low,high)
-bins = 40
+bins = 20
 binning = np.linspace(low, high, bins)
 
 # SIGNAL
 
-fig, (ax, rax)  = plt.subplots(2, 1, figsize=(8, 10), tight_layout = True)
+fig, (ax, rax)  = plt.subplots(2, 1, figsize=(10, 9), tight_layout = True)
 hist_test_sig   = ax.hist(test_sig, bins = binning, density = False)
 err_test_sig    = np.sqrt(hist_test_sig[0])
 hist_test_bkg   = ax.hist(test_bkg, bins = binning, density = False) 
@@ -508,12 +508,13 @@ rax.errorbar((binning[:-1]+binning[1:])/2, ratio_sig, yerr = err_ratio_sig , fmt
 ratio_bkg     = hist_test_bkg[0]/hist_train_bkg[0]
 err_ratio_bkg = ratio_bkg * np.sqrt( 1./hist_test_bkg[0] + 1./ hist_train_bkg[0]) 
 rax.errorbar((binning[:-1]+binning[1:])/2, ratio_bkg, yerr = err_ratio_bkg, fmt = 'bo', ls='none')
+rax.grid(True)
 
-rax.set_xlabel('BDT output')
-rax.set_ylabel('test / training')
-rax.set_ylim(0.75, 2.0)
-ax.set_ylabel('Counts')
-ax.legend(loc='best')
+rax.set_xlabel('BDT output', fontsize = 18)
+rax.set_ylabel('test / training', fontsize = 18)
+rax.set_ylim(0.5, 1.5)
+ax.set_ylabel('Counts', fontsize = 18)
+ax.legend(loc='best', fontsize='18')
 ax.set_yscale('log')
 ks_sig = ks_2samp(train_sig, test_sig)
 ks_bkg = ks_2samp(train_bkg, test_bkg)
@@ -525,7 +526,8 @@ print(f'[OUT] saved OVERTRAIN plot in {plot_name}.png/pdf')
 
 plt.clf()
 
-# ------------ FEATURES IMPORTANCE ------------ # 
+# ------------ FEATURES IMPORTANCE ------------ #
+plt.figure(figsize=(8,6))
 bdt_inputs = config.features + ['tauEta']
 
 fscores = OrderedDict(zip(bdt_inputs, np.zeros(len(bdt_inputs))))
@@ -543,7 +545,7 @@ plt.ylabel('feature')
 
 orderedfscores = OrderedDict(sorted(fscores.items(), key=lambda x : x[1], reverse=False ))
 
-bars = [labels[k] for k in orderedfscores.keys()]
+bars = [config.labels[k] for k in orderedfscores.keys()]
 y_pos = np.arange(len(bars))
  
 # Create horizontal bars

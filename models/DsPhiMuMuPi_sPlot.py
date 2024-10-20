@@ -111,7 +111,7 @@ var_list.append(year_id)
 eta      = ROOT.RooRealVar('Ds_fit_eta', '#eta_{3#mu}'  , -2.5,  2.5)
 var_list.append(eta)
 # observables for selection 
-dspl_sig = ROOT.RooRealVar('tau_Lxy_sign_BS', ''  , 2.0,  np.inf)
+dspl_sig = ROOT.RooRealVar('tau_Lxy_sign_BS', ''  , 0.0,  np.inf)
 sv_prob  = ROOT.RooRealVar('tau_fit_vprob', ''  , 0.0,  1.0)
 phi_mass = ROOT.RooRealVar('phi_fit_mass', ''  , 0.5,  2.0, 'GeV')
 var_list.append(dspl_sig)
@@ -285,7 +285,7 @@ for i, cat in enumerate(config.Ds_category_selection.keys()):
     plot_sWeights(bdt, fnorm_mc.evaluate(), f'({sWeigths_selection} & {config.Ds_category_selection[cat]})', 25, 0.0, 1.0, ROOT.kRed, [CAT_txt], add_tag=f'_cat{cat}')
 
 # *** save results on file *** #
-sWeights_file_base = f'sWeights_{tag}_'
+sWeights_file_base = f'sWeight/sWeights_{tag}_'
 mc_fname = f'{sWeights_file_base}MC.root'
 data_fname = f'{sWeights_file_base}DATA.root'
 # remove files if already exist

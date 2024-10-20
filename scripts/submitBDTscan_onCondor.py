@@ -88,7 +88,7 @@ cmsenv
 cd {pwd} 
 echo $PWD\n
 
-python3 models/Tau3Mu_fitSB.py --plot_outdir {eos} --combine_dir {workdir}/input_combine -s {signal} -d {data} --category {cat} -y {year} --tag {tag} --optim_bdt --save_ws --bkg_func dynamic --BDTmin {bdtmin} --BDTmax {bdtmax} --BDTstep {bdtstep} --goff
+python3 models/Tau3Mu_fitSB.py --plot_outdir {eos} --combine_dir {workdir}/input_combine/ -s {signal} -d {data} --category {cat} -y {year} --tag {tag} --optim_bdt --save_ws --bkg_func expo --BDTmin {bdtmin} --BDTmax {bdtmax} --BDTstep {bdtstep} --goff
 
     '''.format(
         pwd = pwd,
