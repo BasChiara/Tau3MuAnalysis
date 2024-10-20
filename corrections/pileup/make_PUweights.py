@@ -40,8 +40,7 @@ out_file_mc   = f'{out_dir}/pileupMC_{mc_tag}_{era}'
 
 
 # -------------- PILEUP in DATA ----------------
-
-# fixme : error when running on central json 
+ 
 base_cJson = "/eos/user/c/cmsdqm/www/CAF/certification/"
 central_GoldenJson = {
     "2022preEE" : [
