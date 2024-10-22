@@ -101,51 +101,17 @@ CMS.SetExtraText("Preliminary") if not args.isMC else CMS.SetExtraText("Simulati
 CMS.SetLumi(config.LumiVal_plots[args.year]) if not args.isMC else CMS.SetLumi('') 
 CMS.SetEnergy(13.6)
 
-# import MC
-mc_22 = [
-    '../outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap_onTau3Mu.root',
-    '../outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_onTau3Mu.root'
-]
-mc_23 = [
-    '../outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap.root',
-    '../outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap.root',
-]
+# import MC or DATA
+data = config.WTau3Mu_signals if args.isMC else config.data_background
 
-# import DATA
-data_path = '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/'
-data_22 = [
-    #2022
-    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Cv1_HLT_overlap.root',
-    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv1_HLT_overlap.root',
-    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv2_HLT_overlap.root',
-    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Ev1_HLT_overlap.root',
-    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Fv1_HLT_overlap.root',
-    data_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Gv1_HLT_overlap.root',
-]
-data_23 = [
-    #2023
-    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023B_HLT_overlap.root',
-    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv1_HLT_overlap.root',
-    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv2_HLT_overlap.root',
-    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv3_HLT_overlap.root',
-    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023C_HLT_overlap.root',
-    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv1_HLT_overlap.root',
-    data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023D_HLT_overlap.root',
-]
-
-if not args.isMC:
-    if  (args.year == '2022'): data = data_22
-    elif(args.year == '2023'): data = data_23
-else:
-    if  (args.year == '2022'): data = mc_22
-    elif(args.year == '2023'): data = mc_23 
-#data = ['/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_WTau3Mu_DATA_apply_bkgW3MuNu_LxyS0_2024May01.root']
-phi_mass = 1.020 #GeV
-phi_window = 0.020 #GeV
+# selection
+base_selection = '&'.join([
+    config.year_selection[args.year],
+    config.base_selection, 
+    config.phi_veto
+])
 mass_range_lo = config.mass_range_lo if not args.isMC else 1.6
 mass_range_hi = config.mass_range_hi if not args.isMC else 2.0
-phi_veto = '''(fabs(tau_mu12_fitM- {mass:.3f})> {window:.3f} & fabs(tau_mu23_fitM - {mass:.3f})> {window:.3f} & fabs(tau_mu13_fitM -  {mass:.3f})>{window:.3f}) & (tau_Lxy_sign_BS > 1.5)'''.format(mass =phi_mass , window = phi_window/2. )
-base_selection = f'(tau_fit_mass > {mass_range_lo} & tau_fit_mass < {mass_range_hi} ) & (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu) & {phi_veto}'
 print('\n---------------------------------------------')
 print('[!] base-selection   : %s'%base_selection)
 print('---------------------------------------------\n')
@@ -158,7 +124,7 @@ print('---------------------------------------------')
 
 # divide by mass_resolution
 max_y = 0.12 if not args.isMC else 0.5
-min_y = 0.09 if not args.isMC else 0.0
+min_y = 0.05 if not args.isMC else 0.0
 mass_bin_w     = 0.01 if args.isMC else 0.05
 mass_bins = int((mass_range_hi - mass_range_lo) / mass_bin_w)
 

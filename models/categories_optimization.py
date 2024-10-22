@@ -8,8 +8,8 @@ from array import array
 import argparse
 # import custom configurations
 import sys
-sys.path.append('..')
-from mva.config import mass_range_lo, mass_range_hi, cat_selection_dict, cat_color_dict,cat_eta_selection_dict_fit, cp_intervals
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from mva.config import mass_range_lo, mass_range_hi, cat_selection_dict, cat_color_dict,cat_eta_selection_dict_fit 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--plot_outdir',    default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/categorization/optimize_eta/sig_bkg_fit/', help=' output directory for plots')
