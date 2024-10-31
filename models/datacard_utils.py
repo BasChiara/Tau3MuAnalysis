@@ -56,11 +56,13 @@ def combineDatacard_writer(**kwargs):
     width = signal_model.getVariables().find(f'width_{cat}{year}')
     # -- background -- #
     b_model = workspace.pdf(f'model_bkg_{process_name}')
+    print(f'[B] B function : {bkg_func}')
     if not b_model:
         print('No background model found in the workspace')
         return 1
-    if bkg_func == 'expo' : slope = b_model.getVariables().find(f'slope_{cat}{year}')
-    if bkg_func == 'poly1': slope = b_model.getVariables().find(f'p1_{cat}{year}')
+    if bkg_func == 'expo' : 
+        slope = b_model.getVariables().find(f'slope_{cat}{year}')
+    elif bkg_func == 'poly1': slope = b_model.getVariables().find(f'p1_{cat}{year}')
     else :  slope = None
     print(slope)
     # uncorrelated systematics dictionary
@@ -69,7 +71,7 @@ def combineDatacard_writer(**kwargs):
     shape_sys = {}
     if write_sys:
         # uncorrelated systematics from scale factors 
-        sys_dict = corr_sys.correction_sys(input_mc, 'tree_w_BDT', selection_mc)
+        sys_dict = corr_sys.correction_sys(input_mc, 'tree_w_BDT', selection_mc, cat, year)
         # uncorrelated sys for LxyS cut 
         with open(config.LxySign_cut_systematics[f'20{year}']) as f:
             sys_dict['LxyS_cut'] = json.load(f)[f'{cat}']
@@ -141,11 +143,11 @@ Br_Wtaunu           lnN           {Br_Wtaunu}               -
         # **SF**
         for sys in sys_sources:
             card.write(
-'{systematic_name}_{c}{yy}       lnN           {sys_tot:.3f}               -\n'.format(
-                proc = process_name,
-                yy = year,
-                c = cat,
+'{systematic_name}_{corr_deg}       lnN           {sys_tot:.3f}               -\n'.format(
                 systematic_name = sys,
+                corr_deg = sys_dict[sys]['corregree'],
+                #yy = year,
+                #c = cat,
                 sys_tot = sys_dict[sys]['total']
                 #sys_up = sys_dict[sys]['up'],
                 #sys_down = sys_dict[sys]['down']
@@ -153,13 +155,12 @@ Br_Wtaunu           lnN           {Br_Wtaunu}               -
             )
         # **SIGNAL**
         if write_sys:
-            
+            width_error = np.sqrt(width.getError()**2 + (width.getVal()*shape_sys['width'])**2)
             card.write(
-'width_{c}{yy}         param          {val:.4f}     {err:.4f}'.format(
-                c = cat,
-                yy = year,
-                val = width.getVal(),
-                err = np.max([1e-4, width.getVal() * shape_sys['width']])
+'{width_name}         param          {val:.4f}     {err:.4f}'.format(
+                width_name  = width.GetName(),
+                val         = width.getVal(),
+                err         = np.max([1e-4, width_error])
             )
             )
             print(f' width = {width.getVal()} +/- {shape_sys["width"]}')
@@ -180,8 +181,8 @@ bkgNorm_{c}{yy}       flatParam
             card.write(
 '{slope_name}         param  {slopeval:.4f} {slopeerr:.4f}'.format(
                 slope_name = slope.GetName(),
-                slopeval = slope.getVal(),
-                slopeerr = slope.getError()
+                slopeval   = slope.getVal(),
+                slopeerr   = slope.getError()
                 )
             )
     print(f'Written datacard: {datacard_name}')

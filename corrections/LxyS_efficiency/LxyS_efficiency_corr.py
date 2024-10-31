@@ -46,7 +46,8 @@ def weighted_rdf(h_weight, dataframe):
 argparser = argparse.ArgumentParser()
 argparser.add_argument('-i', '--input', help='Input root file with sWeigted data', required=True)
 argparser.add_argument('-o', '--output', help='output dest.', default='.')
-argparser.add_argument('-y', '--year', choices = ['2022', '2023'], default='2022', help='Year of the data taking period')
+argparser.add_argument('-y', '--year', choices = ['22', '23'], default='22', help='Year of the data taking period')
+argparser.add_argument('--make_plots', action='store_true',  help='Wether to make plots or not')
 args = argparser.parse_args()
 
 # check if input file exists
@@ -61,7 +62,7 @@ eff_error_mc_list = []
 corr_dict = {}
 
 base_selection = '(' + ' & '.join([
-        config.year_selection[args.year],
+        config.year_selection['20'+args.year],
         config.Ds_base_selection,
         config.Ds_phi_selection,
 ]) + ')'
@@ -109,9 +110,10 @@ for cat in categories:
     print(f'Efficiency MC: {eff_mc:.3f}')
     print(f'Data/MC: {eff_Data/eff_mc:.3f}')
 
-    corr_dict[cat] = { 'total' : eff_Data/eff_mc, 'sys' : eff_Data/eff_mc * np.sqrt((eff_Data_err/eff_Data)**2 + (eff_mc_err/eff_mc)**2) } 
+    correction = abs(eff_Data/eff_mc - 1) + 1
+    corr_dict[cat] = { 'total' : correction, 'sys' : eff_Data/eff_mc * np.sqrt((eff_Data_err/eff_Data)**2 + (eff_mc_err/eff_mc)**2), 'corregree': f'{cat}{args.year}'} 
 
-
+    if not args.make_plots: continue
     # draw histograms
     h_Data = rdf_sData.Histo1D(('h_Data', 'h_Data', 30, 0, 30), 'tau_Lxy_sign_BS', 'nDs_sw').GetValue()
     #h_mc   = rdf_mc.Define('total_w', 'norm_factor*weight').Histo1D(('h_mc', 'h_mc', 30, 0, 30), 'tau_Lxy_sign_BS', 'total_w').GetValue()
@@ -123,20 +125,20 @@ for cat in categories:
     h_Data.SetLineColor(ROOT.kBlack)
     h_Data.SetLineWidth(2)
     h_Data.SetTitle('')
-    h_Data.GetXaxis().SetTitle('Lxy Significance')
-    h_Data.GetYaxis().SetTitle('Events')
     
     h_mc.SetFillColor(ROOT.kBlue)
     h_mc.SetFillStyle(3004)
     h_mc.SetLineColor(ROOT.kBlue)
     h_mc.SetLineWidth(2)
+    h_mc.GetXaxis().SetTitle('L_{xy}/#sigma')
+    h_mc.GetYaxis().SetTitle('Events')
 
     leg = ROOT.TLegend(0.6, 0.6, 0.9, 0.85)
     leg.AddEntry(h_Data, 'sWeighted data', 'lep')
     leg.AddEntry(h_mc, 'MC', 'f')
     leg.SetBorderSize(0)
 
-    name = f'{args.output}/LxyS_sPlot_{cat}{args.year}'
+    name = f'{args.output}/LxyS_sPlot_{cat}20{args.year}'
 
     pt.ratio_plot(
         histo_num = [h_Data],
@@ -147,11 +149,11 @@ for cat in categories:
     )
     
 # save the efficiencies in a json file
-with open(f'{args.output}/LxyS_efficiency_{args.year}.json', 'w') as f:
+with open(f'{args.output}/LxyS_efficiency_20{args.year}.json', 'w') as f:
     json.dump(corr_dict, f)
-print(f'[o] json file with efficiencies saved as LxyS_efficiency_{args.year}.json')
+print(f'[o] json file with efficiencies saved as LxyS_efficiency_20{args.year}.json')
     
-
+if not args.make_plots: sys.exit(0)
 # plot efficencies and their ratio
 c = ROOT.TCanvas('c', 'c', 800, 800)
 # create two pads for the efficiencies and the ratio
@@ -180,10 +182,12 @@ h_ratio.Divide(h_mc_eff)
 
 # draw efficiencies
 up_pad.cd()
-h_mc_eff.SetTitle('L_{xy}/#sigma > 2.0'+ f' - {args.year}')
+h_mc_eff.SetTitle('L_{xy}/#sigma > 2.0'+ f' - 20{args.year}')
 h_mc_eff.GetXaxis().SetTitle('Category')
 h_mc_eff.GetYaxis().SetTitle('Efficiency')
 h_mc_eff.GetYaxis().SetRangeUser(0.7, 1.1)
+h_mc_eff.GetYaxis().SetLabelSize(0.05)
+h_mc_eff.GetYaxis().SetTitleSize(0.05)
 h_mc_eff.SetMarkerStyle(20)
 h_mc_eff.SetMarkerSize(1.2)
 h_mc_eff.SetMarkerColor(ROOT.kBlue)
@@ -205,8 +209,11 @@ leg.Draw()
 # draw ratio
 ratio_pad.cd()
 h_ratio.SetTitle('')
-h_ratio.GetXaxis().SetTitle('Category')
-h_ratio.GetXaxis().SetLabelSize(0.1)
+#h_ratio.GetXaxis().SetTitle('Category')
+h_ratio.GetXaxis().SetNdivisions(3)
+for i, cat in enumerate(categories):
+    h_ratio.GetXaxis().SetBinLabel(i+1, cat)
+h_ratio.GetXaxis().SetLabelSize(0.3)
 h_ratio.GetXaxis().SetTitleSize(0.1)
 h_ratio.GetXaxis().SetTitleOffset(1.5)
 h_ratio.GetYaxis().SetTitle('Data/MC')
@@ -222,7 +229,7 @@ h_ratio.SetLineColor(ROOT.kBlack)
 h_ratio.SetLineWidth(2)
 h_ratio.Draw('pe')
 
-name = f'{args.output}/LxyS_efficiency_{args.year}'
+name = f'{args.output}/LxyS_efficiency_20{args.year}'
 c.SaveAs(f'{name}.pdf')
 c.SaveAs(f'{name}.png')
 

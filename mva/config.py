@@ -77,7 +77,7 @@ Lumi_systematics = {
     '2022'          : 1.014,
     '2023'          : 1.013,
 }
-xsec_ppW_sys  = 1.0184
+xsec_ppW_sys  = 1.0160
 Br_Wmunu_sys  = 1.0141
 Br_Wtaunu_sys = 1.0185
 uncorrelated_systematics = {
@@ -133,11 +133,11 @@ Ds_category_selection = {
 #  BDT working points   #
 #########################
 year_list=['22', '23']
-cat_list=['A', 'B', 'C']
-bdt_cuts_22 = [0.995, 0.996, 0.995]
-bdt_cuts_23 = [0.987, 0.996, 0.992]
-cat_sensitivity_22 = [1.5, 1.7, 4.2]
-cat_sensitivity_23 = [1.6, 2.1, 6.0]
+cat_list=['A', 'B', 'C', 'comb']
+bdt_cuts_22 = [0.997, 0.996, 0.995, -1]
+bdt_cuts_23 = [0.987, 0.996, 0.992, -1]
+cat_sensitivity_22 = [1.5, 1.7, 4.2, 1.0]
+cat_sensitivity_23 = [1.6, 2.1, 6.0, 1.2]
 
 wp_dict = dict(zip(year_list, [dict(zip(cat_list, bdt_cuts_22)), dict(zip(cat_list, bdt_cuts_23))]))
 sensitivity_dict = dict(zip(year_list, [dict(zip(cat_list, cat_sensitivity_22)), dict(zip(cat_list, cat_sensitivity_23))]))

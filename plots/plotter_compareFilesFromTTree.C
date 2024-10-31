@@ -32,7 +32,7 @@ void SetInputFile(const std::vector<TString>& inFile){
      inRootFile_.push_back(*it);
   }
   setTDRStyle();
-  extraText = "Simulation Preliminary";
+  extraText = "Preliminary";
 
 }//SetInputFile()
 void SetInputTree(const std::vector<TString>& inTree){
@@ -54,14 +54,7 @@ void SetOutputFile(const TString& outPath = ""){
   outPath_ = outPath;
 
 }//SetOutputFile()
-//void SetIO(const TString& inFile = "", const TString& tree_name = "", const TString& outPath = ""){
-//  
-//  inRootFile_ = inFile;
-//  treeName_ = tree_name;
-//  outPath_ = outPath;
-//
-//}//SetOutputFile()
-//
+
 int draw_one_histo(const TString& branch_name, const TString& category, const TString& x_name, const int Nbins, const float x_low, const float x_high, TString out_name = "", bool logY = false, bool norm = true, bool fill = true )
 {
 
@@ -166,8 +159,10 @@ int draw_branches(std::vector<TString> branches, std::vector<TString> categories
   stk->Draw("nostack HIST");
   legend->Draw();
   // semi-log scale
-  if (logY) c->SetLogy();
-  else c->SetLogy(0);
+  if (logY) {
+      c->SetLogy();
+      stk->SetMaximum(2.0); 
+   } else c->SetLogy(0);
 
   // save
   CMS_lumi( c, 0 );

@@ -42,7 +42,7 @@ Color_t PtlColorMap(const TString& particle){
   PtlColor["Run3_prompt"] = kOrange;
   PtlColor["Run3_reMini"] = kGreen +2;
 
-  PtlColor["data22"] = kBlue;
+  PtlColor["data"] = kBlue;
   PtlColor["mc"] = kRed;
   PtlColor["Run3_HLT_Tau3Mu"] = kRed-7;
   PtlColor["Run3_HLT_DoubleMu"] = kGreen+2;
@@ -90,7 +90,7 @@ TString CategoryLegend(const TString& category){
   Leg_entry["Run3_prompt"] = "Run3 prompt";
   Leg_entry["Run3_reMini"] = "Run3 reMini";
 
-  Leg_entry["data22"]             = "data 2022";
+  Leg_entry["data"]               = "data";
   Leg_entry["mc"]                 = "signal";
   Leg_entry["Run3_HLT_Tau3Mu"]    = "HLT_Tau3Mu";
   Leg_entry["Run3_HLT_DoubleMu"]  = "HLT_DoubleMu";

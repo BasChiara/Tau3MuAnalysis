@@ -48,6 +48,35 @@ def SF_2DmapTo1Dgraph(h_2Dmap) :
     x_pt.append( (min_x + max_x)/2. )
     return x_pt, x_lim, y_vec, y_err, sf_vec
 
+def SF_2Dmap_with_sys(h_2Dval, h_2Dup, h_2Ddown, output_file):
+    h_2Dmap_error = ROOT.TH2Poly()#= h_2Dval.Clone('h_2Dmap_error')
+    h_2Dmap_error.ClearBinContents()
+    #h_2Dmap_error.GetYaxis().SetRangeUser(0,20)
+    for bin in h_2Dval.GetBins() :
+        if (True) : 
+            print(" > bin %d eta [%.1f, %.1f] pT [%.1f, %.1f] sf = %.3f "%( bin.GetBinNumber(), bin.GetXMin(), bin.GetXMax(), bin.GetYMin(), bin.GetYMax(), bin.GetContent()))
+        h_2Dmap_error.AddBin(
+            bin.GetXMin(), bin.GetYMin(),
+            bin.GetXMax(), min(15, bin.GetYMax()),
+        )
+        bin_number = bin.GetBinNumber()
+        h_2Dmap_error.SetBinContent(bin_number, h_2Dval.GetBinContent(bin_number))
+        error = max(abs(h_2Dup.GetBinContent(bin_number) - h_2Dval.GetBinContent(bin_number)), abs(h_2Ddown.GetBinContent(bin_number) - h_2Dval.GetBinContent(bin_number)))
+        h_2Dmap_error.SetBinError(bin_number, error)
+        ROOT.gStyle.SetPaintTextFormat('.3f')
+        h_2Dmap_error.GetYaxis().SetTitle('p_{T} [GeV]')
+        h_2Dmap_error.GetXaxis().SetTitle('|#eta|')
+        h_2Dmap_error.GetZaxis().SetRangeUser(0.9, 1.1)
+    
+    #draw the 2D map
+    c = ROOT.TCanvas("c", "", 800, 800)
+    c.cd()
+    ROOT.gPad.SetMargin(0.15, 0.15, 0.15, 0.15)
+    h_2Dmap_error.SetTitle('')
+    h_2Dmap_error.Draw('colz texte')
+    c.SaveAs(output_file+'.png')
+    c.SaveAs(output_file+'.pdf')
+
 
 import argparse
 
@@ -68,9 +97,16 @@ try:
 except:
     print(f' [+] error cannot open {args.input_root}')
 else:
-    h_SFlowPt = infile.Get('h_NUM_MediumID_DEN_TrackerMuons_2022preEE_low_val')
-    h_SFmedPt = infile.Get('h_NUM_MediumID_DEN_TrackerMuons_2022preEE_medium_val')
+    h_SFlowPt = infile.Get(f'h_NUM_MediumID_DEN_TrackerMuons_{args.tag}_low_val')
+    h_SFlowPt.SetDirectory(0)
+    hSFlowPt_up = infile.Get(f'h_NUM_MediumID_DEN_TrackerMuons_{args.tag}_low_sUP')
+    hSFlowPt_up.SetDirectory(0)
+    hSFlowPt_down = infile.Get(f'h_NUM_MediumID_DEN_TrackerMuons_{args.tag}_low_sDOWN')
+    hSFlowPt_down.SetDirectory(0)
+    h_SFmedPt = infile.Get(f'h_NUM_MediumID_DEN_TrackerMuons_{args.tag}_medium_val')
 
+SF_2Dmap_with_sys(h_SFlowPt, hSFlowPt_up, hSFlowPt_down, '%s/SFmediumID_lowPt_%s'%(args.outdir, tag))
+exit()
 c = ROOT.TCanvas("c", "", 800, 800)
 legend = ROOT.TLegend(0.60, 0.70, 0.80, 0.85)
 legend.SetBorderSize(0)
@@ -120,49 +156,3 @@ for i, eta  in enumerate(eta_pt_lowpT):
     x_tag = "eta_%.1f_%.1f"%(eta_lim_lowpT[i][0], eta_lim_lowpT[i][1])
     c.SaveAs('%s/SFmediumID_%s_%s.png'%(args.outdir, x_tag, tag))
     c.SaveAs('%s/SFmediumID_%s_%s.pdf'%(args.outdir, x_tag, tag))
-
-
-#min_x = -1.
-#max_x = -1.
-#y_vec = []
-#y_err = []
-#SF_vec = []
-#is_new_etabin = True
-#for bin in h_SFlowPt.GetBins() :
-#    if (args.debug) : 
-#        print(" > bin %d eta [%.1f, %.1f] pT [%.1f, %.1f] sf = %.3f "%( bin.GetBinNumber(), bin.GetXMin(), bin.GetXMax(), bin.GetYMin(), bin.GetYMax(), bin.GetContent()))
-#
-#    is_new_Xbin = ( bin.GetXMin() != min_x) or (bin.GetXMax() != max_x)
-#    if is_new_Xbin :
-#        # save the previous graph
-#        if y_vec:
-#            eta_binning = '%.1f < |$\eta$| < %.1f'%(min_x, max_x)
-#            print('- save TGraph for eta bin %s '%eta_binning)
-#            gr = ROOT.TGraphErrors(len(y_vec), np.array(y_vec, 
-#                                                dtype=float), 
-#                                                np.array(SF_vec, dtype=float),
-#                                                np.array(y_err, dtype=float),
-#                                                np.zeros(len(SF_vec)))
-#            gr.SetMarkerStyle(20)
-#            gr.SetMarkerSize(1.1)
-#            gr.SetLineWidth(2)
-#            gr.SetMaximum(1.2) 
-#            gr.SetMinimum(0.0) 
-#            c.cd()
-#
-#            gr.Draw('AP')    
-#            
-#            x_tag = "eta_%.1f_%.1f"%(min_x, max_x)
-#            c.SaveAs('%s/SFmediumID_%s_%s.png'%(args.outdir, x_tag, tag))
-#            c.SaveAs('%s/SFmediumID_%s_%s.pdf'%(args.outdir, x_tag, tag))
-#        min_x   = bin.GetXMin() 
-#        max_x   = bin.GetXMax() 
-#        # update 
-#        y_vec.clear()
-#        y_err.clear()
-#        SF_vec.clear()
-#    #update the already existing set
-#    y_vec.append((bin.GetYMax() + bin.GetYMin())/2) 
-#    y_err.append((bin.GetYMax() - bin.GetYMin())/2)
-#    SF_vec.append(bin.GetContent())
-        
