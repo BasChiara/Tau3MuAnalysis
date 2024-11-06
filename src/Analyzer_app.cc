@@ -20,6 +20,8 @@ namespace po = boost::program_options;
 #include <TChain.h>
 using namespace std;
 
+
+
 int main(int argc, char* argv[]) {
 	
    // usage : ./bin/Analyzer_app data/file.txt outputdir/ DATA 2022A Tau3Mu Nfiles
@@ -42,7 +44,7 @@ int main(int argc, char* argv[]) {
       ("dataset,d",    po::value<std::string>(&dset),                                        "DATA - MC - file.root")
       ("year,y",       po::value<std::string>(&year),                                        "year-era")
       ("analyzer,a",   po::value<std::string>(&analyzer)->default_value("Tau3Mu"),           "analyzer : [Tau3Mu,DsPhiPi]")
-      ("process,p",    po::value<std::string>(&process)->default_value("data"),              "process: [data, Tau3Mu, DsPhiPi, W3MuNu]")
+      ("process,p",    po::value<std::string>(&process)->default_value("data"),              "process: [data, Tau3Mu, DsPhiPi, W3MuNu, ZTau3Mu]")
       ("Nfiles,N",     po::value<int>(&Nfiles)->default_value(1000),                         "number of files")
       ("init_file,f",  po::value<int>(&init_file)->default_value(0),                         "initial file")
       ("tag,t",        po::value<std::string>(&tag),                                         "tag");
@@ -66,7 +68,7 @@ int main(int argc, char* argv[]) {
       std::cerr << " [ERROR] specify which analyzer to use options are: \"Tau3Mu\" or \"DsPhiPi\"." << std::endl;
       return 1;
    }
-   if (process != "data" && process != "Tau3Mu" && process != "DsPhiPi" && process != "W3MuNu"){
+   if (process != "data" && process != "Tau3Mu" && process != "DsPhiPi" && process != "W3MuNu" && process != "ZTau3Mu") {
       std::cerr << " [ERROR] specify which sample to analyze options are: \"data\", \"Tau3Mu\", \"DsPhiPi\" or \"W3MuNu\"." << std::endl;
       return 1; 
    }

@@ -38,7 +38,7 @@ parser.add_argument('--bdt_cut',        default= 0.995, type= float,            
 parser.add_argument('--debug',          action = 'store_true' ,                                      help='set it to have useful printout')
 parser.add_argument('--isMulticlass',   action = 'store_true',                                       help='set to use teh multiclass setting')
 parser.add_argument('--LxySign_cut',    default=  0.0,  type = float,                                help='set random state for reproducible results')
-parser.add_argument('-p', '--process',  choices = ['Tau3Mu', 'W3MuNu', 'DsPhiPi'], default = 'Tau3Mu',help='which process in the simulation')
+parser.add_argument('-p', '--process',  choices = ['Tau3Mu', 'W3MuNu', 'DsPhiPi', 'ZTau3Mu'], default = 'Tau3Mu',help='which process in the simulation')
 parser.add_argument('-s', '--signal',   action = 'append',                                           help='file with signal events with BDT applied')
 parser.add_argument('-d', '--data',     action = 'append',                                           help='file with data events with BDT applied')
 parser.add_argument('-y', '--year',     choices= ['2022', '2023', 'Run3'],   default= '2022',                 help='data-taking year to process')
@@ -125,9 +125,12 @@ for i,obs in enumerate(observables):
     h_sig     = sig_rdf.Histo1D(('h_sig_%s'%obs, '', cfg.features_NbinsXloXhiLabelLog[obs][0], cfg.features_NbinsXloXhiLabelLog[obs][1], cfg.features_NbinsXloXhiLabelLog[obs][2]), obs).GetPtr()
     h_sig.Scale(1./h_sig.Integral())
     #  after BDT selection
-    sig_amplify = 10.0 if args.process == 'Tau3Mu' else 0.4
+    sig_amplify = None
+    if    args.process == 'Tau3Mu' : sig_amplify = 10.0
+    elif  args.process == 'ZTau3Mu': sig_amplify = 20.0
+    
     h_sig_cut = sig_rdf.Filter('%s>%f'%( bdt_score, args.bdt_cut)).Histo1D(('h_sig_%s'%obs, '', cfg.features_NbinsXloXhiLabelLog[obs][0], cfg.features_NbinsXloXhiLabelLog[obs][1], cfg.features_NbinsXloXhiLabelLog[obs][2]), obs, 'weight').GetPtr()
-    h_sig_cut.Scale(sig_amplify)
+    if sig_amplify : h_sig_cut.Scale(sig_amplify)
     ### background
     h_bkg = bkg_rdf.Histo1D(('h_bkg_%s'%obs, '', cfg.features_NbinsXloXhiLabelLog[obs][0], cfg.features_NbinsXloXhiLabelLog[obs][1], cfg.features_NbinsXloXhiLabelLog[obs][2]), obs).GetPtr()
     h_bkg.Scale(1./h_bkg.Integral())
@@ -161,8 +164,8 @@ for i,obs in enumerate(observables):
     if(i == 0):
         legend.AddEntry(h_bkg, 'data sidebands', 'f')
         legend_cut.AddEntry(h_bkg_cut, 'data sidebands (BDT>%.4f)'%args.bdt_cut, 'p')
-        legend.AddEntry(h_sig, '%s MC'%cfg.legend_process[args.process], 'f')
-        legend_cut.AddEntry(h_sig_cut, '%s MC'%cfg.legend_process[args.process] + (' x%d '%sig_amplify if sig_amplify > 1.0 else '') +  '(BDT>%.4f)'%args.bdt_cut, 'f')
+        legend.AddEntry(h_sig, f'{cfg.legend_process[args.process]} MC', 'f')
+        legend_cut.AddEntry(h_sig_cut, f'{cfg.legend_process[args.process]} MC' + (f' #times {sig_amplify:.1f} ' if sig_amplify else '') +  f'(BDT>{args.bdt_cut:.3f})', 'f')
 
     c = CMS.cmsCanvas(f'c_{obs}', 
         cfg.features_NbinsXloXhiLabelLog[obs][1], 

@@ -23,12 +23,15 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
          if (process_ != "data" ) process_tag = "on" + process_; 
 
          // normalization
-         auto search = LumiRun3::LumiFactor.find(year_);
-         if (process_ == "W3MuNu") search = LumiRun3::LumiFactor_W3MuNu.find(year_);
+         lumi_factor = LumiRun3::LumiFactor["DEFAULT"];
+         auto search = LumiRun3::LumiFactor.end(); 
+         if      (process_ == "Tau3Mu")  search = LumiRun3::LumiFactor.find(year_);
+         else if (process_ == "W3MuNu")  search = LumiRun3::LumiFactor_W3MuNu.find(year_);
+         else if (process_ == "ZTau3Mu") search = LumiRun3::LumiFactor_ZTau3Mu.find(year_);
          if (isMC_ && search != LumiRun3::LumiFactor.end()){
             if(debug) std::cout << "> found year tag " << search->first << std::endl;
             lumi_factor = search->second;
-         }else lumi_factor =LumiRun3::LumiFactor["DEFAULT"];
+         }
          // set the HLT tag
          TString HLT_tag = "";
          if(HLTconf_ == HLT_paths::HLT_Tau3Mu)   HLT_tag = "HLT_Tau3Mu"; 

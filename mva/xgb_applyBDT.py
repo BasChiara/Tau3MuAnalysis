@@ -33,7 +33,7 @@ parser.add_argument('--data_outdir',    default= '/eos/user/c/cbasile/Tau3MuRun3
 parser.add_argument('--tag',            default= 'emulateRun2',                                         help='tag to the training')
 parser.add_argument('--debug',          action = 'store_true' ,                                         help='set it to have useful printout')
 parser.add_argument('--save_output',    action = 'store_true' ,                                         help='set it to save the bdt output')
-parser.add_argument('--process',        choices= ['WTau3Mu', 'W3MuNu', 'data', 'DsPhiMuMuPi', 'peakingBkg'],   help='what process is in the input sample')
+parser.add_argument('--process',        choices= ['WTau3Mu', 'W3MuNu', 'data', 'DsPhiMuMuPi', 'peakingBkg', 'ZTau3Mu'],   help='what process is in the input sample')
 parser.add_argument('--isMC',           action = 'store_true' ,                                         help='set if running on MonteCarlo')
 parser.add_argument('--isMulticlass',   action = 'store_true' ,                                         help='set if applying a multiclass classifier')
 parser.add_argument('--LxySign_cut',    default=  0.0,  type = float,                               help='cut over 3muons SV displacement significance')

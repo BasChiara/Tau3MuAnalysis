@@ -165,9 +165,15 @@ namespace LumiRun3
     inline float Br_WtoMuNu  = 0.1063;
     inline float Br_WtoTauNu = 0.1138;
     inline float xsec_ppWxTauNu = xsec_ppWxMuNu_SMP_Run3 * Br_WtoTauNu / Br_WtoMuNu;
+
+    // xsec Z -> Tau Tau [fb]
+    inline float xsec_ppZxMuMu_SMP_Run3 = 2026000;
+    inline float Br_ZtoTauTau = 0.0337;
+    inline float Br_ZtoMuMu  = 0.0337;
+    inline float xsec_ppZxTauTau = xsec_ppZxMuMu_SMP_Run3 * Br_ZtoTauTau / Br_ZtoMuMu;
     // processed luminosity [/fb]
     inline std::map<TString, float> Lumi{
-        {"2022preEE"      , 4.990+2.961+5.684 }, 
+        {"2022preEE"      , 4.990+2.961+5.684}, 
         {"2022EE"         , 17.755+3.078}, 
         {"2023preBPix"    , 0.601+17.516}, 
         {"2023BPix"       , 9.690}, 
@@ -197,6 +203,14 @@ namespace LumiRun3
         {"2022EE"         , 0.086435}, 
         {"2023preBPix"    , 0.002380}, 
         {"2023BPix"       , 0.001286}, 
+    };
+
+    inline std::map<TString, float> LumiFactor_ZTau3Mu{
+        {"DEFAULT"        , 1.0}, 
+        {"2022preEE"      , Lumi["2022preEE"]*xsec_ppZxTauTau*Br_t3m/195001}, 
+        {"2022EE"         , Lumi["2022EE"]*xsec_ppZxTauTau*Br_t3m/786411}, 
+        {"2023preBPix"    , Lumi["2023preBPix"]*xsec_ppZxTauTau*Br_t3m/677882}, 
+        {"2023BPix"       , Lumi["2023BPix"]*xsec_ppZxTauTau*Br_t3m/317554}, 
     };
 }
 

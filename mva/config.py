@@ -151,12 +151,14 @@ color_process = {
     'W3MuNu' : ROOT.kGreen+2,
     'DsPhiPi': ROOT.kViolet,
     'DataSB' : ROOT.kBlue,
+    'ZTau3Mu': ROOT.kCyan+2,
 }
 legend_process = {
-    'Tau3Mu' : '#tau->3#mu',
-    'W3MuNu' : 'W#rightarrow#mu#nu',
-    'DsPhiPi': 'D_{s}->#phi#pi',
-    'DataSB' : 'data SB'
+    'Tau3Mu' : '#tau#rightarrow 3#mu',
+    'W3MuNu' : 'W#rightarrow #mu #nu',
+    'DsPhiPi': 'D_{s}#rightarrow#phi#pi',
+    'DataSB' : 'data SB',
+    'ZTau3Mu': 'Z#rightarrow #tau (3#mu)#tau',
 }
 bdt_label_process ={
    'Tau3Mu' : 0,
@@ -186,6 +188,15 @@ DsPhiPi_signals = [
     # 2023
     mc_path + 'outRoot/DsPhiMuMuPi_MCanalyzer_2023preBPix_HLT_overlap_onDsPhiPi.root',
     mc_path + 'outRoot/DsPhiMuMuPi_MCanalyzer_2023BPix_HLT_overlap_onDsPhiPi.root'
+]
+
+ZTau3Mu_signals = [
+    # 2022
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap_onZTau3Mu.root',
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_onZTau3Mu.root',
+    # 2023
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap_onZTau3Mu.root',
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onZTau3Mu.root'
 ]
 
 DsPhiPi_data = [
@@ -246,6 +257,7 @@ mc_samples = {
     'DsPhiMuMuPi'   : DsPhiPi_signals,
     'W3MuNu'        : W3MuNu_background,
     'peakingBkg'    : Peaking_background,
+    'ZTau3Mu'       : ZTau3Mu_signals,
 }
 data_samples = {
     'WTau3Mu'       : data_background,

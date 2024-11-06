@@ -10,12 +10,12 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import mva.config as config
 
 argparser = argparse.ArgumentParser()
-argparser.add_argument('--process', choices=['WTau3Mu', 'W3MuNu'], help='For which process to compute the efficiency breakdown')
+argparser.add_argument('--process', choices=['WTau3Mu', 'W3MuNu', 'ZTau3Mu'], help='For which process to compute the efficiency breakdown')
 args = argparser.parse_args()
 samples = config.mc_samples[args.process]
 
 
-for sample in samples: #config.WTau3Mu_signals:
+for sample in samples:
     
     print(f' -- processing {sample} --')
     rdf = ROOT.RDataFrame('WTau3Mu_tree', sample)
