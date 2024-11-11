@@ -15,7 +15,7 @@ import argparse
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import mva.config as config
-from plots.color_text import color_text as ct
+from style.color_text import color_text as ct
 import models.datacard_utils as du
 
 
@@ -26,6 +26,7 @@ parser.add_argument('--plot_outdir',    default= '/eos/user/c/cbasile/www/Tau3Mu
 parser.add_argument('--goff',           action = 'store_true' ,                                             help='NO plots')
 parser.add_argument('--save_ws',        action = 'store_true' ,                                             help='set it to save the workspace for combine')
 parser.add_argument('--sys_unc',        action = 'store_true' ,                                             help='put systematics in the datacard')
+parser.add_argument('--fix_w',          action = 'store_true' ,                                             help='fix the signal width')
 parser.add_argument('--combine_dir',                                default= 'input_combine/',              help='output directory for combine datacards and ws')
 parser.add_argument('--tag',                                                                                help='tag to the training')
 parser.add_argument('-u','--unblind',   action = 'store_true' ,                                             help='set it to run UN-blind')
@@ -79,7 +80,7 @@ ROOT.TH1.SetDefaultSumw2()
 tau_mass = 1.777 # GeV
 mass_window_lo, mass_window_hi = config.mass_range_lo, config.mass_range_hi # GeV
 blind_region_lo, blind_region_hi = config.blind_range_lo, config.blind_range_hi # GeV
-fit_range_lo  , fit_range_hi   = 1.68, 1.87 # GeV
+fit_range_lo  , fit_range_hi   = mass_window_lo, mass_window_hi # GeV
 
 # binning
 bin_w = 0.01 # GeV
@@ -207,7 +208,7 @@ for cut in set_bdt_cut:
     mean   = ROOT.RooFormulaVar('mean','mean', '(@0+@1)', ROOT.RooArgList(Mtau,dMtau) )
     width  = ROOT.RooRealVar(f'width_{args.category}{args.year}',  f'width_{args.category}{args.year}',  0.01,    0.005, 0.05)
 
-    nsig   = ROOT.RooRealVar('model_sig_%s_norm'%process_name, 'model_sig_%s_norm'%process_name, fullmc.sumEntries(), 0.001, 3*fullmc.sumEntries())
+    nsig   = ROOT.RooRealVar('model_sig_%s_norm'%process_name, 'model_sig_%s_norm'%process_name, fullmc.sumEntries(), 0.0, 3*fullmc.sumEntries())
     gaus   = ROOT.RooGaussian('model_sig_%s'%process_name, 'gaus1_%s'%process_name, mass, mean, width)
     signal_model = ROOT.RooAddPdf('ext_model_sig_%s'%process_name, 'ext_model_sig_%s'%process_name, ROOT.RooArgList(gaus), nsig )
     
@@ -233,7 +234,7 @@ for cut in set_bdt_cut:
         print(f'{ct.BOLD}[i]{ct.END} fit background with 1st order polynimial')
     else : print(f'{ct.BOLD}[i]{ct.END} fit background with exponential')
     # number of background events
-    nbkg = ROOT.RooRealVar('model_bkg_%s_norm'%process_name, 'model_bkg_%s_norm'%process_name, datatofit.sumEntries(), 0.5*datatofit.sumEntries(), 5*datatofit.sumEntries())
+    nbkg = ROOT.RooRealVar('model_bkg_%s_norm'%process_name, 'model_bkg_%s_norm'%process_name, datatofit.sumEntries(), 0., 3*datatofit.sumEntries())
     print(f'[debug] entries in data {datatofit.numEntries()}')
     #ext_bkg_model = ROOT.RooAddPdf("toy_add_model_bkg_WTau3Mu", "add background pdf", ROOT.RooArgList(b_model),  nbkg)
     #ext_bkg_model = ROOT.RooAddPdf("toy_add_model_bkg_WTau3Mu", "add background pdf", [b_model],  [nbkg])
@@ -313,8 +314,8 @@ for cut in set_bdt_cut:
         datatofit, 
         ROOT.RooFit.Range('left_SB,right_SB'), 
         ROOT.RooFit.Save(),
-        ROOT.RooFit.Extended(ROOT.kTRUE),
-        ROOT.RooFit.SumW2Error(True),
+        #ROOT.RooFit.Extended(ROOT.kTRUE),
+        #ROOT.RooFit.SumW2Error(True),
         ROOT.RooFit.PrintLevel(-1),
     )
     results_expo.Print()
@@ -428,7 +429,7 @@ for cut in set_bdt_cut:
     
     # fix signal mean value - width is fixed only during wp optimization
     dMtau.setConstant(True)
-    #width.setConstant(True)
+    if (args.fix_w) : width.setConstant(True)
 
     # save observed data // bkg-only Asimov with name 'dat_obs'
     fulldata = ROOT.RooDataSet('full_data', 'full_data', data_tree, thevars, sgn_selection) # fixme : this is useless
@@ -440,8 +441,8 @@ for cut in set_bdt_cut:
         data.SetName('data_obs') 
     else :
         print(f'{ct.GREEN}[i]{ct.END} running OPEN -- real data into workspace !!!!')
-        #data     = ROOT.RooDataSet('data_obs','data_obs', fulldata, ROOT.RooArgSet(mass))
-        data = ROOT.RooDataHist("data_obs", "data_obs", mass, fulldata)
+        data     = ROOT.RooDataSet('data_obs','data_obs', fulldata, ROOT.RooArgSet(mass))
+        #data = ROOT.RooDataHist("data_obs", "data_obs", mass, fulldata)
     data.Print()
 
     ws = ROOT.RooWorkspace(wspace_name, wspace_name)
