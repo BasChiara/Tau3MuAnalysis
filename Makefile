@@ -31,6 +31,7 @@ OUTEXE			 = $(INCLUDEDIR)/bin/
 
 $(OUTLIB)FileReader.o: $(INCLUDEDIR)src/FileReader.C
 		$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)FileReader.o $<
+
 $(OUTLIB)WTau3Mu_base.o: $(INCLUDEDIR)src/WTau3Mu_base.C
 		$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)WTau3Mu_base.o $<
 $(OUTLIB)WTau3Mu_tools.o: $(INCLUDEDIR)src/WTau3Mu_tools.C
@@ -43,6 +44,11 @@ $(OUTLIB)DsPhiMuMuPi_tools.o: $(INCLUDEDIR)src/DsPhiMuMuPi_tools.C
 		$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)DsPhiMuMuPi_tools.o $<
 $(OUTLIB)DsPhiMuMuPi_analyzer.o: $(INCLUDEDIR)src/DsPhiMuMuPi_analyzer.C
 		$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)DsPhiMuMuPi_analyzer.o $<
+
+$(OUTLIB)GenLevel_base.o: $(INCLUDEDIR)src/GenLevel_base.C
+		$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)GenLevel_base.o $<
+$(OUTLIB)GenLevel_analyzer.o: $(INCLUDEDIR)src/GenLevel_analyzer.C
+		$(CXX) $(CXXFLAGS) -c -I$(INCLUDEDIR) -o $(OUTLIB)GenLevel_analyzer.o $<
 
 
 # ==================== FULL ANALYSIS =========================
@@ -58,13 +64,23 @@ Analyzer : $(INCLUDEDIR)src/Analyzer_app.cc\
 		 	$(CXX) $(CXXFLAGS) -ldl -o $(OUTEXE)Analyzer_app $(OUTLIB)/*.o $(GLIBS) $(LDFLAGS) $ $<
 Analyzer.clean:
 			 rm -f Analyzer 
+# ===================== GEN LEVEL TOOLS ========================
+GenLevel : $(INCLUDEDIR)src/GenLevel_app.cc\
+		 	$(OUTLIB)FileReader.o\
+		 	$(OUTLIB)GenLevel_base.o\
+		 	$(OUTLIB)GenLevel_analyzer.o	
+		 	$(CXX) $(CXXFLAGS) -ldl -o $(OUTEXE)GenLevel_app $(OUTLIB)/*.o $(GLIBS) $(LDFLAGS) $ $<
+GenLevel.clean:
+			 rm -f GenLevel
 # =================================================================
 
 clean:
 		@echo "cleaning..."
 		rm -f $(OUTLIB)*.o
 		rm -f $(OUTEXE)*
-		rm -f Analyzer 
+		rm -f Analyzer
+		rm -f GenLevel
 
 ana: Analyzer
+gen: GenLevel
 

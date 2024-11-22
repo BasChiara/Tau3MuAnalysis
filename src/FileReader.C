@@ -113,3 +113,43 @@ TChain* FileReader::xrootdTChain_loader(const int& Nfiles, const int& init_file)
 
     return outChain_;
 }//xrootdTChain_loader()
+
+TChain* FileReader::fileListTChain_loader(const int& Nfiles){
+
+    // open the text file containing the input-files paths
+    std::ifstream *inputFile = new std::ifstream(inputFileName_);
+    if (inputFile != nullptr) 
+      std::cout << " ... [INPUT] " << inputFileName_ << std::endl;
+    else{
+        std::cout << " [ERROR] cannot open " << inputFileName_ << std::endl;
+        exit(-1);
+    }
+
+    char MyRootFile[10000];
+	TString ChainPath("");
+	
+    int addedFiles = 0;
+    int filesToAdd = Nfiles;
+    if (Nfiles < 0) filesToAdd = 1e6;
+    if (debug) std::cout << " + adding " << filesToAdd << " files from " << inputFileName_ << std::endl; 
+    // read the .txt lines
+    while( !(inputFile->eof() || (addedFiles > filesToAdd)) ){
+        inputFile->getline(Buffer,500);
+        if (!strstr(Buffer,"#") && !(strspn(Buffer," ") == strlen(Buffer)))
+        {
+            sscanf(Buffer,"%s",MyRootFile);
+            ChainPath = xrootd_prefix_ + TString(MyRootFile);
+            if (debug) std::cout << " + " << ChainPath << std::endl; 
+            int status = outChain_->Add(TString(ChainPath));
+            addedFiles++;
+        }
+    }
+
+	std::cout <<" [+] number of chained files : " << addedFiles << std::endl; 
+
+	inputFile->close();
+	delete inputFile;
+        
+    return outChain_; 
+
+}//fileListTChain_loader()

@@ -6,15 +6,21 @@
 #include <map>
 
 // PDG IDs
+constexpr int isZ       = 23;
 constexpr int isW       = 24;
+constexpr int isEle     = 11;
+constexpr int isNuEle   = 12;
+constexpr int isMuon    = 13;
+constexpr int isNuMuon  = 14;
 constexpr int isTau     = 15;
 constexpr int isNuTau   = 16;
-constexpr int isMuon    = 13;
 constexpr int isDs_p    = 431;
 constexpr int isPion_p  = 211;
 constexpr int isPhi1020 = 333;
 
 // PDG mass & width [GeV]
+constexpr float Z_MASS       = 91.1876;
+constexpr float Z_WIDTH      =  2.4952;
 constexpr float W_MASS       = 80.377;
 constexpr float W_WIDTH      =  2.085;
 constexpr float Ds_MASS      = 1.96834;
@@ -161,12 +167,14 @@ namespace yearID
 namespace LumiRun3
 {
     // xsec W -> Tau Nu [fb]
+    inline float eff_filterW = 1.0;
     inline float xsec_ppWxMuNu_SMP_Run3 = 20928000;
     inline float Br_WtoMuNu  = 0.1063;
     inline float Br_WtoTauNu = 0.1138;
     inline float xsec_ppWxTauNu = xsec_ppWxMuNu_SMP_Run3 * Br_WtoTauNu / Br_WtoMuNu;
 
     // xsec Z -> Tau Tau [fb]
+    inline float eff_filterZ = 0.2444; // 60 GeV < Mtautau < 120 GeV
     inline float xsec_ppZxMuMu_SMP_Run3 = 2026000;
     inline float Br_ZtoTauTau = 0.0337;
     inline float Br_ZtoMuMu  = 0.0337;
@@ -178,8 +186,6 @@ namespace LumiRun3
         {"2023preBPix"    , 0.601+17.516}, 
         {"2023BPix"       , 9.690}, 
     };
-    // filter efficiency
-    inline float eff_filter = 1.0;
     // Nmc @ filter level
     inline std::map<TString, float> Nmc{
         {"2022preEE"      , 197789}, 
@@ -207,10 +213,10 @@ namespace LumiRun3
 
     inline std::map<TString, float> LumiFactor_ZTau3Mu{
         {"DEFAULT"        , 1.0}, 
-        {"2022preEE"      , Lumi["2022preEE"]*xsec_ppZxTauTau*Br_t3m/195001}, 
-        {"2022EE"         , Lumi["2022EE"]*xsec_ppZxTauTau*Br_t3m/786411}, 
-        {"2023preBPix"    , Lumi["2023preBPix"]*xsec_ppZxTauTau*Br_t3m/677882}, 
-        {"2023BPix"       , Lumi["2023BPix"]*xsec_ppZxTauTau*Br_t3m/317554}, 
+        {"2022preEE"      , Lumi["2022preEE"]*xsec_ppZxTauTau*2.*Br_t3m/195001}, 
+        {"2022EE"         , Lumi["2022EE"]*xsec_ppZxTauTau*2.*Br_t3m/786411}, 
+        {"2023preBPix"    , Lumi["2023preBPix"]*xsec_ppZxTauTau*2.*Br_t3m/677882}, 
+        {"2023BPix"       , Lumi["2023BPix"]*xsec_ppZxTauTau*2.*Br_t3m/317554}, 
     };
 }
 
