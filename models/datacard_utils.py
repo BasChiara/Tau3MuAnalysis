@@ -28,6 +28,7 @@ def cp_intervals(Nobs, Ntot, cl=0.68, verbose = False):
 
 def combineDatacard_writer(**kwargs):
     # needed arguments
+    mode            = kwargs['mode'] if 'mode' in kwargs else 'WTau3Mu'
     input_mc        = kwargs['input_mc'] if 'input_mc' in kwargs else None
     selection_mc    = kwargs['selection'] if 'selection' in kwargs else None
     wspace_filename = kwargs['ws_filename'] if 'ws_filename' in kwargs else None
@@ -47,13 +48,18 @@ def combineDatacard_writer(**kwargs):
         print('No workspace provided')
         return 1
     wspace_name = workspace.GetName()
-    process_name = f'WTau3Mu_{cat}{year}'
+    process_name = f'{mode}_{cat}{year}'
     # -- signal -- #
     signal_model = workspace.pdf(f'model_sig_{process_name}')
     if not signal_model:
         print('No signal model found in the workspace')
         return 1
-    width = signal_model.getVariables().find(f'width_{cat}{year}')
+    width_list = []
+    if mode == 'WTau3Mu':
+        width_list.append( signal_model.getVariables().find(f'width_{cat}{year}') )
+    elif mode == 'VTau3Mu':
+        width_list.append( signal_model.getVariables().find(f'width_W{cat}{year}') )
+        width_list.append( signal_model.getVariables().find(f'width_Z{cat}{year}') )
     # -- background -- #
     b_model = workspace.pdf(f'model_bkg_{process_name}')
     print(f'[B] B function : {bkg_func}')
@@ -155,15 +161,16 @@ Br_Wtaunu           lnN           {Br_Wtaunu}               -
             )
         # **SIGNAL**
         if write_sys:
-            width_error = np.sqrt(width.getError()**2 + (width.getVal()*shape_sys['width'])**2)
-            card.write(
-'{width_name}         param          {val:.4f}     {err:.4f}'.format(
-                width_name  = width.GetName(),
-                val         = width.getVal(),
-                err         = np.max([1e-4, width_error])
-            )
-            )
-            print(f' width = {width.getVal()} +/- {shape_sys["width"]}')
+            for width in width_list:
+                width_error = np.sqrt(width.getError()**2 + (width.getVal()*shape_sys['width'])**2)
+                card.write(
+'{width_name}         param          {val:.4f}     {err:.4f}\n'.format(
+                    width_name  = width.GetName(),
+                    val         = width.getVal(),
+                    err         = np.max([1e-4, width_error])
+                )
+                )
+                print(f' width = {width.getVal()} +/- {shape_sys["width"]}')
         # **BACKGROUND**
         card.write(
 '''

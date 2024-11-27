@@ -17,8 +17,8 @@ year = args.year
 working_points = config.wp_dict[year]
 print(f'Working points for {year}: {working_points}')
 
-input_data   = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/XGBout_data_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root'
-input_signal = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/XGBout_signal_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root'
+input_data   = config.data_bdt_samples['WTau3Mu']
+input_signal = config.mc_bdt_samples['WTau3Mu'] 
 plot_outdir  = '/eos/user/c/cbasile/www/Tau3Mu_Run3/BDTtraining/AN_v2/Training_kFold_Optuna_HLT_overlap_LxyS2.0_2024Jul16/working_points/'
 #combine_dir = '/afs/cern.ch/user/c/cbasile/Combine_v10/CMSSW_14_1_0_pre4/src/WTau3Mu_limits/results/AN_v2/input_combine/'
 combine_dir  = '/afs/cern.ch/user/c/cbasile/Combine_v10/CMSSW_14_1_0_pre4/src/WTau3Mu_limits/bias_study_v3/input_combine/'

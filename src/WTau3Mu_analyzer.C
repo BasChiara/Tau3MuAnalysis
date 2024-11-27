@@ -44,9 +44,11 @@ void WTau3Mu_analyzer::Loop(){
       nGoodPV = PV_npvsGood;
       Rho_Fj  = Rho_fixedGridRhoFastjetAll;
 
+      opposite_side_tag_ = -1;
       if(isMC_){
          // --- MC truth & matching
-         GenPartFillP4();
+         if (process_ == "ZTau3Mu") opposite_side_tag_ = GenPartFillP4_Z();
+         else GenPartFillP4();
          TauTo3Mu_MCmatch_idx = MCtruthMatching();
  
          tau_mu1_gen_pt  = GenMu1_P4.Pt();  tau_mu2_gen_pt  = GenMu2_P4.Pt();  tau_mu3_gen_pt  = GenMu3_P4.Pt();
@@ -57,7 +59,9 @@ void WTau3Mu_analyzer::Loop(){
          gen_met_pt = GenMET_pt; gen_met_phi = GenMET_phi;
 
          // --- NLO weights
-         applyNLOreweight(W_gen_pt, W_gen_eta);
+         NLO_weight = 1.0; NLO_weight_up = 1.0; NLO_weight_down = 1.0;
+         if (process_ == "Tau3Mu" || process_ == "W3MuNu") applyNLOreweight(W_gen_pt, W_gen_eta);
+      
       }
 
       // --- PU weights
@@ -298,6 +302,7 @@ void WTau3Mu_analyzer::outTreeSetUp(){
    // lumi & scale factors
    outTree_->Branch("weight",                   &weight,                   "weight/F");
    outTree_->Branch("lumi_factor",              &lumi_factor,              "lumi_factor/F");
+   outTree_->Branch("opposite_side_tag",        &opposite_side_tag_,        "opposite_side_tag/I");
    outTree_->Branch("tau_mu1_IDrecoSF",         &tau_mu1_IDrecoSF,         "tau_mu1_IDrecoSF/F");
    outTree_->Branch("tau_mu1_IDrecoSF_sysUP",   &tau_mu1_IDrecoSF_sysUP,   "tau_mu1_IDrecoSF_sysUP/F");
    outTree_->Branch("tau_mu1_IDrecoSF_sysDOWN", &tau_mu1_IDrecoSF_sysDOWN, "tau_mu1_IDrecoSF_sysDOWN/F");

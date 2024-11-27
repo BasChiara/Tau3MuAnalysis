@@ -52,6 +52,25 @@ peakB_sv_selection   = f'(tau_Lxy_sign_BS > {5.0} & tau_fit_vprob > {0.10} )'
 ###              ###
 #   DATASET INFO   #
 ###              ###
+
+# xsec W -> Tau Nu [fb]
+eff_filterW = 1.0
+xsec_ppWxMuNu_SMP_Run3 = 20928000  # Cross-section for W -> Mu Nu in fb
+Br_WtoMuNu = 0.1063  # Branching ratio for W -> Mu Nu
+Br_WtoTauNu = 0.1138  # Branching ratio for W -> Tau Nu
+
+xsec_ppWxTauNu = xsec_ppWxMuNu_SMP_Run3 * Br_WtoTauNu / Br_WtoMuNu
+
+# xsec Z -> Tau Tau [fb]
+eff_filterZ = 0.2444  # Filter efficiency for 60 GeV < Mtautau < 120 GeV
+xsec_ppZxMuMu_SMP_Run3 = 2026000  # Cross-section for Z -> Mu Mu in fb
+Br_ZtoTauTau = 0.0337  # Branching ratio for Z -> Tau Tau
+Br_ZtoMuMu = 0.0337  # Branching ratio for Z -> Mu Mu
+
+xsec_ppZxTauTau = xsec_ppZxMuMu_SMP_Run3 * Br_ZtoTauTau / Br_ZtoMuMu
+
+
+
 year_selection = {
     '2022preEE'     : '((year_id == 220) | ((year_id > 222) & (year_id < 225))) ', # era CD
     '2022EE'        : '((year_id == 221) | ((year_id > 224) & (year_id < 230))) ', # era EFG
@@ -262,12 +281,30 @@ mc_samples = {
 data_samples = {
     'WTau3Mu'       : data_background,
     'DsPhiMuMuPi'   : DsPhiPi_data,
-    'W3MuNu'        : data_background, 
+    'W3MuNu'        : data_background,
+    'ZTau3Mu'       : data_background,
 }
 
 ##############
 #    BDT     #
 ##############
+
+# samples processed with BDT
+bdt_output_path = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/'
+mc_bdt_samples = {
+    'WTau3Mu'       : bdt_output_path+'XGBout_signal_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root', 
+    'DsPhiMuMuPi'   : bdt_output_path+'XGBout_DsPhiMuMuPi_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
+    'W3MuNu'        : bdt_output_path+'XGBout_W3MuNu_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
+    'peakingBkg'    : bdt_output_path+'XGBout_peakingBkg_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
+    'ZTau3Mu'       : bdt_output_path+'XGBout_ZTau3Mu_MC_kFold_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
+}
+data_bdt_samples = {
+    'WTau3Mu'       : bdt_output_path+'XGBout_data_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root',
+    'DsPhiMuMuPi'   : bdt_output_path+'XGBout_DsPhiMuMuPi_DATA_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root',
+    'W3MuNu'        : bdt_output_path+'XGBout_data_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root',
+    'ZTau3Mu'       : bdt_output_path+'XGBout_data_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root',
+}
+
 
 # give labels human readable names
 # IMPORTANT : same order as features!!!

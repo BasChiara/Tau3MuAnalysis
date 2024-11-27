@@ -40,6 +40,12 @@ class WTau3Mu_tools : public WTau3Mu_base{
    // gen/reco tools
    int     MCtruthMatching(const bool verbose = false);
    void    GenPartFillP4();
+   int     GenPartFillP4_Z();
+   int     TauIdx_radiative(const int prod_idx, const int VpdgId=24);
+   int     GenTauDecayMode(const int tau_idx);
+   std::vector<int> Gen3Mu_FindSort();
+   std::vector<int> sortMu_pT(const std::vector<int>& muons);
+   
    bool    RecoPartFillP4(const int idx);
    // trigger tools
    bool    TriggerMatching(const int TauIdx, const int config = -1);
@@ -70,9 +76,13 @@ class WTau3Mu_tools : public WTau3Mu_base{
 
 
    // gen particle P4 
-   ROOT::Math::PtEtaPhiMVector GenW_P4;
+   ROOT::Math::PtEtaPhiMVector GenW_P4, GenZ_P4;
    ROOT::Math::PtEtaPhiMVector GenTau_P4, GenNu_P4;
    ROOT::Math::PtEtaPhiMVector GenMu1_P4, GenMu2_P4, GenMu3_P4;
+   // opposite side (for Ztautau)
+   ROOT::Math::PtEtaPhiMVector GenTauOp_P4;
+   TauDecayMode opposite_side_ = TauDecayMode::UNDEFINED;
+   int opposite_side_tag_;
    // reco  particle P4 
    ROOT::Math::PtEtaPhiMVector RecoW_P4;
    ROOT::Math::PtEtaPhiMVector RecoTau_P4, RecoMET_P4;
@@ -125,7 +135,7 @@ class WTau3Mu_tools : public WTau3Mu_base{
    float NLO_weight, NLO_weight_up, NLO_weight_down;
 
    private:
-   bool debug = false; 
+   bool debug = false;
    
 
 

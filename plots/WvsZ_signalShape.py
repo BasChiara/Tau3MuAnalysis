@@ -5,7 +5,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import mva.config as config
 
 W_wspace_file = "/afs/cern.ch/user/c/cbasile/Combine_v10/CMSSW_14_1_0_pre4/src/WTau3Mu_limits/categ_number/input_combine/wspace_etaBinning_bdt0.9900_WTau3Mu_22_NOsplit.root"
-Z_wspace_file = "/afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/models/wspace_etaBinning_bdt0.9900_WTau3Mu_22_Ztautau.root"
+Z_wspace_file = "/afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/models/workspaces/wspace_etaBinning_bdt0.9900_WTau3Mu_22_Ztautau.root"
 # open W and Z files
 if not os.path.isfile(W_wspace_file):
     print(f"Error: file {W_wspace_file} not found")
@@ -37,7 +37,7 @@ for cat in config.cat_eta_selection_dict:
 
     W_width =  ws_W.var(f'width_{cat}{year}')
     W_mass_shift =  ws_W.var(f'dM')
-    Z_width =  ws_Z.var(f'width_{cat}{year}')
+    Z_width =  ws_Z.var(f'width_{cat}0{year}')
     Z_mass_shift =  ws_Z.var(f'dM')
 
     print(f'W: width = {W_width.getVal()} +/- {W_width.getError()}')
@@ -54,9 +54,9 @@ plt.figure()
 plt.title('W vs Z signal parameters')
 plt.ylabel(r'signal width $\sigma_S$ (MeV)', fontsize=14)
 plt.xticks(range(3), ['A', 'B', 'C'], fontsize=14)
-plt.errorbar(range(3), [w[0].getVal()*1000 for w in widths], yerr=[w[0].getError()*1000 for w in widths], fmt='o', label='W')
-plt.errorbar(range(3), [w[1].getVal()*1000 for w in widths], yerr=[w[1].getError()*1000 for w in widths], fmt='o', label='Z')
-plt.legend()
+plt.errorbar(range(3), [w[0].getVal()*1000 for w in widths], yerr=[w[0].getError()*1000 for w in widths], fmt='o', label='W', color='r')
+plt.errorbar(range(3), [w[1].getVal()*1000 for w in widths], yerr=[w[1].getError()*1000 for w in widths], fmt='o', label='Z', color='g')
+plt.legend(loc='upper left', fontsize=14 )
 plt.grid()
 plt.savefig(f'{plot_dir}/WvsZ_widths.png')
 plt.savefig(f'{plot_dir}/WvsZ_widths.pdf')
@@ -65,9 +65,9 @@ plt.figure()
 plt.title('W vs Z signal parameters')
 plt.ylabel(r'mass shift $\Delta m$ (MeV)', fontsize=14)
 plt.xticks(range(3), ['A', 'B', 'C'], fontsize=14)
-plt.errorbar(range(3), [m[0].getVal()*1000 for m in mass_shifts], yerr=[m[0].getError()*1000 for m in mass_shifts], fmt='o', label='W')
-plt.errorbar(range(3), [m[1].getVal()*1000 for m in mass_shifts], yerr=[m[1].getError()*1000 for m in mass_shifts], fmt='o', label='Z')
-plt.legend()
+plt.errorbar(range(3), [m[0].getVal()*1000 for m in mass_shifts], yerr=[m[0].getError()*1000 for m in mass_shifts], fmt='o', label='W', color='r')
+plt.errorbar(range(3), [m[1].getVal()*1000 for m in mass_shifts], yerr=[m[1].getError()*1000 for m in mass_shifts], fmt='o', label='Z', color='g')
+plt.legend(loc='upper left', fontsize=14 )
 plt.grid()
 plt.savefig(f'{plot_dir}/WvsZ_mass_shifts.png')
 plt.savefig(f'{plot_dir}/WvsZ_mass_shifts.pdf')

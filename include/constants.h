@@ -16,6 +16,7 @@ constexpr int isTau     = 15;
 constexpr int isNuTau   = 16;
 constexpr int isDs_p    = 431;
 constexpr int isPion_p  = 211;
+constexpr int isPion_0  = 111;
 constexpr int isPhi1020 = 333;
 
 // PDG mass & width [GeV]
@@ -47,6 +48,14 @@ enum MCsignals {
     MC_Tau3Mu,
     MC_DsPhiPi,
     MC_W3MuNu
+};
+
+enum TauDecayMode {
+    UNDEFINED  = -1,
+    ELECTRONIC = 1,
+    MUONIC     = 2,
+    HADRONIC   = 3,
+    TRIMUON    = 10,
 };
 
 namespace yearID

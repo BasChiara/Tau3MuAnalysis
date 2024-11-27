@@ -15,6 +15,8 @@
    TString out_tag = "ZtautauVSWtaunu";
    SetOutputFile("/eos/user/c/cbasile/www/Tau3Mu_Run3/Ztautau/MCstudies/ZtautauVSWtaunu/");
 
+   // W vs Z
+   draw_2D_branches({"tau_met_pt","tau_met_Dphi"},             {cat_1,cat_2}, "MET (GeV)", 20, 0., 100., "#Delta #phi (3 #mu, MET)", 15, 0., 6., out_tag + "_METvsDphi");
 
    // Muons
    draw_branches({"tau_mu1_TightID_PV","tau_mu1_TightID_PV"},  {cat_1,cat_2}, "#mu1 Tight ID (PV)", 2, -0.5, 1.5, out_tag + "_Mu_TightID");
@@ -59,7 +61,7 @@
 
    /// W
    draw_branches({"W_pt","W_pt"},                              {cat_1,cat_2}, "W p_{T} (GeV)",     50, 0.0, 150.0, out_tag + "_WpT_rIso0p2");
-   draw_branches({"W_phi","W_phi"},                            {cat_1,cat_2}, " W #phi",           32, -3.2, 3.2, out_tag + "_Wphi");
+   draw_branches({"W_phi","W_phi"},                            {cat_1,cat_2}, "W #phi",            32, -3.2, 3.2, out_tag + "_Wphi");
    draw_branches({"W_eta_min","W_eta_min"},                    {cat_1,cat_2}, "W #eta(min)",       35, -3.5, 3.5, out_tag + "_Wetamin");
    draw_branches({"W_eta_max","W_eta_max"},                    {cat_1,cat_2}, "W #eta (max)",      50, -5, 5, out_tag + "_Wetamax");
    draw_branches({"W_mass_min","W_mass_min"},                  {cat_1,cat_2}, "M(W)_{min} (GeV)",  20, 70, 90, out_tag + "_Wmassmin", true);

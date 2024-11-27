@@ -20,6 +20,8 @@ input_Zsignal = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/XGBout_ZTau
 year_ = args.year
 category_ = args.category
 
+plot_dir = f'/eos/user/c/cbasile/www/Tau3Mu_Run3/Ztautau/sensitivity/'
+
 # **** EVENT SELECTION ****
 base_selection      = ' & '.join([
     config.cat_eta_selection_dict_fit[category_], 
@@ -65,7 +67,7 @@ Ws_array = np.array(Ws_list)
 Zs_array = np.array(Zs_list)
 
 # compute significance
-Sig_factor = 10
+Sig_factor = 5
 SigW  = Ws_array / np.sqrt(B_array)
 SigZ  = Zs_array / np.sqrt(B_array) * Sig_factor
 SigWZ = (Ws_array + Zs_array) / np.sqrt(B_array)
@@ -82,8 +84,8 @@ plt.ylabel(r'S/$\sqrt{B}$')
 if not category_ == 'ABC': plt.axvline(x=config.wp_dict[year_][category_], color='r', linestyle='--', label=f'WP 20{year_}{category_}')
 plt.legend(loc='best')
 plt.grid()
-plt.savefig(f'significance_WZvsBDT_20{year_}{category_}.png')
-plt.savefig(f'significance_WZvsBDT_20{year_}{category_}.pdf')
+plt.savefig(f'{plot_dir}/significance_WZvsBDT_20{year_}{category_}.png')
+plt.savefig(f'{plot_dir}/significance_WZvsBDT_20{year_}{category_}.pdf')
 
 # -- efficiency W and W+Z vs BDT
 effW  = Ws_array / Ws0
@@ -101,5 +103,5 @@ plt.xlabel('BDT score')
 plt.ylabel('efficiency')
 plt.legend(loc='best')
 plt.grid()
-plt.savefig(f'efficiency_WZvsBDT_20{year_}{category_}.png')
-plt.savefig(f'efficiency_WZvsBDT_20{year_}{category_}.pdf')
+plt.savefig(f'{plot_dir}/efficiency_WZvsBDT_20{year_}{category_}.png')
+plt.savefig(f'{plot_dir}/efficiency_WZvsBDT_20{year_}{category_}.pdf')

@@ -30,7 +30,7 @@ args = parser.parse_args()
 process_name_base = f'WTau3Mu'
 tag = f'bdt{args.bdt_cut:,.4f}_{process_name_base}_{args.year}' + (('_' + args.tag ) if not (args.tag is None) else '')
 # split each category in delta_split large bins
-Nsplits = 3
+Nsplits = 1
 cat_edges_dict = {
     'A' : np.linspace(0.0, config.eta_thAB, Nsplits+1),
     'B' : np.linspace(config.eta_thAB, config.eta_thBC, Nsplits+1),
@@ -203,11 +203,14 @@ for cat in config.cat_eta_selection_dict_fit:
         dMtau  = ROOT.RooRealVar('dM', 'dM', 0, -0.04, 0.04)
         mean   = ROOT.RooFormulaVar('mean','mean', '(@0+@1)', ROOT.RooArgList(Mtau,dMtau) )
         width  = ROOT.RooRealVar(f'width_{cat}{j}{args.year}',  f'width_{cat}{j}{args.year}',  0.01,    0.005, 0.05)
+        alpha  = ROOT.RooRealVar('alpha', 'alpha', 1.0, 0.1, 10.0)
+        n      = ROOT.RooRealVar('n', 'n', 1.0, 0.1, 10.0)
 
         nsig   = ROOT.RooRealVar(f'model_sig_{process_name}_norm', f'model_sig_{process_name}_norm', fullmc.sumEntries(), 0., 3*fullmc.sumEntries())
         gaus   = ROOT.RooGaussian(f'model_sig_{process_name}', f'model_sig_{process_name}', mass, mean, width)
+        cb     = ROOT.RooCBShape(f'model_sig_{process_name}', f'model_sig_{process_name}', mass, mean, width, alpha, n)
         
-        signal_model = ROOT.RooAddPdf(f'ext_model_sig_{process_name}', f'ext_model_sig_{process_name}', ROOT.RooArgList(gaus), nsig )
+        signal_model = ROOT.RooAddPdf(f'ext_model_sig_{process_name}', f'ext_model_sig_{process_name}', ROOT.RooArgList(cb), nsig )
 
         # **** BACKGROUND MODEL ****
         # background PDF
@@ -255,7 +258,7 @@ for cat in config.cat_eta_selection_dict_fit:
             ROOT.RooFit.Format("NEU", ROOT.RooFit.AutoPrecision(1)),
         )
         frame.getAttText().SetTextSize(0.03)
-        if (args.debug):
+        if (True):
             c = ROOT.TCanvas("c", "c", 800, 800)
             ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
             frame.Draw()
