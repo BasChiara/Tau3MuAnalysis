@@ -17,17 +17,19 @@ argparser.add_argument('-y', '--year', choices = [2022, 2023], type=int, default
 args = argparser.parse_args()
 
 wspace_byCat = {}
+tag = 'LxyS2.0_2024Jul16'
+tag = 'reviewANv3'
 if args.year == 2022:
     wspace_byCat ={
-        "A22" : '../../models/workspaces/DsPhiPi_wspace_catA2022_LxyS2.0_2024Jul16.root',
-        "B22" : '../../models/workspaces/DsPhiPi_wspace_catB2022_LxyS2.0_2024Jul16.root',
-        "C22" : '../../models/workspaces/DsPhiPi_wspace_catC2022_LxyS2.0_2024Jul16.root',
+        "A22" : f'../../models/workspaces/DsPhiPi_wspace_catA2022_{tag}.root',
+        "B22" : f'../../models/workspaces/DsPhiPi_wspace_catB2022_{tag}.root',
+        "C22" : f'../../models/workspaces/DsPhiPi_wspace_catC2022_{tag}.root',
     }
 elif args.year == 2023:
     wspace_byCat ={
-        "A23" : '../../models/workspaces/DsPhiPi_wspace_catA2023_LxyS2.0_2024Jul16.root',
-        "B23" : '../../models/workspaces/DsPhiPi_wspace_catB2023_LxyS2.0_2024Jul16.root',
-        "C23" : '../../models/workspaces/DsPhiPi_wspace_catC2023_LxyS2.0_2024Jul16.root',
+        "A23" : f'../../models/workspaces/DsPhiPi_wspace_catA2023_{tag}.root',
+        "B23" : f'../../models/workspaces/DsPhiPi_wspace_catB2023_{tag}.root',
+        "C23" : f'../../models/workspaces/DsPhiPi_wspace_catC2023_{tag}.root',
     }
 else:
     print('Year not supported')
@@ -45,14 +47,14 @@ for cat in wspace_byCat:
     # mc
     w_mc  = f.Get(mc_wspace)
     mean  = getattr(w_mc['mean_mc'], 'evaluate')()
-    width = getattr(w_mc['width1_mc'], 'getVal')() *1000
+    width = getattr(w_mc['width_mc'], 'getVal')() *1000
     print(f'[MC] mean: {mean:.3f} width: {width:.6f}')
     mc_mean.append(mean)
     mc_width.append(width)
     # data
     w_data = f.Get(data_wspace)
     mean   = getattr(w_data['mean_mc'], 'evaluate')()
-    width  = getattr(w_data['width1'], 'getVal')() * 1000
+    width  = getattr(w_data['width'], 'getVal')() * 1000
     print(f'[Data] mean: {mean:.3f} width: {width:.6f}')
     data_mean.append(mean)
     data_width.append(width)
@@ -67,7 +69,7 @@ for i, cat in enumerate(wspace_byCat.keys()):
         'mean':  np.abs(mean_ratio[i]  - 1.0),
         'width': np.abs(width_ratio[i] - 1.0),
     } 
-with open(f'signal_shape_comparison_{args.year}.json', 'w') as f:
+with open(f'signal_shape_comparison_{args.year}_{tag}.json', 'w') as f:
     json.dump(sys_dict, f)
 print(f'[o] json file with systematic uncertainty saved as signal_shape_comparison_{args.year}.json')
 
@@ -125,6 +127,6 @@ ax[0,1].legend(loc = 'upper left', fontsize=label_fontsize, frameon=False)
 
 # Adjust the layout of the subplots
 
-plt.savefig(f'signal_shape_comparison_{args.year}.png')
-plt.savefig(f'signal_shape_comparison_{args.year}.pdf')
+plt.savefig(f'signal_shape_comparison_{args.year}_{tag}.png')
+plt.savefig(f'signal_shape_comparison_{args.year}_{tag}.pdf')
 

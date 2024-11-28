@@ -15,6 +15,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import mva.config as config
 from plots.color_text import color_text as ct
+import fit_utils as fitu
 
 
 category_list = ['A', 'B', 'C', 'ABC']
@@ -48,9 +49,9 @@ nbins = int((fit_range_hi-fit_range_lo)/binwidth) + 1
 
 # *** INPUT DATA AND MONTE CARLO ***
 input_tree_name = 'tree_w_BDT'
-if not args.signal: mc_file     = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output//XGBout_DsPhiMuMuPi_MC_Optuna_HLT_overlap_LxyS2.1_2024Jul11.root' ]
+if not args.signal: mc_file   = [config.mc_bdt_samples['DsPhiMuMuPi']]
 else : mc_file     = [args.signal]
-if not args.data: data_file   = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output//XGBout_DsPhiMuMuPi_DATA_Optuna_HLT_overlap_LxyS2.1_2024Jul11.root' ]
+if not args.data: data_file   = [config.data_bdt_samples['DsPhiMuMuPi']]
 else : data_file   = [args.data]
 # *** OUTPUT FILE *** #
 f_out_name = "workspaces/DsPhiPi_wspace_%s.root"%(tag)
@@ -102,40 +103,53 @@ if args.bdt_cut > 0.:
 
 
 ### MC SIGNAL - FIT ###
+print(f'{ct.RED}[+] MC DATASET  {ct.END}')
 mc_tree = ROOT.TChain(input_tree_name)
 [mc_tree.AddFile(f) for f in mc_file]
-N_mc = mc_tree.GetEntries(base_selection)
-
-fullmc = ROOT.RooDataSet('mc_DsPhiMuMuPi', 'mc_DsPhiMuMuPi', mc_tree, thevars, base_selection, 'weight')
+#N_mc = mc_tree.GetEntries(base_selection)
+#fullmc = ROOT.RooDataSet('mc_DsPhiMuMuPi', 'mc_DsPhiMuMuPi', mc_tree, thevars, base_selection, 'weight')
+fullmc, sig_efficiency, N_mc = fitu.import_data_from_tree(
+    mc_tree,
+    thevars,
+    dataset_name='mc_DsPhiMuMuPi',
+    full_cut=base_selection,
+    weight = 'weight',
+    verbose = True,
+)
 if args.peak_bkg: fullmc = ROOT.RooDataSet('mc_DsPhiMuMuPi', 'mc_DsPhiMuMuPi', mc_tree, thevars, base_selection) # no weight for peak bkg
-print(f'{ct.RED}[+] MC DATASET  {ct.END}')
 fullmc.Print()
-sig_efficiency = fullmc.sumEntries()/N_mc/fullmc.weight()
+#sig_efficiency = fullmc.sumEntries()/N_mc/fullmc.weight()
 
-# signal PDF : double gaussian + constant
+# signal PDF : resonance + combinatorics
 Mass      = ROOT.RooRealVar('Ds_Mmc' , 'Ds_Mmc' , config.Ds_mass)
 dMass_mc  = ROOT.RooRealVar('dM_mc', 'dM_mc', 0, -0.1, 0.1)
 mean_mc   = ROOT.RooFormulaVar('mean_mc','mean_mc', '(@0+@1)', ROOT.RooArgList(Mass,dMass_mc) )
+
+width_mc  = ROOT.RooRealVar('width_mc',   'width_mc',  0.01,    0.001, 0.1)
 width1_mc = ROOT.RooRealVar('width1_mc',  'width1_mc', 0.05,    0.001, 0.1)
 width2_mc = ROOT.RooRealVar('width2_mc',  'width2_mc', 0.01,    0.001, 0.1)
 
-gfrac       = ROOT.RooRealVar("gfrac", "", 0.2, 0.0, 1.0)
+alphaCB_mc  = ROOT.RooRealVar("alphaCB_mc", "alphaCB_mc", 5.0, 1., 200)
+nCB_mc      = ROOT.RooRealVar('nCB_mc', 'nCB_mc', 50.0, 1. ,100.0)
 
+gfrac       = ROOT.RooRealVar("gfrac", "", 0.2, 0.0, 1.0)
 gaus1_mc    = ROOT.RooGaussian('gaus1_mc', 'gaus1', mass, mean_mc, width1_mc)
 gaus2_mc    = ROOT.RooGaussian('gaus2_mc', 'gaus2', mass, mean_mc, width2_mc)
-gaus_mc     = ROOT.RooGaussian('gaus_mc',  'gaus',  mass, mean_mc, width1_mc)
-# gaussian sum for Ds -> phi pi and single gaussian for peaking bkg
 gsum_mc     = ROOT.RooAddModel('gsum_mc', '', [gaus1_mc, gaus2_mc], [gfrac]) if not args.peak_bkg else gaus1_mc 
 
+gaus_mc     = ROOT.RooGaussian('gaus_mc',  'gaus',  mass, mean_mc, width_mc)
+
+CryBall_mc  = ROOT.RooCBShape('CryBall_mc', 'CryBall_mc', mass, mean_mc, width_mc, alphaCB_mc, nCB_mc)
 nMC = ROOT.RooRealVar('nMC', 'model_DsPhiMuMuPi_norm', fullmc.sumEntries(), 0.001*fullmc.sumEntries(), 3*fullmc.sumEntries())
+
 # MC cobinatorial PDF
 alpha = ROOT.RooRealVar("alpha", "", -1.0, -10, 10)
 expo  = ROOT.RooExponential('expo_bkg', 'expo_bkg', mass, alpha)
 poly  = ROOT.RooPolynomial('flat_bkg', "flat_bkg", mass, ROOT.RooArgList())
-nBflat = ROOT.RooRealVar('nBflat', 'background', 0.5*fullmc.sumEntries(), 0., fullmc.sumEntries())
+nCombMC = ROOT.RooRealVar('nCombMC', 'background', 0.5*fullmc.sumEntries(), 0., fullmc.sumEntries())
 
 # signal + combinatorial
-signal_model = ROOT.RooAddPdf("extMCmodel_DsPhiMuMuPi", "extMCmodel_DsPhiMuMuPi", ROOT.RooArgList(gaus_mc,expo), ROOT.RooArgList(nMC,nBflat))
+signal_model = ROOT.RooAddPdf("extMCmodel_DsPhiMuMuPi", "extMCmodel_DsPhiMuMuPi", ROOT.RooArgList(CryBall_mc,expo), ROOT.RooArgList(nMC,nCombMC))
 # signal fit
 results_gaus = signal_model.fitTo(
     fullmc, 
@@ -155,30 +169,28 @@ fullmc.plotOn(
     ROOT.RooFit.LineWidth(2),
     ROOT.RooFit.FillColor(ROOT.kRed),
 )
-if results_gaus.status() > -1:
+if results_gaus.status() > 1:
     print(f'{ct.RED}[-] fit failed: status {results_gaus.status()}{ct.END}')
 else :
-    sig_curve = signal_model.plotOn(
-        frame,
-        ROOT.RooFit.MoveToBack(),
-    )
-    print('signal chi2 %.2f'%(frame.chiSquare(4)))
     signal_model.paramOn(
         frame,
         ROOT.RooFit.Layout(0.2, 0.50, 0.85),
         ROOT.RooFit.Format("NEU", ROOT.RooFit.AutoPrecision(1)),
     )
     frame.getAttText().SetTextSize(0.03)
-
-c = ROOT.TCanvas("c", "c", 1200, 800)
-ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
-frame.Draw()
-c.SaveAs('%s/mcDsPhiPi_mass_%s.png'%(args.plot_outdir, tag)) 
-c.SaveAs('%s/mcDsPhiPi_mass_%s.pdf'%(args.plot_outdir, tag)) 
-c.SetLogy(1)
-c.SaveAs('%s/mcDsPhiPi_mass_Log_%s.png'%(args.plot_outdir, tag)) 
-c.SaveAs('%s/mcDsPhiPi_mass_Log_%s.pdf'%(args.plot_outdir, tag)) 
-#if (args.peak_bkg): exit()
+    sig_curve = signal_model.plotOn(
+        frame,
+        ROOT.RooFit.MoveToBack(),
+    )
+    fitu.draw_fit_pull(
+        frame, 
+        fitvar = mass, 
+        out_name = '%s/mcDsPhiPi_mass_%s'%(args.plot_outdir, tag), 
+        logy = True
+    )
+    print('signal chi2 %.2f'%(frame.chiSquare(4)))
+    
+if (args.peak_bkg): exit()
 
 # save workspace
 f_out.cd()
@@ -198,17 +210,26 @@ except Exception as e:
 wspace_mc.Write()
 
 #### DATA ####
-
+print(f'{ct.BLUE}[+] DATA DATASET  {ct.END}')
 data_tree = ROOT.TChain(input_tree_name)
 [data_tree.AddFile(f) for f in data_file]
 N_data = data_tree.GetEntries(base_selection) 
 
-datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, base_selection, 'weight')
-print(f'{ct.BLUE}[+] DATA DATASET  {ct.END}')
-datatofit.Print()
-bkg_efficiency = datatofit.sumEntries()/N_data
+#datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, base_selection, 'weight')
+datatofit, bkg_efficiency, N_data = fitu.import_data_from_tree(
+    data_tree,
+    thevars,
+    dataset_name='data_fit',
+    full_cut=base_selection,
+    weight = 'weight',
+    verbose = True,
+)
 
 # Ds -> phi pi signal 
+width  = ROOT.RooRealVar('width',   'width',  width_mc.getVal(), 0.001, 0.05)
+alphaCB_mc.setConstant()
+nCB_mc.setConstant()
+
 width1 = ROOT.RooRealVar('width1',  'width1', width1_mc.getVal(), 0.001, 0.05)
 width2 = ROOT.RooRealVar('width2',  'width2', width2_mc.getVal(), 0.001, width1_mc.getVal())
 dMass  = ROOT.RooRealVar('dM', 'dM', dMass_mc.getVal(), -0.1, 0.1)
@@ -223,10 +244,12 @@ gaus2_data  = ROOT.RooGaussian('gaus2_data', 'gaus2_data', mass, mean, width2)
     #width1.setConstant(True)
     #dMass.setConstant(True)
 gaus_data   = ROOT.RooGaussian('gaus_data',  'gaus_data',  mass, mean, width1)
+CryBall_data = ROOT.RooCBShape('CryBall_data', 'CryBall_data', mass, mean, width, alphaCB_mc, nCB_mc)
 
 #if args.peak_bkg: dMass.setConstant()
 #gsum_data   = ROOT.RooAddModel("gsum_data", "", [gaus1_data, gaus2_data], [gfrac]) if not args.peak_bkg else gaus1_data
-Ds_model = ROOT.RooGaussian('Ds_model', 'Ds_model', mass, mean, width1)
+#Ds_model = ROOT.RooGaussian('Ds_model', 'Ds_model', mass, mean, width1)
+Ds_model = CryBall_data
 # background PDF
 # + D+ -> phi pi
 massDp   = ROOT.RooRealVar('massDp' , 'mass_Dp' , config.D_mass)
@@ -272,11 +295,6 @@ datatofit.plotOn(
 results = full_model.fitTo(datatofit, ROOT.RooFit.Range('fit_range'), ROOT.RooFit.Save())
 full_model.plotOn(
     frame_b, 
-    ROOT.RooFit.LineColor(ROOT.kBlue),
-    ROOT.RooFit.MoveToBack(),
-)
-full_model.plotOn(
-    frame_b, 
     ROOT.RooFit.Components(Ds_model.GetName()),
     ROOT.RooFit.LineColor(ROOT.kRed),
 )
@@ -300,15 +318,17 @@ text_Nb.SetTextSize(0.035)
 frame_b.addObject(text_NDs)
 if not args.peak_bkg: frame_b.addObject(text_NDp)
 frame_b.addObject(text_Nb)
-
-c2 = ROOT.TCanvas("c2", "c2", 1200, 800)
-ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
-frame_b.Draw()
-c2.SaveAs('%s/DsPhiPi_mass_%s.png'%(args.plot_outdir, tag)) 
-c2.SaveAs('%s/DsPhiPi_mass_%s.pdf'%(args.plot_outdir, tag)) 
-c2.SetLogy(1)
-c2.SaveAs('%s/DsPhiPi_mass_log_%s.png'%(args.plot_outdir, tag)) 
-c2.SaveAs('%s/DsPhiPi_mass_log_%s.pdf'%(args.plot_outdir, tag)) 
+full_model.plotOn(
+    frame_b, 
+    ROOT.RooFit.LineColor(ROOT.kBlue),
+    #ROOT.RooFit.MoveToBack(),
+)
+fitu.draw_fit_pull(
+    frame_b,
+    fitvar = mass,
+    out_name = '%s/DsPhiPi_mass_%s'%(args.plot_outdir, tag),
+    logy = True
+)
 
 print(f'\n\n {ct.BOLD} ------------ SUMMARY ------------{ct.END}')
 print('base_selection    = \n %s'%base_selection)

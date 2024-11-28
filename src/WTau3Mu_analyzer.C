@@ -10,9 +10,9 @@ void WTau3Mu_analyzer::Loop(){
    const Long64_t Nbreak = nentries + 10; 
    const Long64_t Nprint = (int)(nentries/20.);
 
-   unsigned int nEvTau3Mu =0, nTriggerBit = 0, nEvTriggerFired_Tau3Mu = 0, nEvTriggerFired_DoubleMu = 0, nEvTriggerFired_Total = 0, nEvReinforcedHLT = 0, nEvDiMuResVeto = 0;
-   unsigned int nTauFired3Mu = 0, nTauReinforcedHLT = 0, nTauDiMuonVeto = 0, nTauMCmatched = 0;
-   bool flag_HLT_Tau3mu = false, flag_HLT_DoubleMu = false, flag_reinfHLT = true, flag_diMuResVeto =true;
+   unsigned int nEvTau3Mu =0, nTriggerBit = 0, nEvTauMediumID = 0, nEvTriggerFired_Tau3Mu = 0, nEvTriggerFired_DoubleMu = 0, nEvTriggerFired_Total = 0, nEvReinforcedHLT = 0, nEvDiMuResVeto = 0;
+   unsigned int nTauMediumID = 0, nTauFired3Mu = 0, nTauReinforcedHLT = 0, nTauDiMuonVeto = 0, nTauMCmatched = 0;
+   bool flag_MediumID = false, flag_HLT_Tau3mu = false, flag_HLT_DoubleMu = false, flag_reinfHLT = true, flag_diMuResVeto =true;
 
    Long64_t nbytes = 0, nb = 0;
    for (Long64_t jentry=0; jentry<nentries;jentry++) {
@@ -69,6 +69,7 @@ void WTau3Mu_analyzer::Loop(){
       if (isMC_) applyPUreweight();
 
       // --- loop on TAU candidates
+      flag_MediumID = false;
       flag_HLT_Tau3mu = false; flag_HLT_DoubleMu = false;
       flag_reinfHLT = true; flag_diMuResVeto = true;
       tau_mu12_M = -1.0; tau_mu23_M = -1.0; tau_mu13_M = -1.0;
@@ -80,6 +81,7 @@ void WTau3Mu_analyzer::Loop(){
          if(debug && nTauTo3Mu > 1) std::cout << " + tau cand with mT " << TauPlusMET_Tau_Puppi_mT[t] << std::endl; 
          // ------- muons MediumID ------
          if(!RecoPartFillP4(t)) continue;
+         flag_MediumID = true; nTauMediumID++;
 
          // ------- HLT matching ------
          //  HLT_DoubleMu4_3_LowMass scale factor included in TriggerMatching()
@@ -204,6 +206,7 @@ void WTau3Mu_analyzer::Loop(){
       }// loop on tau cands
 
       // HLT summary
+      if(flag_MediumID) nEvTauMediumID++;
       if(flag_HLT_Tau3mu) nEvTriggerFired_Tau3Mu++;
       if(flag_HLT_DoubleMu) nEvTriggerFired_DoubleMu++;
       if(flag_HLT_DoubleMu || flag_HLT_Tau3mu) nEvTriggerFired_Total++;
@@ -213,18 +216,20 @@ void WTau3Mu_analyzer::Loop(){
 
    saveOutput();
    std::cout << " == summary == " << std::endl;
-   std::cout << " Events processed "                     << Nevents << std::endl;
-   std::cout << " Events whith Tau3Mu candidates "       << nEvTau3Mu << std::endl;
-   std::cout << " Events whith HLT-bit ON "              << nTriggerBit << std::endl;
-   std::cout << " Events which fully fired HLT_Tau3Mu "  << nEvTriggerFired_Tau3Mu << std::endl;
-   std::cout << " Events which fully fired HLT_DoubleMu " << nEvTriggerFired_DoubleMu << std::endl;
-   std::cout << " Events which fully fired TOTAL " << nEvTriggerFired_Total << std::endl;
-   std::cout << " Events after di-muon resonance veto " << nEvDiMuResVeto << std::endl;
-   std::cout << " Events after HLT_DoubleMu reinforcement " << nEvReinforcedHLT << std::endl;
-   std::cout << " Tau candidates with 3 fired muons " << nTauFired3Mu << std::endl;
-   std::cout << " Tau candidates after diMu veto " << nTauDiMuonVeto << std::endl;
-   std::cout << " Tau candidates after HLT_DoubleMu reinforcement " << nTauReinforcedHLT << std::endl;
-   if(isMC_) std::cout << " Tau candidates MC-matching " << nTauMCmatched << std::endl;
+   std::cout << " Events processed "                        << Nevents << std::endl;
+   std::cout << " Events -> Tau3Mu candidates "             << nEvTau3Mu << std::endl;
+   std::cout << " Events -> HLT-bit ON "                    << nTriggerBit << std::endl;
+   std::cout << " Events -> passed MediumID "               << nEvTauMediumID << std::endl;
+   std::cout << " Events -> fully fired HLT_Tau3Mu "        << nEvTriggerFired_Tau3Mu << std::endl;
+   std::cout << " Events -> fully fired HLT_DoubleMu "      << nEvTriggerFired_DoubleMu << std::endl;
+   std::cout << " Events -> fully fired TOTAL "             << nEvTriggerFired_Total << std::endl;
+   std::cout << " Events -> di-muon resonance veto "        << nEvDiMuResVeto << std::endl;
+   std::cout << " Events -> HLT_DoubleMu reinforcement "    << nEvReinforcedHLT << std::endl;
+   std::cout << " Tau candidates -> MediumID "              << nTauMediumID << std::endl;
+   std::cout << " Tau candidates -> 3 fired muons "         << nTauFired3Mu << std::endl;
+   std::cout << " Tau candidates -> diMu veto "             << nTauDiMuonVeto << std::endl;
+   std::cout << " Tau candidates -> HLT_DoubleMu reinf. "   << nTauReinforcedHLT << std::endl;
+   if(isMC_) std::cout << " Tau candidates MC-matching "    << nTauMCmatched << std::endl;
 
 
 }//Loop()

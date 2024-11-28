@@ -77,7 +77,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       bool isMC_;
       int TauTo3Mu_MCmatch_idx;
       // HLT paths
-      HLT_paths HLTconf_ = HLT_overlap;  // HLT_DoubleMu, HLT_Tau3Mu, HLT_overlap
+      HLT_paths HLTconf_ = HLT_paths::HLT_overlap;  // HLT_DoubleMu, HLT_Tau3Mu, HLT_overlap
 
       // blinding parameters
       bool isBlind_ = false;

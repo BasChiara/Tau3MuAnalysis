@@ -104,8 +104,8 @@ uncorrelated_systematics = {
     '2023'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/2023_sysJson.json'),
 }
 shape_systematics = {
-    '2022'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/signal_model/signal_shape_comparison_2022.json'),
-    '2023'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/signal_model/signal_shape_comparison_2023.json'),
+    '2022'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/signal_model/signal_shape_comparison_2022_reviewANv3.json'),
+    '2023'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/signal_model/signal_shape_comparison_2023_reviewANv3.json'),
 }
 LxySign_cut_systematics ={
    '2022' : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/LxyS_efficiency/LxyS_efficiency_2022.json'),

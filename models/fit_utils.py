@@ -92,9 +92,9 @@ def import_data_from_tree(tree, thevars, dataset_name = 'data', base_cut = '1', 
     
     return data, efficiency, nentries
 
-def get_pull(fit_var, frame, pull_range = 5.0, title = 'Pull Distribution'):
+def get_pull(fit_var, frame, pull_range = 5.0, curve_name= '', title = 'Pull Distribution'):
 
-    h_pull = frame.residHist('', '', True) # (histo_name, curve_name, normalize, average)
+    h_pull = frame.residHist('', curve_name, True) # (histo_name, curve_name, normalize, average)
     #h_pull = frame.pullHist()
     h_pull.setYAxisLimits(-pull_range, pull_range)
     
@@ -104,7 +104,7 @@ def get_pull(fit_var, frame, pull_range = 5.0, title = 'Pull Distribution'):
 
 def draw_fit_pull(frame_fit, frame_pull= None, fitvar = None, out_name = 'Pull Distribution', logy = False):
     # create canvas
-    c = ROOT.TCanvas('c', 'c', 800, 1000)
+    c = ROOT.TCanvas('c', 'c', 1024, 1024)
     c.cd()
     up_pad = ROOT.TPad("up_pad", "", 0., 0.30, 1.0,1.0) #xlow, ylow, xup, yup (mother pad reference system)
     up_pad.SetMargin(0.15, 0.1,0.0,0.1) # left, right, bottom, top
@@ -135,7 +135,7 @@ def draw_fit_pull(frame_fit, frame_pull= None, fitvar = None, out_name = 'Pull D
     c.SaveAs(out_name+'.png')
     c.SaveAs(out_name+'.pdf')
     if logy:
-        up_pad.setLogy()
+        up_pad.SetLogy()
         c.SaveAs(out_name+'_log.png')
         c.SaveAs(out_name+'_log.pdf')
     c.Close()

@@ -152,11 +152,11 @@ input_tree_name = 'tree_w_BDT'
 if args.signal:
     mc_file = [args.signal]
 else:
-    mc_file     = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output//XGBout_DsPhiMuMuPi_MC_Optuna_HLT_overlap_LxyS2.1_2024Jul11.root' ]
+    mc_file     = [ config.mc_bdt_samples['DsPhiMuMuPi'] ]
 if args.data:
     data_file = [args.data]
 else:
-    data_file   = [ '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output//XGBout_DsPhiMuMuPi_DATA_Optuna_HLT_overlap_LxyS2.1_2024Jul11.root' ]
+    data_file   = [ config.data_bdt_samples['DsPhiMuMuPi'] ]
 
 # signal MC 
 mc_tree = ROOT.TChain(input_tree_name)
