@@ -19,9 +19,11 @@ class GenLevel_analyzer : public GenLevel_base{
     private:
         bool debug_ = false;
     
-        const double minLepton_pT_  = 25.0; // GeV
-        const double maxLepton_eta_ = 2.4;
-        const double Vmass_tolerance = 15.0; // GeV
+        const double minLepton_pT_      = 25.0; // GeV
+        const double maxLepton_eta_     = 2.4;
+        const double Vmass_tolerance    = 15.0; // GeV
+        const double minZ_rapidity_     = 2.4;
+        const double maxZ_pT_           = 1500.0; // GeV
 
         // gen particle P4 
         ROOT::Math::PtEtaPhiMVector GenV_P4;

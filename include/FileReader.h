@@ -30,6 +30,8 @@ class FileReader{
       TChain* outChain_;
       std::string inputFileName_;
       TString xrootd_prefix_ = "root://cms-xrd-global.cern.ch//";
+      //TString xrootd_prefix_ = "root://xrootd-cms.infn.it//";
+      //TString xrootd_prefix_ = "root://eoscms.cern.ch//";
 
       char Buffer[5000];
       std::string NtupleDir;

@@ -69,7 +69,7 @@ ey = []
 for entry in data['values']:
     x_high = float(entry['x'][0]['high'])
     x_low  = float(entry['x'][0]['low'])
-    if x_high > 150 : continue
+    #if x_high > 150 : continue
     x.append((x_high + x_low)/2)
     bins.append(x_low)
     ex.append((x_high - x_low)/2)
@@ -79,8 +79,8 @@ for entry in data['values']:
 
     print(f"bin: {x_low} - {x_high} - xsec: {y[-1]} +/- {ey[-1]} pb")
 N_bins = len(x)
-bins[0] = 0.1
-bins.append(150)
+bins[0] = 0.3
+bins.append(1500)
 x = np.array(x, dtype=float)
 bins = np.array(bins, dtype=float)
 

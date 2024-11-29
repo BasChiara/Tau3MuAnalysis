@@ -25,6 +25,28 @@ def style_hist(h, color, marker = 20, norm = False):
         h.Scale(1, "width")
         h.Scale(1./h.Integral())
 
+def plot_comparison(h_num, h_den, y_name = 'MC/Data', legend_dict = None , ratio_yw = 0.5, outname = 'plot'):
+    # TLegend
+    legend = ROOT.TLegend(0.50, 0.65, 0.85, 0.85)
+    legend.SetBorderSize(0)
+    legend.SetFillStyle(0)
+    legend.AddEntry(h_num, legend_dict[h_num.GetName()], "lep")
+    legend.AddEntry(h_den, legend_dict[h_den.GetName()], "lep")
+    plotting_tools.ratio_plot(
+        histo_num=[h_num],
+        histo_den=h_den,
+        x_lim=[0.1, 1500],
+        ratio_w = ratio_yw,
+        ratio_yname = y_name,
+        draw_opt_num="E1",
+        draw_opt_den="E1",
+        to_ploton=[legend],
+        log_x=True,
+        file_name=outname,
+    )
+    del legend
+
+
 infile = ROOT.TFile("ZvsW_pT.root")
 h_Zll_data = infile.Get("h_Zll_data")
 h_Zll_data.SetDirectory(0)
@@ -36,10 +58,19 @@ h_Wlnu_Run3 = infile.Get("h_Wlnu_Run3")
 h_Wlnu_Run3.SetDirectory(0)
 infile.Close()
 
-infile_prova = ROOT.TFile("/afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/GenLevel_analyzer.root")
+infile_prova = ROOT.TFile("/afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/GenLevel_analyzer_MiniAODv2.root")
 h_Zll_Run2_skimmed = infile_prova.Get("h_V_pT")
 h_Zll_Run2_skimmed.SetDirectory(0)
 infile_prova.Close()
+h_Zll_Run2_skimmed.SetName("h_Zll_Run2_skimmed")
+
+legend_dict = {
+    'h_Zll_data' : "Z->ll data",
+    'h_Zll_Run2' : "Z->ll NLO @ 13 TeV",
+    'h_Zll_Run3' : "Z->ll NLO @ 13.6 TeV",
+    'h_Wlnu_Run3' : "W->lnu NLO @ 13.6 TeV",
+    'h_Zll_Run2_skimmed' : "Z->ll NLO @ 13 TeV skimmed",
+}
 
 # style the histograms
 style_hist(h_Zll_data, ROOT.kBlack, 20, norm=False)
@@ -47,76 +78,55 @@ h_Zll_data.Scale(1./h_Zll_data.Integral())
 style_hist(h_Zll_Run2, ROOT.kRed, 20, norm=True)
 style_hist(h_Zll_Run3, ROOT.kBlue, 20, norm=True)
 style_hist(h_Wlnu_Run3, ROOT.kGreen+3, 20, norm=True)
-
 style_hist(h_Zll_Run2_skimmed, ROOT.kViolet+2, 20, norm=True)
 
-# TLegend
-legend = ROOT.TLegend(0.50, 0.65, 0.85, 0.85)
-legend.SetBorderSize(0)
-legend.SetFillStyle(0)
+
 
 # plot  Z->ll data VS MC NLO @ 13 TeV
-legend.AddEntry(h_Zll_data, "Z->ll data", "lep")
-legend.AddEntry(h_Zll_Run2, "Z->ll NLO @ 13 TeV", "lep")
-plotting_tools.ratio_plot(
-    histo_num=[h_Zll_Run2],
-    histo_den=h_Zll_data,
-    x_lim=[1., 150],
-    ratio_w = 0.5,
-    ratio_yname = "aMC@NLO/Data",
-    draw_opt_num="E1",
-    draw_opt_den="E1",
-    to_ploton=[legend],
-    log_x=True,
-    file_name="Zll_dataVSmcNLO_Run2",
-)
-legend.Clear()
-
+plot_comparison(
+    h_num= h_Zll_Run2, 
+    h_den = h_Zll_data, 
+    y_name = 'aMC@NLO/Data', 
+    legend_dict = legend_dict, 
+    outname = 'Zll_dataVSmcNLO_Run2'
+    )
+# plot  Z->ll data VS skimmed MC NLO @ 13 TeV
+plot_comparison(
+    h_num= h_Zll_Run2_skimmed, 
+    h_den = h_Zll_data, 
+    y_name = 'aMC@NLO/Data', 
+    legend_dict = legend_dict, 
+    outname = 'Zll_dataVSmcNLOskmd_Run2'
+    )
+# plot  Z->ll data VS MC NLO @ 13.6 TeV
+plot_comparison(
+    h_num= h_Zll_Run3, 
+    h_den = h_Zll_data, 
+    y_name = 'aMC@NLO/Data', 
+    legend_dict = legend_dict, 
+    outname = 'Zll_dataVSmcNLO_Run3'
+    )
 # plot Z->ll MC NLO @ 13 TeV skimmed VS inclusive
-legend.AddEntry(h_Zll_Run2, "Z->ll inclusive", "lep")
-legend.AddEntry(h_Zll_Run2_skimmed, "Z->ll skimmed", "lep")
-plotting_tools.ratio_plot(
-    histo_num=[h_Zll_Run2_skimmed],
-    histo_den=h_Zll_Run2,
-    x_lim=[1., 150],
-    ratio_w = 0.2,
-    ratio_yname = "skim./incl.",
-    draw_opt_num="E1",
-    draw_opt_den="E1",
-    to_ploton=[legend],
-    log_x=True,
-    file_name="ZllmcNLO_Run2_skimmedVSinclusive",
-)
-legend.Clear()
+plot_comparison(
+    h_num= h_Zll_Run2_skimmed, 
+    h_den = h_Zll_Run2, 
+    y_name = 'skim./incl.', 
+    legend_dict = legend_dict, 
+    outname = 'ZllmcNLO_Run2_skimmedVSinclusive'
+    )
 # plot Z->ll MC NLO @ 13 TeV VS 13.6 TeV
-legend.AddEntry(h_Zll_Run2, "Z->ll NLO @ 13 TeV", "lep")
-legend.AddEntry(h_Zll_Run3, "Z->ll NLO @ 13.6 TeV", "lep")
-plotting_tools.ratio_plot(
-    histo_num=[h_Zll_Run3],
-    histo_den=h_Zll_Run2,
-    ratio_w = 0.5,
-    ratio_yname = "Run3/Run2",
-    x_lim=[1., 150],
-    draw_opt_num="E1",
-    draw_opt_den="E1",
-    to_ploton=[legend],
-    log_x=True,
-    file_name="ZllmcNLO_Run2vsRun3",
-)
-legend.Clear()
+plot_comparison(
+    h_num= h_Zll_Run3,
+    h_den = h_Zll_Run2,
+    y_name = 'Run3 / Run2',
+    legend_dict = legend_dict,
+    outname = 'ZllmcNLO_Run2vsRun3'
+    )
 # plot 13.6 TeV Z->ll VS W->l nu
-legend.AddEntry(h_Zll_Run3, "Z->ll NLO @ 13.6 TeV", "lep")
-legend.AddEntry(h_Wlnu_Run3, "W->l#nu NLO @ 13.6 TeV", "lep")
-plotting_tools.ratio_plot(
-    histo_num=[h_Zll_Run3, h_Wlnu_Run3],
-    histo_den=h_Zll_Run3,
-    ratio_w = 1.0,
-    ratio_yname = "Zll/Wl#nu",
-    x_lim=[1., 150],
-    draw_opt_num="E1",
-    draw_opt_den="E1",
-    to_ploton=[legend],
-    log_x=True,
-    file_name="ZllvsWlnu_nloRun3",
-)
-legend.Clear()
+plot_comparison(
+    h_num= h_Zll_Run3, 
+    h_den = h_Wlnu_Run3, 
+    y_name = 'Zll/Wl#nu', 
+    legend_dict = legend_dict, 
+    outname = 'ZllvsWlnu_nloRun3'
+    )

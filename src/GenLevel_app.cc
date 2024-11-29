@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
    bool isMC = false;
    FileReader file_loader = FileReader(inputFileName);
 
-	if(dataset.Contains("data",TString::kIgnoreCase) || dataset.Contains("mc",TString::kIgnoreCase )){
+	if(dataset.Contains("data",TString::kIgnoreCase) || dataset.Contains("mc",TString::kIgnoreCase)){
       chain = file_loader.fileListTChain_loader(Nfiles);
    }else if (dataset.Contains(".root")) 
       chain->Add(TString(inputFileName));
