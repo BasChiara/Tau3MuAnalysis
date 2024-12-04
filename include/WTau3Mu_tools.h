@@ -41,7 +41,7 @@ class WTau3Mu_tools : public WTau3Mu_base{
    int     MCtruthMatching(const bool verbose = false);
    void    GenPartFillP4();
    int     GenPartFillP4_Z();
-   int     TauIdx_radiative(const int prod_idx, const int VpdgId=24);
+   int     search_radiativeDecay(const int prod_idx, const int Mother_pdgId= isZ, const int Daugh_pdgId = isTau);
    int     GenTauDecayMode(const int tau_idx);
    std::vector<int> Gen3Mu_FindSort();
    std::vector<int> sortMu_pT(const std::vector<int>& muons);

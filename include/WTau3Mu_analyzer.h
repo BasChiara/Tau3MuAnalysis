@@ -3,6 +3,7 @@
 
 #include "WTau3Mu_tools.h"
 #include <cmath>
+#include <vector>
 
 class WTau3Mu_analyzer : public WTau3Mu_tools{
 
@@ -68,6 +69,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       virtual void Loop();
       void    fakeDs_mass(const int& cand_idx);
       void    outTreeSetUp();
+      void    efficiencyTreeFill(std::vector< std::pair<TString,unsigned int*> > events);
       void    saveOutput();
 
    private:
@@ -92,7 +94,9 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       TString outFilePath_;
       TFile*  outFile_;
       TTree*  outTree_;
+      TTree*  effTree_;
       const TString outTree_name_ = "WTau3Mu_tree";
+      const TString effTree_name_ = "efficiency";
 
       // TTree branches
       UInt_t LumiBlock, Run;
@@ -146,6 +150,10 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       float W_pt, W_eta_min, W_eta_max, W_phi;
       float W_Deep_pt, W_Deep_eta_min, W_Deep_eta_max, W_Deep_phi;
       float W_mass_nominal, W_mass_min, W_mass_max;
+      // Z 
+      float Z_gen_mass, Z_gen_pt, Z_gen_eta, Z_gen_phi;
+
+
       // * fake rate *
       float tau_phiMuMu_mass, tau_MuMuPi_mass;
 

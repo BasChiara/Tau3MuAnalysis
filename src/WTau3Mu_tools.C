@@ -301,12 +301,9 @@ std::vector<int> WTau3Mu_tools::Gen3Mu_FindSort(){
       } 
    }// loop on gen particles
 
-   if ((mu1<0)||(mu2<0)||(mu3<0)) {
-      std::cerr << " [ERROR] tau->3mu not found" << std::endl;
-      return Muons_idxs;
-   }
    Muons_idxs.push_back(mu1); Muons_idxs.push_back(mu2); Muons_idxs.push_back(mu3);
-   Muons_idxs = sortMu_pT(Muons_idxs);
+   if ((mu1<0)||(mu2<0)||(mu3<0)) std::cerr << " [ERROR] tau->3mu not found" << std::endl;
+   else Muons_idxs = sortMu_pT(Muons_idxs);
    
    return Muons_idxs;
 
@@ -444,22 +441,20 @@ void  WTau3Mu_tools::GenPartFillP4(){
 
 } // GenPartFillP4()
 
-int WTau3Mu_tools::TauIdx_radiative(const int prod_idx, const int VpdgId){
-   // check if the tau is the mother or if there is a radiative decay
+int WTau3Mu_tools::search_radiativeDecay(const int prod_idx, const int Mother_pdgId, const int Daugh_pdgId){
+   // check wether there is a radiative decay
+   int first_part_idx = prod_idx;
    int mother_idx = GenPart_genPartIdxMother[prod_idx];
-   int granny_idx = GenPart_genPartIdxMother[mother_idx];
-   bool found_tau = abs(GenPart_pdgId[mother_idx]) == isTau && abs(GenPart_pdgId[granny_idx]) == VpdgId;
-   int tau_idx = found_tau ? mother_idx : -1;
-   while (tau_idx < 0){
+   
+   bool found_daugh = abs(GenPart_pdgId[first_part_idx]) == Daugh_pdgId && abs(GenPart_pdgId[mother_idx]) == Mother_pdgId;
+   while (!found_daugh){//(tau_idx < 0){
+      first_part_idx = mother_idx;
       mother_idx = GenPart_genPartIdxMother[mother_idx];
-      granny_idx = GenPart_genPartIdxMother[mother_idx];
-      if (mother_idx < 0 || granny_idx < 0) break;
-      
-      found_tau = abs(GenPart_pdgId[mother_idx]) == isTau && abs(GenPart_pdgId[granny_idx]) == VpdgId;
-      tau_idx = found_tau ? mother_idx : -1;
+      if (mother_idx < 0) break;
+      found_daugh = abs(GenPart_pdgId[first_part_idx]) == Daugh_pdgId && abs(GenPart_pdgId[mother_idx]) == Mother_pdgId && (GenPart_statusFlags[mother_idx] & (1<<13));
    }
-   return tau_idx;
-}//TauIdx_radiative()
+   return first_part_idx;
+}//search_radiativeDecay()
 
 int WTau3Mu_tools::GenTauDecayMode(const int tau_idx){
    int decay_mode = TauDecayMode::UNDEFINED, pdgId = -1;
@@ -494,19 +489,23 @@ int WTau3Mu_tools::GenPartFillP4_Z(){
    // tau->3mu side
    std::vector<int> tau3muons_idxs = Gen3Mu_FindSort();
    if (tau3muons_idxs.size() < 3) return oppositeTau_mode;
-   tau3mu_idx = GenPart_genPartIdxMother[tau3muons_idxs[0]];
-   tau3mu_origin_idx = TauIdx_radiative(tau3mu_idx, isZ);
+   if (tau3muons_idxs[0] < 0 || tau3muons_idxs[1] < 0 || tau3muons_idxs[2] < 0) return oppositeTau_mode;
 
-   // opposite side
-   if (debug) std::cout << "g \t PDGid \t mother_idx \t pT(GeV) " << tau3mu_idx << std::endl;
+   tau3mu_idx = GenPart_genPartIdxMother[tau3muons_idxs[0]];
+   tau3mu_origin_idx = search_radiativeDecay(tau3mu_idx, isZ);
+
+   // opposite side tau
+   if (debug) std::cout << "g \t PDGid \t mother_idx \t pT(GeV) " << std::endl;
    for (int g = 0; g < nGenPart; g++){
       if (debug) std::cout << g << " \t " << GenPart_pdgId[g] << " \t " << GenPart_genPartIdxMother[g] << " \t" << GenPart_pt[g] << std::endl;
       
-      if (GenPart_statusFlags[g] & (1<<4) 
-      && GenPart_genPartIdxMother[g] != tau3mu_idx)
+      if (GenPart_statusFlags[g] & (1<<4)
+         && GenPart_genPartIdxMother[g] != tau3mu_idx
+         && (abs(GenPart_pdgId[GenPart_genPartIdxMother[GenPart_genPartIdxMother[g]]]) == isTau || abs(GenPart_pdgId[GenPart_genPartIdxMother[GenPart_genPartIdxMother[g]]]) == isZ)
+      )
       { // isTauDecayProduct
          tau_opposite_idx = GenPart_genPartIdxMother[g];
-         tau_opposite_origin_idx = TauIdx_radiative(g, isZ);
+         tau_opposite_origin_idx = search_radiativeDecay(tau_opposite_idx, isZ);
       }
    }// loop on gen particles
    oppositeTau_mode = GenTauDecayMode(tau_opposite_idx);
@@ -514,16 +513,16 @@ int WTau3Mu_tools::GenPartFillP4_Z(){
    
    // fill P4
    int Mu1_idx = tau3muons_idxs[0], Mu2_idx = tau3muons_idxs[1], Mu3_idx = tau3muons_idxs[2];
-   GenZ_P4.SetPt(GenPart_pt[Z_idx]); GenZ_P4.SetEta(GenPart_eta[Z_idx]); GenZ_P4.SetPhi(GenPart_phi[Z_idx]); GenZ_P4.SetM(W_MASS);
+   GenZ_P4.SetPt(GenPart_pt[Z_idx]); GenZ_P4.SetEta(GenPart_eta[Z_idx]); GenZ_P4.SetPhi(GenPart_phi[Z_idx]); GenZ_P4.SetM((GenPart_mass[Z_idx] > 0 ? GenPart_mass[Z_idx] : Z_MASS));
    GenTau_P4.SetPt(GenPart_pt[tau3mu_idx]); GenTau_P4.SetEta(GenPart_eta[tau3mu_idx]); GenTau_P4.SetPhi(GenPart_phi[tau3mu_idx]); GenTau_P4.SetM(Tau_MASS);
    GenMu1_P4.SetPt(GenPart_pt[Mu1_idx]); GenMu1_P4.SetEta(GenPart_eta[Mu1_idx]); GenMu1_P4.SetPhi(GenPart_phi[Mu1_idx]); GenMu1_P4.SetM(Muon_MASS);
    GenMu2_P4.SetPt(GenPart_pt[Mu2_idx]); GenMu2_P4.SetEta(GenPart_eta[Mu2_idx]); GenMu2_P4.SetPhi(GenPart_phi[Mu2_idx]); GenMu2_P4.SetM(Muon_MASS);
    GenMu3_P4.SetPt(GenPart_pt[Mu3_idx]); GenMu3_P4.SetEta(GenPart_eta[Mu3_idx]); GenMu3_P4.SetPhi(GenPart_phi[Mu3_idx]); GenMu3_P4.SetM(Muon_MASS);
    
    if (debug){
-      std::cout << " tau3mu found @ " << tau3mu_idx << std::endl;
+      std::cout << " tau3mu found @ " << tau3mu_idx << " radiative decay from " << tau3mu_origin_idx << std::endl;
       std::cout << " mu1 @ "<< tau3muons_idxs[0] << " mu2 @ "<< tau3muons_idxs[1] << " mu3 @ "<< tau3muons_idxs[2] << std::endl;
-      std::cout << " tau opposite found @ " << tau_opposite_idx << " --> decay mode "<< oppositeTau_mode << std::endl;
+      std::cout << " tau opposite found @ " << tau_opposite_idx << " radiative deacy from "<< tau_opposite_origin_idx  <<" --> decay mode "<< oppositeTau_mode << std::endl;
       std::cout << " Z found @ " << Z_idx << std::endl;
    }
    return oppositeTau_mode;

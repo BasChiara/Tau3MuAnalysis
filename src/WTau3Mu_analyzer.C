@@ -58,6 +58,8 @@ void WTau3Mu_analyzer::Loop(){
          Nu_gen_pt = GenNu_P4.Pt(); Nu_gen_eta = GenNu_P4.Eta(); Nu_gen_phi = GenNu_P4.Phi();
          gen_met_pt = GenMET_pt; gen_met_phi = GenMET_phi;
 
+         Z_gen_mass = GenZ_P4.M(); Z_gen_pt = GenZ_P4.Pt(); Z_gen_eta = GenZ_P4.Eta(); Z_gen_phi = GenZ_P4.Phi();
+
          // --- NLO weights
          NLO_weight = 1.0; NLO_weight_up = 1.0; NLO_weight_down = 1.0;
          if (process_ == "Tau3Mu" || process_ == "W3MuNu") applyNLOreweight(W_gen_pt, W_gen_eta);
@@ -212,8 +214,26 @@ void WTau3Mu_analyzer::Loop(){
       if(flag_HLT_DoubleMu || flag_HLT_Tau3mu) nEvTriggerFired_Total++;
 
    }// loop on events
-   
 
+   // fill efficiency tree
+   std::vector< std::pair<TString, unsigned int*> > efficeincy_report;
+   efficeincy_report.push_back(std::make_pair(TString("Nevents"),&Nevents));
+   efficeincy_report.push_back(std::make_pair(TString("nEvTau3Mu"),&nEvTau3Mu));
+   efficeincy_report.push_back(std::make_pair(TString("nTriggerBit"),&nTriggerBit));
+   efficeincy_report.push_back(std::make_pair(TString("nEvTauMediumID"),&nEvTauMediumID));
+   efficeincy_report.push_back(std::make_pair(TString("nEvTriggerFired_Tau3Mu"),&nEvTriggerFired_Tau3Mu));
+   efficeincy_report.push_back(std::make_pair(TString("nEvTriggerFired_DoubleMu"),&nEvTriggerFired_DoubleMu));
+   efficeincy_report.push_back(std::make_pair(TString("nEvTriggerFired_Total"),&nEvTriggerFired_Total));
+   efficeincy_report.push_back(std::make_pair(TString("nEvDiMuResVeto"),&nEvDiMuResVeto));
+   efficeincy_report.push_back(std::make_pair(TString("nEvReinforcedHLT"),&nEvReinforcedHLT));
+   efficeincy_report.push_back(std::make_pair(TString("nTauMediumID"),&nTauMediumID));
+   efficeincy_report.push_back(std::make_pair(TString("nTauFired3Mu"),&nTauFired3Mu));
+   efficeincy_report.push_back(std::make_pair(TString("nTauDiMuonVeto"),&nTauDiMuonVeto));
+   efficeincy_report.push_back(std::make_pair(TString("nTauReinforcedHLT"),&nTauReinforcedHLT));
+   efficeincy_report.push_back(std::make_pair(TString("nTauMCmatched"),&nTauMCmatched));
+   
+   efficiencyTreeFill(efficeincy_report);
+   // save output
    saveOutput();
    std::cout << " == summary == " << std::endl;
    std::cout << " Events processed "                        << Nevents << std::endl;
@@ -270,6 +290,7 @@ void WTau3Mu_analyzer::saveOutput(){
    outFile_->cd();
 
    outTree_->Write();
+   effTree_->Write();
    if(isMC_){
       // muon ID
       h_muonSF_lowpT->Write();
@@ -292,6 +313,17 @@ void WTau3Mu_analyzer::saveOutput(){
 
 
 }//saveOutput()
+
+void WTau3Mu_analyzer::efficiencyTreeFill(std::vector< std::pair<TString, unsigned int*> > events){
+   effTree_ = new TTree(effTree_name_, "Number of events at each step of the selection");
+   std::cout << " efficiency tree setting up ... " << std::endl;
+
+   for (auto pair: events){
+      effTree_->Branch(pair.first, pair.second, pair.first+"/I");
+   }
+   effTree_->Fill();
+
+}//efficiencyTreeFill()
 
 void WTau3Mu_analyzer::outTreeSetUp(){
     
@@ -433,6 +465,10 @@ void WTau3Mu_analyzer::outTreeSetUp(){
    outTree_->Branch("W_Deep_eta_min",   &W_Deep_eta_min,   "W_Deep_eta_min/F");
    outTree_->Branch("W_Deep_eta_max",   &W_Deep_eta_max,   "W_Deep_eta_max/F");
    outTree_->Branch("W_Deep_phi",       &W_Deep_phi,       "W_Deep_phi/F");
+   outTree_->Branch("Z_gen_mass",       &Z_gen_mass,       "Z_gen_mass/F");
+   outTree_->Branch("Z_gen_pt",         &Z_gen_pt,         "Z_gen_pt/F");
+   outTree_->Branch("Z_gen_eta",        &Z_gen_eta,        "Z_gen_eta/F");
+   outTree_->Branch("Z_gen_phi",        &Z_gen_phi,        "Z_gen_phi/F");
    // * fake rate *
    outTree_->Branch("tau_phiMuMu_mass", &tau_phiMuMu_mass, "tau_phiMuMu_mass/F"); 
    outTree_->Branch("tau_MuMuPi_mass",  &tau_MuMuPi_mass,  "tau_MuMuPi_mass/F"); 

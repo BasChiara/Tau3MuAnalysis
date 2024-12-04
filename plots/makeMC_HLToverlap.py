@@ -5,7 +5,7 @@ import numpy as np
 
 import sys
 sys.path.append('..')
-from mva.config import WTau3Mu_signals, DsPhiPi_signals
+from mva.config import mc_samples, mc_bdt_samples
 
 import argparse
 
@@ -16,7 +16,7 @@ parser.add_argument('--outdir',         default= '/eos/user/c/cbasile/www/Tau3Mu
 parser.add_argument('--tag',            default= '', help='tag to the training')
 parser.add_argument('--debug',          action = 'store_true' ,help='set it to have useful printout')
 parser.add_argument('-y','--year',      choices= ['2022', '2023'], default = '2022')
-parser.add_argument('-p','--process',   choices= ['WTau3Mu', 'W3MuNu', 'DsPhiPi'], default = 'WTau3Mu')
+parser.add_argument('-p','--process',   choices= ['WTau3Mu', 'W3MuNu', 'DsPhiPi', 'ZTau3Mu'], default = 'WTau3Mu')
 
 args = parser.parse_args()
 tag = args.tag
@@ -30,13 +30,8 @@ year_id_dict = {
 
 # -- read inputs
 if not args.input_root:
-    if args.process == 'WTau3Mu':
-        signals = WTau3Mu_signals
-        tree    ='WTau3Mu_tree'
-    elif args.process == 'DsPhiPi':
-        signals = DsPhiPi_signals
-        tree    = 'DsPhiMuMuPi_tree'
-    tree_rdf = ROOT.RDataFrame(tree, signals)
+    signals = mc_samples[args.process]
+    tree_rdf = ROOT.RDataFrame(args.tree, signals)
 else:
     try:
         infile = ROOT.TFile.Open(args.input_root)

@@ -12,20 +12,36 @@ import style.color_text as ct
 
 def get_Nevents(rdf, selection):
     Nraw = rdf.Filter(selection).Count().GetValue()
-    Nweight = rdf.Filter(selection).Sum('weight').GetValue()
+    Nweight = rdf.Filter(selection).Sum('lumi_factor').GetValue()
     return Nraw, Nweight
 
 def plot_WZvsYear(df_list, selection_step_list, var='yield_ratio', exp_WZratio=5.30, y_label=None):
+
+    step_labels = {
+    'nEvTau3Mu' : 'Preselection',
+    'nEvTauMediumID' : r'$\mu$ ID',
+    'nEvTriggerFired_Total' : 'HLT fired',
+    'nEvDiMuResVeto' : r'$\mu\mu$ res. veto',
+    'nEvReinforcedHLT' : 'HLT emul.',
+    'LxyS' : r'$L_{xy}/\sigma}$ cut',
+    'mass_range' : r'$M_{3\mu}$ range',
+    'phi_veto' : r'$\phi \to \mu\mu$ veto',
+    'BDT' : 'BDT'
+}
     fig, ax = plt.subplots()
     ax.axhline(exp_WZratio, color='grey', linestyle='--', label='expected')
     for year in df_list: ax.plot(selection_step_list, df_list[year][var], label=year, marker='o')
+    ax.set_xticklabels([step_labels[step] for step in selection_step_list], rotation=45)
     # add orizontal line for expected ratio  
     ax.legend(loc='upper left')
     ax.grid()
     if not y_label : ax.set_ylabel(f'W/Z {var}', fontsize=14)
     else: ax.set_ylabel(y_label, fontsize=14)
-    ax.set_ylim(0.5*exp_WZratio, 2*exp_WZratio)
+    ax.set_ylim(0.8*exp_WZratio, 1.5*exp_WZratio)
+    #ax.set_yscale('log')
+    fig.tight_layout()
     fig.savefig(f'../outRoot/WvsZ_{var}.png')
+    fig.savefig(f'../outRoot/WvsZ_{var}.pdf')
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument('--process', choices=['WTau3Mu', 'W3MuNu', 'ZTau3Mu'], help='For which process to compute the efficiency breakdown')
@@ -34,6 +50,12 @@ argparser.add_argument('--compareWZ', action='store_true', help='Compare W and Z
 args = argparser.parse_args()
 
 years_list = ['2022preEE', '2022EE', '2023preBPix', '2023BPix']
+preselection_step_list = ['nEvTau3Mu', 
+                          'nEvTauMediumID', 
+                          #'nEvTriggerFired_Total', 
+                          #'nEvDiMuResVeto', 
+                          'nEvReinforcedHLT']
+selection_step_list = preselection_step_list + ['LxyS', 'mass_range', 'phi_veto', 'BDT']
 
 make_csv = not args.compareWZ
 
@@ -42,17 +64,33 @@ if make_csv:
     tree_name = 'WTau3Mu_tree'
 
     for i, year in enumerate(years_list):
-        sample = samples[i]
 
         N_raw = np.array([], dtype=int)
-        N_w = np.array([], dtype=float) 
+        N_w = np.array([], dtype=float)
+
+        # efficency @ preselection
+        process = 'Tau3Mu' if args.process == 'WTau3Mu' else args.process
+        preselection_file = f'../outRoot/WTau3Mu_MCanalyzer_{year}_HLT_overlap_on{process}.root'
+        if not os.path.isfile(preselection_file):
+            print(f'{ct.color_text.RED}ERROR: file {preselection_file} does not exist{ct.color_text.END}')
+            exit(-1)
         
+        eff_rdf = ROOT.RDataFrame('efficiency', preselection_file).AsNumpy()
+        print(f'{ct.color_text.BOLD} -- {year} {ct.color_text.END} : preselection --')
+        [print(f'{step} : {eff_rdf[step][0]}') for step in preselection_step_list ]
+        N_raw = np.append(N_raw, [eff_rdf[step][0] for step in preselection_step_list])
+        N_w  = N_raw    
+        print(N_raw)
+
+
+        sample = samples[i]       
         print(f'{ct.color_text.BOLD} -- {year} {ct.color_text.END} : {sample}  --')
         
         rdf = ROOT.RDataFrame(tree_name, sample).Filter(config.year_selection[year])
 
         N, Nw = get_Nevents(rdf, '1')
-        
+        weight = Nw/N
+        N_w    = N_w*weight
         # - displacement selection
         selection = config.displacement_selection
         N_LxyS, N_LxyS_w       = get_Nevents(rdf, selection)
@@ -93,16 +131,16 @@ if make_csv:
         print('\n\n')
 
         df = pd.DataFrame({'N_raw': N_raw, 'N_w': N_w})
-        df['efficiency'] = df['N_raw']/N
-        df['efficiency_w'] = df['N_w']/Nw
+        df['efficiency'] = df['N_raw']/df['N_raw'][0]
+        df['efficiency_w'] = df['N_w']/df['N_w'][0]
         df.to_csv(f'../outRoot/efficiency_breakdown_{year}_{args.process}.csv', index=False)
 else:
     
     print(f'Comparing W and Z')
 
-    base_eff_W = [0.2362, 0.2341, 0.2277, 0.2257]
-    base_eff_Z = [0.2649, 0.2642, 0.2585, 0.2559]
-    selection_step_list = ['LxyS', 'mass_range', 'phi_veto', 'BDT']
+    base_eff_W = [0.3515, 0.3486, 0.3527, 0.3529]
+    base_eff_Z = [0.3824, 0.3822, 0.3869, 0.3865]
+    
     df_list = []
 
     for i, year in enumerate(years_list):
@@ -114,8 +152,10 @@ else:
         df['efficiencyW'] = W_csv['efficiency_w']*base_eff_W[i]
         df['NZ'] = Z_csv['N_w']
         df['efficiencyZ'] = Z_csv['efficiency_w']*base_eff_Z[i]
-        df['efficiency_ratio'] = W_csv['efficiency_w']/Z_csv['efficiency_w']
+        
+        df['efficiency_ratio'] = df['efficiencyW']/df['efficiencyZ']
         df['yield_ratio'] = W_csv['N_w']/Z_csv['N_w']
+        
         df['effyield_W'] = df['NW']/(df['efficiencyW'])
         df['effyield_Z'] = df['NZ']/(df['efficiencyZ'])
         df['effyield_ratio'] = df['effyield_W']/df['effyield_Z']
