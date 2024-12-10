@@ -804,9 +804,10 @@ int WTau3Mu_tools::applyPUreweight(){
 }//applyPUreweight
 
 
-int WTau3Mu_tools::parseNLOweights(const TString & era){
-
-   TFile * file_weights = new TFile(scale_factor_src::NLOweight_rootfile);
+int WTau3Mu_tools::parseNLOweights(const TString & era, const TString & process){
+   TString in_file = scale_factor_src::NLOweight_W_rootfile;
+   if (process == "ZTau3Mu") in_file = scale_factor_src::NLOweight_Z_rootfile;
+   TFile * file_weights = new TFile(in_file);
    if (file_weights->IsZombie()) {
       std::cerr << "[ERROR] NLO weights file not found" << std::endl;
       return 1;
@@ -835,3 +836,72 @@ int WTau3Mu_tools::applyNLOreweight(const float& W_pt, const float& W_eta){
 
    return 0;
 }//applyNLOreweight
+
+int WTau3Mu_tools::parse_pTVweights(){
+   TFile * file_weights = new TFile(scale_factor_src::pTVweight_rootfile);
+   if (file_weights->IsZombie()) {
+      std::cerr << "[ERROR] pTV weights file not found" << std::endl;
+      return 1;
+   }
+   std::cout << "[+] parse pTV weights from \n " << file_weights->GetName() << std::endl;
+   h_pTVweights          = (TH1D*)((file_weights->Get(scale_factor_src::pTVweights_hist+"_nominal"))->Clone());
+   h_pTVweights->SetDirectory(0);
+
+   file_weights->Close();
+   delete file_weights;
+   return 0;
+}//parse_pTVweights
+
+int WTau3Mu_tools::apply_pTVweights(const float& V_pt){
+
+   int bin = h_pTVweights->FindBin(V_pt);
+   if (bin < 0 ) std::cout << "[INFO] GenW_P4.Pt() outside pTV-weights range" << std::endl;
+   pTV_weight = (bin > 0 ? h_pTVweights->GetBinContent(bin) : 1.0 );
+   return 0;
+}//apply_pTVweights
+
+int WTau3Mu_tools::parse_SFfromTHist(const TString inFile, const TString hist_name, TH1* nominal, TH1* sys_up, TH1* sys_down, bool nominal_only){
+
+   TFile* input_file = new TFile(inFile);
+   if (input_file->IsZombie()) {
+      std::cerr << "[ERROR] file not found" << std::endl;
+      return 1;
+   }
+   std::cout << "[+] parse SF from " << input_file->GetName() << std::endl;
+   nominal = (TH1*)((input_file->Get(hist_name+"_nominal"))->Clone());
+   nominal->SetDirectory(0);
+   if (nominal == nullptr) {
+      std::cerr << "[ERROR] nominal histogram not found" << std::endl;
+      return 1;
+   }
+   if (!nominal_only){
+      sys_up = (TH1*)((input_file->Get(hist_name+"_up"))->Clone());
+      sys_up->SetDirectory(0);
+      sys_down = (TH1*)((input_file->Get(hist_name+"_down"))->Clone());
+      sys_down->SetDirectory(0);
+      if (sys_up == nullptr || sys_down == nullptr) {
+         std::cerr << "[ERROR] sys-histograms not found" << std::endl;
+         return 1;
+      }
+   }
+   input_file->Close();
+   delete input_file;
+
+   return 0;
+
+}//parse_SFfromTHist_1D
+
+float  WTau3Mu_tools::apply_SFfromTHist1D(const double& x, TH1* histo){
+   if (histo == nullptr) {
+      std::cerr << "[ERROR] SF-histogram not provided" << std::endl;
+      return 1;
+   }
+   int bin = histo->FindBin(x); 
+   if (bin < 0) {
+      std::cerr << "[ERROR] value outside histogram range for "<< histo->GetName() << std::endl;
+      return 1;
+   }
+   return (bin > 0 ? histo->GetBinContent(bin) : 1.0);
+   
+}//apply_SFfromTHist
+

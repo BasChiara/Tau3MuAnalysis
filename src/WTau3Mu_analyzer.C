@@ -63,6 +63,10 @@ void WTau3Mu_analyzer::Loop(){
          // --- NLO weights
          NLO_weight = 1.0; NLO_weight_up = 1.0; NLO_weight_down = 1.0;
          if (process_ == "Tau3Mu" || process_ == "W3MuNu") applyNLOreweight(W_gen_pt, W_gen_eta);
+         // --- pT V weights
+         float pT_var = (process_ == "Tau3Mu" || process_ == "W3MuNu" ? W_gen_pt : Z_gen_pt);
+         pTV_weight = 1.0, pTV_weight_up = 1.0, pTV_weight_down = 1.0;
+         pTV_weight_up = apply_SFfromTHist1D(pT_var, h_pTVweights);
       
       }
 
@@ -306,6 +310,8 @@ void WTau3Mu_analyzer::saveOutput(){
       h_NLOweights->Write();
       h_NLOweights_sysUP->Write();
       h_NLOweights_sysDOWN->Write();
+      // pTV weights
+      h_pTVweights->Write();
 
    }
    outFile_->Close();
@@ -358,6 +364,9 @@ void WTau3Mu_analyzer::outTreeSetUp(){
    outTree_->Branch("NLO_weight",               &NLO_weight,               "NLO_weight/F");
    outTree_->Branch("NLO_weight_sysUP",         &NLO_weight_up,            "NLO_weight_sysUP/F");
    outTree_->Branch("NLO_weight_sysDOWN",       &NLO_weight_down,          "NLO_weight_sysDOWN/F");
+   outTree_->Branch("pTV_weight",               &pTV_weight,               "pTV_weight/F");
+   outTree_->Branch("pTV_weight_sysUP",         &pTV_weight_up,            "pTV_weight_sysUP/F");
+   outTree_->Branch("pTV_weight_sysDOWN",       &pTV_weight_down,          "pTV_weight_sysDOWN/F");
    outTree_->Branch("isMCmatching",             &isMCmatching,             "isMCmatching/I");
    // * HLT
    outTree_->Branch("HLT_isfired_Tau3Mu",     &HLT_isfired_Tau3Mu,   "HLT_isfired_Tau3Mu/I");

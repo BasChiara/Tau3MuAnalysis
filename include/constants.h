@@ -268,13 +268,20 @@ namespace scale_factor_src
         {"2023preBPix"    , "myPUweights_GoldenJson_2023preBPix"},
         {"2023BPix"       , "myPUweights_GoldenJson_2023BPix"},
     };
-    // NLO weights
-    inline TString NLOweight_rootfile = base_dir + "corrections/NLO_W/SF_source/W_NLOvsT3m_Run3.root";
+    // NLO weights 
+    // - W channel
+    inline TString NLOweight_W_rootfile = base_dir + "corrections/NLO_W/SF_source/W_NLOvsT3m_Run3.root";
+    // - Z channel
+    inline TString NLOweight_Z_rootfile = base_dir + "corrections/NLO_W/SF_source/Z_NLOvsT3m_Run3.root";
     inline std::map<TString, TString> NLOweights_hist{ 
         {"2022preEE"      , "h_Wgen_2022preEE_ratio_pTeta"},
         {"2022EE"         , "h_Wgen_2022EE_ratio_pTeta"},
         {"2023preBPix"    , "h_Wgen_2023preBPix_ratio_pTeta"},
         {"2023BPix"       , "h_Wgen_2023BPix_ratio_pTeta"},
-    };
+    }; 
+
+    // pT Z and W from data [SMP]
+    inline TString pTVweight_rootfile = base_dir + "corrections/pT_W/SMPinput/pTV_weightsSMP.root";
+    inline TString pTVweights_hist = "pTV_weights";
 }
 #endif

@@ -20,6 +20,7 @@ sys_sources = {
     'mc_stat'       : [[''], 0],
     #'HLT_DoubleMu'  : [['tau_DoubleMu4_3_LowMass_SF'], 0],
     'HLT_Tau3Mu'    : [['HLT_isfired_Tau3Mu'],2],
+    'pT_V'          : [['pTV_weight'], 2],
 }
 
 def HLT_Tau3Mu_sys(rdf):

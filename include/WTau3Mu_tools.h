@@ -16,6 +16,8 @@
 #include "Math/GenVector/PtEtaPhiM4D.h"
 #include "TH2Poly.h"
 #include "TH1D.h"
+#include "TH1.h"
+#include "TH2.h"
 
 
 class WTau3Mu_tools : public WTau3Mu_base{
@@ -69,9 +71,15 @@ class WTau3Mu_tools : public WTau3Mu_base{
    int    parsePUweights(const TString & era = "2022preEE");
    int    applyPUreweight();
    // NLO re-weight
-   int    parseNLOweights(const TString & era = "2022preEE");
+   int    parseNLOweights(const TString & era = "2022preEE", const TString & process = "WTau3Mu");
    int    applyNLOreweight(const float& W_pt, const float& W_eta);
-
+   // pT Z and W from data [SMP]
+   int    parse_pTVweights();
+   int    apply_pTVweights(const float& V_pt);
+   // generic SF
+   int       parse_SFfromTHist(const TString inFile, const TString hist_name, TH1* nominal=nullptr, TH1* sys_up=nullptr, TH1* sys_down=nullptr, bool nominal_only = false);
+   float     apply_SFfromTHist1D(const double& x, TH1* histo);
+   //float    apply_SFfromTHist2D(const float& x, const float& y, const TH2* histo, const bool& is2D = false);
    const std::string muons_IDsf_set_ = "NUM_MediumID_DEN_TrackerMuons";
 
 
@@ -133,6 +141,11 @@ class WTau3Mu_tools : public WTau3Mu_base{
    TH2F* h_NLOweights_sysDOWN    =0;
 
    float NLO_weight, NLO_weight_up, NLO_weight_down;
+
+   // pT Z and W from data [SMP]
+   TH1D* h_pTVweights           = 0;
+
+   float pTV_weight, pTV_weight_up, pTV_weight_down;
 
    private:
    bool debug = false;

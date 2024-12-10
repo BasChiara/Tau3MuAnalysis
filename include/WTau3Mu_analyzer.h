@@ -49,7 +49,9 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
             parseMuonSF(year_, "low");
             parseHLT_SF(year_);
             parsePUweights(year_);
-            parseNLOweights(year_);
+            parseNLOweights(year_, process_);
+            parse_pTVweights();
+            //parse_SFfromTHist(scale_factor_src::pTVweight_rootfile, scale_factor_src::pTVweights_hist, h_pTVweights, nullptr, nullptr, true);
          }
 
          // name and setup the output
