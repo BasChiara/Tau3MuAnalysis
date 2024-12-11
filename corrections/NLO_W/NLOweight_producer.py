@@ -19,10 +19,13 @@ CMS.SetEnergy("13.6 TeV")
 parser = argparse.ArgumentParser()
 parser.add_argument('--input', type=str, default='W_NLOvsT3m_2022EE_demo.root', help='root input file')
 parser.add_argument('--year',  choices=['2022', '2022preEE', '2022EE', '2023', '2023preBPix', '2023BPix'], default='2022preEE', help='year/era of the data')
+parser.add_argument('--Vboson', choices=['W', 'Z'], default='W', help='which V boson to consider')
 parser.add_argument('--output', type=str, default='W_NLOvsT3m_Run3.root', help='root output file')
 parser.add_argument('--debug', action='store_true', help='print debug information')
 args = parser.parse_args()
 print('\n')
+
+V = args.Vboson
 
 input_file = ROOT.TFile(args.input)
 if not input_file:
@@ -35,13 +38,13 @@ h_lo_2D  = input_file.Get(f'h_Wgen_{args.year}_t3m_pTeta')
 h_nlo_2D = input_file.Get(f'h_Wgen_{args.year}_NLO_pTeta')
 ratio2D  = input_file.Get(f'h_Wgen_{args.year}_ratio_pTeta')
 ratio2D.SetDirectory(0)
-ratio2D.SetTitle('W_{gen} NLO/LO SF')
+ratio2D.SetTitle(V+'_{gen} NLO/LO SF')
 ratio2D.SetName(f'h_Wgen_{args.year}_ratio_pTeta_nominal')
-ratio2D_sysUP = ROOT.TH2F(f'h_Wgen_{args.year}_ratio_pTeta_up', 'W_{gen} NLO/LO SF + sys', 
+ratio2D_sysUP = ROOT.TH2F(f'h_Wgen_{args.year}_ratio_pTeta_up', V+'_{gen} NLO/LO SF + sys', 
                           ratio2D.GetNbinsX(), ratio2D.GetXaxis().GetXmin(), ratio2D.GetXaxis().GetXmax(),
                           ratio2D.GetNbinsY(), ratio2D.GetYaxis().GetXmin(), ratio2D.GetYaxis().GetXmax())
 ratio2D_sysUP.SetDirectory(0)
-ratio2D_sysDOWN = ROOT.TH2F(f'h_Wgen_{args.year}_ratio_pTeta_down', 'W_{gen} NLO/LO SF - sys', 
+ratio2D_sysDOWN = ROOT.TH2F(f'h_Wgen_{args.year}_ratio_pTeta_down', V+'_{gen} NLO/LO SF - sys', 
                           ratio2D.GetNbinsX(), ratio2D.GetXaxis().GetXmin(), ratio2D.GetXaxis().GetXmax(),
                           ratio2D.GetNbinsY(), ratio2D.GetYaxis().GetXmin(), ratio2D.GetYaxis().GetXmax()) 
 ratio2D_sysDOWN.SetDirectory(0)
@@ -60,7 +63,7 @@ for i,j in np.ndindex((ratio2D.GetNbinsX(), ratio2D.GetNbinsY())):
 c = CMS.cmsCanvas(
                 canvName = 'c',
                 x_min = 0, x_max = 150, y_min = 0, y_max = 10,
-                nameXaxis = 'W_{gen} p_{T} (GeV)', nameYaxis = "W_{gen} |#eta|",
+                nameXaxis = V+'_{gen} p_{T} (GeV)', nameYaxis = V+"_{gen} |#eta|",
                 square=False ,extraSpace=0.03,
                 iPos=0,
                 with_z_axis=True,
@@ -75,8 +78,8 @@ ratio2D.SetMarkerColor(ROOT.kWhite)
 ratio2D.GetZaxis().SetTitle('NLO/LO')
 CMS.cmsDraw(ratio2D, 'colz text error 0', mcolor = ROOT.kWhite)
 CMS.UpdatePalettePosition(ratio2D, c)
-c.SaveAs(f'plots/W_NLOvsT3m_ratio_{args.year}_2D.png')
-c.SaveAs(f'plots/W_NLOvsT3m_ratio_{args.year}_2D.pdf')
+c.SaveAs(f'plots/{V}_NLOvsT3m_ratio_{args.year}_2D.png')
+c.SaveAs(f'plots/{V}_NLOvsT3m_ratio_{args.year}_2D.pdf')
 c.Close()
 
 # draw 1D ratio
@@ -112,7 +115,7 @@ for obs in obs_list:
         ratio_yname = 'NLO/LO',
         ratio_w = 2.0,
         to_ploton=[legend],
-        file_name = f'plots/W_NLOvsLO_ratio_{args.year}_{obs}', 
+        file_name = f'plots/{V}_NLOvsLO_ratio_{args.year}_{obs}', 
     )
 
 

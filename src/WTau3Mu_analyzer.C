@@ -63,6 +63,7 @@ void WTau3Mu_analyzer::Loop(){
          // --- NLO weights
          NLO_weight = 1.0; NLO_weight_up = 1.0; NLO_weight_down = 1.0;
          if (process_ == "Tau3Mu" || process_ == "W3MuNu") applyNLOreweight(W_gen_pt, W_gen_eta);
+         else if (process_ == "ZTau3Mu") applyNLOreweight(Z_gen_pt, Z_gen_eta);
          // --- pT V weights
          float pT_var = (process_ == "Tau3Mu" || process_ == "W3MuNu" ? W_gen_pt : Z_gen_pt);
          pTV_weight = 1.0, pTV_weight_up = 1.0, pTV_weight_down = 1.0;

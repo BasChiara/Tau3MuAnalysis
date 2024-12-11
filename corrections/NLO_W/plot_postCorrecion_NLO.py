@@ -14,7 +14,7 @@ parser.add_argument('--tag',        default= 'reMini',                          
 parser.add_argument('--debug',      action = 'store_true' ,                     help='set it to have useful printout')
 parser.add_argument('--category',                                   default = 'noCat',help='category to be used')
 parser.add_argument('--year',       choices=['2022', '2023', 'Run3'],       default = '2022', help='year of data-taking')
-parser.add_argument('--process',    choices= ['WTau3Mu', 'W3MuNu', 'data', 'DsPhiMuMuPi', 'fake_rate'],   help='what process is in the input sample')
+parser.add_argument('--process',    choices= ['WTau3Mu', 'ZTau3Mu', 'W3MuNu', 'data', 'DsPhiMuMuPi', 'fake_rate'],   help='what process is in the input sample')
 
 args = parser.parse_args()
 tag = args.tag
@@ -31,15 +31,15 @@ data_rdf    = ROOT.RDataFrame(tree_name, data_files)
 
 # plot variables with PU weights
 vars = ['W_pt', 'W_eta_min', 'W_eta_min', 'tau_fit_pt', 'tau_fit_eta', 'tau_fit_mass']
-labels = ['p_{T}(W) (GeV)', '#eta(W)_{min}', '#eta(W)_{min}', 'p_T(3#mu) (GeV)', '#eta(3#mu)', 'M(3#mu) (GeV)']
+labels = ['p_{T}(W) (GeV)', '#eta(W)_{min}', '#eta(W)_{min}', 'p_{T}(3#mu) (GeV)', '#eta(3#mu)', 'M(3#mu) (GeV)']
 labels = dict(zip(vars, labels))
 vars_bins = {
-    'W_pt'        : [30, 0, 150],
-    'W_eta_min'   : [35, -3.5, 3.5],
-    'W_eta_min'   : [35, -3.5, 3.5],
-    'tau_fit_pt'  : [50, 0, 100],
-    'tau_fit_eta' : [35, -3.5, 3.5],
-    'tau_fit_mass': [40, config.mass_range_lo, config.mass_range_hi],
+    'W_pt'           : [30, 0, 150],
+    'W_eta_min'      : [35, -3.5, 3.5],
+    'W_eta_min'      : [35, -3.5, 3.5],
+    'tau_fit_pt'     : [17, 15, 100],
+    'tau_fit_eta'    : [24, -2.4, 2.4],
+    'tau_fit_mass'   : [30, 1.60, 1.90],
 }
 legend = CMS.cmsLeg(0.6, 0.7, 0.85, 0.85)
 for var in vars:
@@ -55,7 +55,7 @@ for var in vars:
     h_mc_weights.SetLineWidth(2)
     h_mc_noWeights.GetXaxis().SetTitle(labels[var])
 
-    legend.AddEntry(h_mc_noWeights, 'MC', 'l')
+    legend.AddEntry(h_mc_noWeights, 'MC LO', 'l')
     legend.AddEntry(h_mc_weights, 'MC NLO re-weight', 'l')
     # MC only pre/post PU weights
     plotting_tools.ratio_plot_CMSstyle(
@@ -64,7 +64,8 @@ for var in vars:
         draw_opt_num = 'hist',
         draw_opt_den = 'hist',
         ratio_w = 2.0 if ('pt' in var) else 0.5,
-        ratio_yname = 'post/pre',
+        ratio_yname = 'NLO/LO',
+        x_lim = [vars_bins[var][1], vars_bins[var][2]],
         year = args.year,
         to_ploton=[legend],
         file_name = f'{args.plot_outdir}/{var}_MConly_{args.process}_{args.year}_{tag}',

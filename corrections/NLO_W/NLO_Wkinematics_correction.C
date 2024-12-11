@@ -28,22 +28,21 @@ int main(int argc, char* argv[]) {
     gStyle->SetOptStat(0);
 
     std::string xrootd_prefix = "root://cms-xrd-global.cern.ch/";
-    std::string isLastCopy_string = "(GenPart_statusFlags & (1<<13))";
-    int W_pdgID = 24;
-    std::string Wgen_selection = "(fabs(GenPart_pdgId) == " + std::to_string(W_pdgID) + ") && " + isLastCopy_string;
 
     // input parser
     std::string inputList_LO;
     std::string inputList_NLO;
     std::string year;
     std::string outputDir;
+    int V_pdgID;
     po::options_description desc("Allowed options");
     desc.add_options()
-        ("help,h", "USAGE : ./NLO_Wkinematics_correction -lo [nanoAOD_LO_fileList.txt] -nlo [nanoAOD_NLO_fileList.txt] -y [year] -o [outputDir]")
+        ("help,h", "USAGE : ./NLO_Wkinematics_correction -lo [nanoAOD_LO_fileList.txt] -nlo [nanoAOD_NLO_fileList.txt] -y [year] -o [outputDir] -v [V_pdgID]")
         ("lo",          po::value<std::string>(&inputList_LO),      ".txt file with list of LO NanoAOD files")
         ("nlo",         po::value<std::string>(&inputList_NLO),     ".txt file with list of NLO NanoAOD files")
         ("year,y",      po::value<std::string>(&year)->default_value("2022EE"),           "year-era")
-        ("output,o",    po::value<std::string>(&outputDir)->default_value("./plots/"), "output directory");
+        ("output,o",    po::value<std::string>(&outputDir)->default_value("./plots/"), "output directory")
+        ("Vparticle,v",   po::value<int>(&V_pdgID)->default_value(24), "pdgID of the V particle");
     
     po::variables_map vm;
     try {
@@ -58,21 +57,34 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // Vector boson selection @ gen level
+    std::string isLastCopy_string = "(GenPart_statusFlags & (1<<13))";
+    std::string Vgen_selection = "(fabs(GenPart_pdgId) == " + std::to_string(V_pdgID) + ") && " + isLastCopy_string;
+    std::cout << "[i] Vgen_selection : " << Vgen_selection << std::endl;
+    // ***** INPUTS *****
+    int n_files = 0, MAX_FILES = 50;
     // --- read NANOAOD files from txt file
     std::string file_name;
     // tau3mu
     std::ifstream input_t3m_file_list(inputList_LO);
     TChain tree_t3m("Events");
+    n_files = 0;
     while (std::getline(input_t3m_file_list, file_name)) {
         tree_t3m.Add((xrootd_prefix + file_name).c_str());
+        n_files++;
+        if (n_files > MAX_FILES) break;
     }
     std::cout << "[+] LO file has " << tree_t3m.GetEntries() << " entries" << std::endl;
 
     // NLO
+    // -- speed up by reading only the first 50 file
     std::ifstream input_NLO_file_list(inputList_NLO);
     TChain tree_NLO("Events");
+    n_files = 0;
     while (std::getline(input_NLO_file_list, file_name)) {
         tree_NLO.Add((xrootd_prefix + file_name).c_str());
+        n_files++;
+        if (n_files > MAX_FILES) break;
     }
     std::cout << "[+] NLO file has " << tree_NLO.GetEntries() << " entries" << std::endl;
     std::cout << std::endl;
@@ -83,25 +95,25 @@ int main(int argc, char* argv[]) {
     int eta_bins  = 20;
     double eta_lo = 0, eta_hi = 10;
 
-    tree_t3m.Draw(("fabs(GenPart_eta):GenPart_pt>>h_Wgen_"+ year +"_t3m_pTeta(" + std::to_string(pT_bins) + "," + std::to_string(pT_lo) + "," + std::to_string(pT_hi) + "," + std::to_string(eta_bins) + "," + std::to_string(eta_lo) + "," + std::to_string(eta_hi) + ")").c_str(), Wgen_selection.c_str(), "goff");
+    tree_t3m.Draw(("fabs(GenPart_eta):GenPart_pt>>h_Wgen_"+ year +"_t3m_pTeta(" + std::to_string(pT_bins) + "," + std::to_string(pT_lo) + "," + std::to_string(pT_hi) + "," + std::to_string(eta_bins) + "," + std::to_string(eta_lo) + "," + std::to_string(eta_hi) + ")").c_str(), Vgen_selection.c_str(), "goff");
     TH2F* h_Wgen_t3m_pTeta = (TH2F*)gDirectory->Get(Form("h_Wgen_%s_t3m_pTeta", year.c_str()));
-    tree_NLO.Draw(("fabs(GenPart_eta):GenPart_pt>>h_Wgen_"+ year +"_NLO_pTeta(" + std::to_string(pT_bins) + "," + std::to_string(pT_lo) + "," + std::to_string(pT_hi) + "," + std::to_string(eta_bins) + "," + std::to_string(eta_lo) + "," + std::to_string(eta_hi) + ")").c_str(), Wgen_selection.c_str(), "goff");
+    tree_NLO.Draw(("fabs(GenPart_eta):GenPart_pt>>h_Wgen_"+ year +"_NLO_pTeta(" + std::to_string(pT_bins) + "," + std::to_string(pT_lo) + "," + std::to_string(pT_hi) + "," + std::to_string(eta_bins) + "," + std::to_string(eta_lo) + "," + std::to_string(eta_hi) + ")").c_str(), Vgen_selection.c_str(), "goff");
     TH2F* h_Wgen_NLO_pTeta = (TH2F*)gDirectory->Get(Form("h_Wgen_%s_NLO_pTeta", year.c_str()));
     std::cout << "... done with pT VS eta histo" << std::endl;
     // pT
     TH1D* h_Wgen_t3m_pT = h_Wgen_t3m_pTeta->ProjectionX(Form("h_Wgen_%s_t3m_pT", year.c_str()));
     TH1D* h_Wgen_NLO_pT = h_Wgen_NLO_pTeta->ProjectionX(Form("h_Wgen_%s_NLO_pT", year.c_str()));
-    //tree_t3m.Draw(("GenPart_pt>>h_Wgen_t3m_pT(" + std::to_string(pT_bins) + "," + std::to_string(pT_lo) + "," + std::to_string(pT_hi) + ")").c_str(), Wgen_selection.c_str(), "goff");
+    //tree_t3m.Draw(("GenPart_pt>>h_Wgen_t3m_pT(" + std::to_string(pT_bins) + "," + std::to_string(pT_lo) + "," + std::to_string(pT_hi) + ")").c_str(), Vgen_selection.c_str(), "goff");
     //TH1F* h_Wgen_t3m_pT = (TH1F*)gDirectory->Get("h_Wgen_t3m_pT");
-    //tree_NLO.Draw(("GenPart_pt>>h_Wgen_NLO_pT(" + std::to_string(pT_bins) + "," + std::to_string(pT_lo) + "," + std::to_string(pT_hi) + ")").c_str(), Wgen_selection.c_str(), "goff");
+    //tree_NLO.Draw(("GenPart_pt>>h_Wgen_NLO_pT(" + std::to_string(pT_bins) + "," + std::to_string(pT_lo) + "," + std::to_string(pT_hi) + ")").c_str(), Vgen_selection.c_str(), "goff");
     //TH1F* h_Wgen_NLO_pT = (TH1F*)gDirectory->Get("h_Wgen_NLO_pT");
     std::cout << "... done with pT histo" << std::endl;
     // eta
     TH1D* h_Wgen_t3m_eta = h_Wgen_t3m_pTeta->ProjectionY(Form("h_Wgen_%s_t3m_eta", year.c_str()));
     TH1D* h_Wgen_NLO_eta = h_Wgen_NLO_pTeta->ProjectionY(Form("h_Wgen_%s_NLO_eta", year.c_str()));
-    //tree_t3m.Draw(("GenPart_eta>>h_Wgen_t3m_eta(" + std::to_string(eta_bins) + "," + std::to_string(eta_lo) + "," + std::to_string(eta_hi) + ")").c_str(), Wgen_selection.c_str(), "goff");
+    //tree_t3m.Draw(("GenPart_eta>>h_Wgen_t3m_eta(" + std::to_string(eta_bins) + "," + std::to_string(eta_lo) + "," + std::to_string(eta_hi) + ")").c_str(), Vgen_selection.c_str(), "goff");
     //TH1F* h_Wgen_t3m_eta = (TH1F*)gDirectory->Get("h_Wgen_t3m_eta");
-    //tree_NLO.Draw(("GenPart_eta>>h_Wgen_NLO_eta(" + std::to_string(eta_bins) + "," + std::to_string(eta_lo) + "," + std::to_string(eta_hi) + ")").c_str(), Wgen_selection.c_str(), "goff");
+    //tree_NLO.Draw(("GenPart_eta>>h_Wgen_NLO_eta(" + std::to_string(eta_bins) + "," + std::to_string(eta_lo) + "," + std::to_string(eta_hi) + ")").c_str(), Vgen_selection.c_str(), "goff");
     //TH1F* h_Wgen_NLO_eta = (TH1F*)gDirectory->Get("h_Wgen_NLO_eta");
     std::cout << "... done with eta histo" << std::endl;
 
@@ -119,7 +131,11 @@ int main(int argc, char* argv[]) {
     h_Wgen_ratio->Divide(h_Wgen_t3m_pTeta);
 
     // --- save to file
-    std::string output_file_name = outputDir + "/W_NLOvsT3m_" + year + ".root";
+    std::cout << "[i] saving to file" << std::endl;
+    std::string Vboson = "V";
+    if (V_pdgID == 24) Vboson = "W";
+    else if (V_pdgID == 23) Vboson = "Z";
+    std::string output_file_name = outputDir + "/"+Vboson+"_NLOvsT3m_" + year + ".root";
     TFile output_file(output_file_name.c_str(), "RECREATE");
     output_file.cd();
     h_Wgen_t3m_pT->Write();

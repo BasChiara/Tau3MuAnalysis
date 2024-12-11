@@ -18,17 +18,25 @@ def main():
     executable = 'NLO_Wkinematics_correction'
     year_era_list = ['2022preEE', '2022EE', '2023preBPix', '2023BPix']
     NLO_file_list = [
-        'WtoLNu-2Jets_Run3Summer22preEENanoAODv12_fileList.txt',
-        'WtoLNu-2Jets_Run3Summer22EENanoAODv12_fileList.txt',
-        'WtoLNu-2Jets_Run3Summer23preBPixNanoAODv12_fileList.txt',
-        'WtoLNu-2Jets_Run3Summer23BPixNanoAODv12_fileList.txt',
+        #'fileLists/WtoLNu-2Jets_Run3Summer22preEENanoAODv12_fileList.txt',
+        #'fileLists/WtoLNu-2Jets_Run3Summer22EENanoAODv12_fileList.txt',
+        #'fileLists/WtoLNu-2Jets_Run3Summer23preBPixNanoAODv12_fileList.txt',
+        #'fileLists/WtoLNu-2Jets_Run3Summer23BPixNanoAODv12_fileList.txt',
+        'fileLists/DYto2L-2Jets_Run3Summer22preEENanoAODv12_fileList.txt',
+        'fileLists/DYto2L-2Jets_Run3Summer22EENanoAODv12_fileList.txt',
+        'fileLists/DYto2L-2Jets_Run3Summer23preBPixNanoAODv12_fileList.txt',
+        'fileLists/DYto2L-2Jets_Run3Summer23BPixNanoAODv12_fileList.txt',
     ]
     NLO_file_dict = dict(zip(year_era_list, NLO_file_list))
     LO_file_list = [
-        'WtoTauNu_Tauto3Mu_Run3Summer22preEENanoAODv12_fileList.txt',
-        'WtoTauNu_Tauto3Mu_Run3Summer22EENanoAODv12_fileList.txt',
-        'WtoTauNu_Tauto3Mu_Run3Summer23preBPixNanoAODv12_fileList.txt',
-        'WtoTauNu_Tauto3Mu_Run3Summer23BPixNanoAODv12_fileList.txt',
+        #'fileLists/WtoTauNu_Tauto3Mu_Run3Summer22preEENanoAODv12_fileList.txt',
+        #'fileLists/WtoTauNu_Tauto3Mu_Run3Summer22EENanoAODv12_fileList.txt',
+        #'fileLists/WtoTauNu_Tauto3Mu_Run3Summer23preBPixNanoAODv12_fileList.txt',
+        #'fileLists/WtoTauNu_Tauto3Mu_Run3Summer23BPixNanoAODv12_fileList.txt',
+        'fileLists/Zto2Tauto3Mu_Run3Summer22preEENanoAODv12_fileList.txt',
+        'fileLists/Zto2Tauto3Mu_Run3Summer22EENanoAODv12_fileList.txt',
+        'fileLists/Zto2Tauto3Mu_Run3Summer23preBPixNanoAODv12_fileList.txt',
+        'fileLists/Zto2Tauto3Mu_Run3Summer23BPixNanoAODv12_fileList.txt',
     ]
     LO_file_dict = dict(zip(year_era_list, LO_file_list))
 
@@ -36,6 +44,7 @@ def main():
     parser = cjm.make_condor_parser( executable= executable )
     # application params
     parser.add_option('--tag',               action='store',            dest='tag',             help='tag that identifies the task')
+    parser.add_option('--V_pdgID',           action='store',            dest='V_pdgID',         help='PDG ID of vector boson W=24 or Z=23',                               default = 'W')
     parser.add_option('--plot_outdir',       action='store',            dest='plot_outdir',     help='copy the output plot in the specified EOS path',          default = '')
     parser.add_option('--debug',             action='store_true',       dest='debug',           help='useful printouts',                                        default = False)
     (opt, args) = parser.parse_args()
@@ -83,13 +92,14 @@ cmsenv
 cd {pwd} 
 echo $PWD\n
 
-./NLO_Wkinematics_correction --lo {f_lo} --nlo {f_nlo} -y {year} -o {out}
+./NLO_Wkinematics_correction --lo {f_lo} --nlo {f_nlo} -y {year} -o {out} -v {pdgID}
     '''.format(
         pwd     = pwd,
         f_lo    = LO_file_dict[year],
         f_nlo   = NLO_file_dict[year],
         year    = year,
-        out     = opt.plot_outdir
+        out     = opt.plot_outdir,
+        pdgID   = opt.V_pdgID
         )
         )
         

@@ -1,0 +1,4 @@
+/store/mc/Run3Summer22EENanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/50000/71a7af60-78a1-4276-922f-a79b87e13968.root
+/store/mc/Run3Summer22EENanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/50000/d26c56d5-7f1a-4c09-9676-8ba4f3d11396.root
+/store/mc/Run3Summer22EENanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/2530000/70fd016b-3c43-4e0a-91ef-4670244caeef.root
+/store/mc/Run3Summer22EENanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2022_realistic_postEE_v6-v2/50000/b769be89-a8d9-43b7-8670-39f0124af9ac.root

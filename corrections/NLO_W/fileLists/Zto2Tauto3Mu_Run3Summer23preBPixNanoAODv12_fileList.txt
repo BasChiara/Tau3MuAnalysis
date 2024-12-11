@@ -1,0 +1,16 @@
+/store/mc/Run3Summer23NanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v3/2820000/2bb68f80-a09c-4eec-9e65-df4a66b06bb8.root
+/store/mc/Run3Summer23NanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v3/2820000/3cc705a1-1560-464e-a5a5-c45080cde540.root
+/store/mc/Run3Summer23NanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v3/2820000/98ac6b10-e552-4adc-8e46-c4194eed3d1f.root
+/store/mc/Run3Summer23NanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v3/2820000/f6d778d2-6d3e-42ed-9f9c-d49395164667.root
+/store/mc/Run3Summer23NanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v3/2820000/75ff556a-b95d-466c-a3da-e806ea018481.root
+/store/mc/Run3Summer23NanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v3/2820000/17ff4d51-cef0-4869-991b-e6ea14c96094.root
+/store/mc/Run3Summer23NanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v3/2820000/cf40bcd2-6a4a-474e-abee-b8ac57031a5e.root
+/store/mc/Run3Summer23NanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v3/2820000/871af5f5-1fcc-43c1-88d7-3c09ca62a844.root
+/store/mc/Run3Summer23NanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v3/2820000/46789818-33c7-4029-85a9-6d294d35e315.root
+/store/mc/Run3Summer23NanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v3/2820000/b8f56750-dc34-4c0c-9b0a-01a757481fd9.root
+/store/mc/Run3Summer23NanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v3/2820000/9f08fb94-c9aa-46d0-b7cf-ba8d639db002.root
+/store/mc/Run3Summer23NanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v3/2820000/1a57e5ee-5a02-4bd9-a203-97ca3940168f.root
+/store/mc/Run3Summer23NanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v3/2820000/f7659b6a-99ce-4528-a95b-a8afec77f55e.root
+/store/mc/Run3Summer23NanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v3/2820000/3f3ed120-e4ee-44a2-b0ae-60225db45a28.root
+/store/mc/Run3Summer23NanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v3/2820000/a8867683-5071-4ba2-b539-6d5d090e3221.root
+/store/mc/Run3Summer23NanoAODv12/Zto2Tauto3Mu_M-60to120_TuneCP5_13p6TeV_pythia8-evtgen/NANOAODSIM/130X_mcRun3_2023_realistic_v14-v3/2820000/06121a19-4ef6-4acc-8b34-27d46699b2ae.root
