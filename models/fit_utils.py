@@ -150,7 +150,7 @@ def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title 
         ROOT.RooFit.MarkerSize(1.)
     )
     bkg_func.plotOn(
-         frame,
+        frame,
         ROOT.RooFit.LineColor(ROOT.kBlue),
         ROOT.RooFit.Range('full_range'),
         ROOT.RooFit.NormRange('left_SB,right_SB'),
@@ -166,15 +166,16 @@ def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title 
             ROOT.RooFit.DataError(ROOT.RooAbsData.ErrorType(2)), 
             ROOT.RooFit.XErrorSize(0), 
             ROOT.RooFit.LineWidth(2),
-            ROOT.RooFit.FillColor(colors[i]),
-            ROOT.RooFit.FillStyle(3004),
+            ROOT.RooFit.FillColor(ROOT.kWhite),
+            ROOT.RooFit.FillStyle(4000),
+            #ROOT.RooFit.MoveToBack(),
         )
         sig.plotOn(
             frame,
             ROOT.RooFit.LineColor(colors[i]),
             ROOT.RooFit.Range('full_range'),
             ROOT.RooFit.NormRange('full_range'),
-            ROOT.RooFit.MoveToBack(),
+            #ROOT.RooFit.MoveToBack(),
         )
     return frame
 

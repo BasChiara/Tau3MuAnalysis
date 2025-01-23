@@ -3,6 +3,7 @@ import json
 import sys
 import numpy as np
 sys.path.append(os.path.join(os.path.dirname(__file__), os.pardir))
+from style.color_text import color_text as ct
 import mva.config as config
 import corrections.corrections_sys as corr_sys
 
@@ -23,6 +24,43 @@ def cp_intervals(Nobs, Ntot, cl=0.68, verbose = False):
         ]).format(T=Ntot, O=Nobs, E=eff, L=lo, H=hi))
 
     return lor, hir
+
+def weight_systematics(sys1, sys2, weight):
+    return (1 + np.sqrt(((sys1 - 1) * weight)**2 + ((sys2 - 1)*(1-weight))**2))
+
+    
+def fully_correlated_sys_writer(card, W_f, kwargs):
+    mode = kwargs['mode'] if 'mode' in kwargs else 'WTau3Mu'
+    year = kwargs['year'] if 'year' in kwargs else '16'
+
+    if mode == 'WTau3Mu':
+        card.write(
+'''lumi{yy}             lnN           {Lsys}               -
+xsec_ppWx           lnN           {xsec_ppWx}               -
+Br_Wmunu            lnN           {Br_Wmunu}               -
+Br_Wtaunu           lnN           {Br_Wtaunu}               -
+'''.format(
+            Lsys     = config.Lumi_systematics['20'+year],          # luminosity uncertainty
+            yy       = year,
+            xsec_ppWx= config.xsec_ppW_sys,         # pp->Wx cross section uncertainty
+            Br_Wmunu = config.Br_Wmunu_sys,         # W->munu branching ratio uncertainty
+            Br_Wtaunu= config.Br_Wtaunu_sys         # W->taunu branching ratio uncertainty
+        )
+        )
+    elif mode == 'VTau3Mu':
+        card.write(
+'''lumi{yy}             lnN           {Lsys}               -
+xsec_ppVx           lnN           {xsec_ppWx:.4f}               -
+Br_Vmux            lnN           {Br_Wmunu:.4f}               -
+Br_Vtaux           lnN           {Br_Wtaunu:.4f}               -
+'''.format(
+            Lsys     = config.Lumi_systematics['20'+year],          # luminosity uncertainty
+            yy       = year,
+            xsec_ppWx= weight_systematics(config.xsec_ppW_sys,  config.xsec_ppZ_sys,   W_f),         # pp->Wx cross section uncertainty
+            Br_Wmunu = weight_systematics(config.Br_Wmunu_sys,  config.Br_Zmumu_sys,   W_f),         # W->munu branching ratio uncertainty
+            Br_Wtaunu= weight_systematics(config.Br_Wtaunu_sys, config.Br_Ztautau_sys, W_f),        # W->taunu branching ratio uncertainty
+        )
+        )
 
 
 
@@ -45,32 +83,37 @@ def combineDatacard_writer(**kwargs):
 
     # get S and B model from workspace
     if not workspace:
-        print('No workspace provided')
+        print(f'{ct.RED}[ERROR]{ct.END} NO workspace provided')
         return 1
     wspace_name = workspace.GetName()
     process_name = f'{mode}_{cat}{year}'
+    
     # -- signal -- #
     signal_model = workspace.pdf(f'model_sig_{process_name}')
     if not signal_model:
-        print('No signal model found in the workspace')
+        print(f'{ct.RED}[ERROR]{ct.END} NO signal model found in the workspace')
         return 1
     width_list = []
+    WZ_ratio = 1.0
     if mode == 'WTau3Mu':
         width_list.append( signal_model.getVariables().find(f'width_{cat}{year}') )
     elif mode == 'VTau3Mu':
-        width_list.append( signal_model.getVariables().find(f'width_W{cat}{year}') )
-        width_list.append( signal_model.getVariables().find(f'width_Z{cat}{year}') )
+        width_list.append( signal_model.getVariables().find(f'width_W_{cat}{year}') )
+        width_list.append( signal_model.getVariables().find(f'width_Z_{cat}{year}') )
+        WZ_ratio = signal_model.getVariables().find(f'r_wz_{cat}{year}').getVal()
+    
     # -- background -- #
     b_model = workspace.pdf(f'model_bkg_{process_name}')
     print(f'[B] B function : {bkg_func}')
     if not b_model:
-        print('No background model found in the workspace')
+        print(f'{ct.RED}[ERROR]{ct.END} NO background model found in the workspace')
         return 1
     if bkg_func == 'expo' : 
         slope = b_model.getVariables().find(f'slope_{cat}{year}')
     elif bkg_func == 'poly1': slope = b_model.getVariables().find(f'p1_{cat}{year}')
     else :  slope = None
     print(slope)
+    
     # uncorrelated systematics dictionary
     sys_dict = {}
     sys_sources = []
@@ -87,8 +130,6 @@ def combineDatacard_writer(**kwargs):
         with open(config.shape_systematics['20' + year]) as f:
             shape_sys = json.load(f)[f'{cat}{year}']
         f.close()
-        #print(shape_sys)
-
     
 
     # background normalization systematic --> make bkg normalization a nuisance parameter 
@@ -106,9 +147,9 @@ imax 1 number of channels
 jmax * number of background sources
 kmax * number of nuisance parameters
 --------------------------------------------------------------------------------
-shapes bkg         {proc}       {ws_file} {ws_name}:{bkg_model}
-shapes sig         {proc}       {ws_file} {ws_name}:{sig_model}
-shapes data_obs    {proc}       {ws_file} {ws_name}:data_obs
+shapes bkg         {proc}       ./{ws_file} {ws_name}:{bkg_model}
+shapes sig         {proc}       ./{ws_file} {ws_name}:{sig_model}
+shapes data_obs    {proc}       ./{ws_file} {ws_name}:data_obs
 --------------------------------------------------------------------------------
 bin                {proc}
 observation        {obs:d}
@@ -131,32 +172,17 @@ rate                             {signal:.4f}              {bkg:.4f}
         )
 
     # ------- SYSTEMATICS -------
-        #correlated systematics
-        card.write(
-'''lumi{yy}             lnN           {Lsys}               -
-xsec_ppWx           lnN           {xsec_ppWx}               -
-Br_Wmunu            lnN           {Br_Wmunu}               -
-Br_Wtaunu           lnN           {Br_Wtaunu}               -
-'''.format(
-            Lsys     = config.Lumi_systematics['20'+year],          # luminosity uncertainty
-            yy       = year,
-            xsec_ppWx= config.xsec_ppW_sys,         # pp->Wx cross section uncertainty
-            Br_Wmunu = config.Br_Wmunu_sys,         # W->munu branching ratio uncertainty
-            Br_Wtaunu= config.Br_Wtaunu_sys         # W->taunu branching ratio uncertainty
-        )
-        )
-        # uncorrelated systematics
+        #fully correlated
+        fully_correlated_sys_writer(card, WZ_ratio, kwargs) 
+        
+        # uncorrelated
         # **SF**
         for sys in sys_sources:
             card.write(
 '{systematic_name}_{corr_deg}       lnN           {sys_tot:.3f}               -\n'.format(
                 systematic_name = sys,
                 corr_deg = sys_dict[sys]['corregree'],
-                #yy = year,
-                #c = cat,
                 sys_tot = sys_dict[sys]['total']
-                #sys_up = sys_dict[sys]['up'],
-                #sys_down = sys_dict[sys]['down']
                 )
             )
         # **SIGNAL**

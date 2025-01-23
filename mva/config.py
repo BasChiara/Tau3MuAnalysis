@@ -53,6 +53,39 @@ peakB_sv_selection   = f'(tau_Lxy_sign_BS > {5.0} & tau_fit_vprob > {0.10} )'
 #   DATASET INFO   #
 ###              ###
 
+# filetr level number of events
+Nmc_WTau3Mu = {
+    '2022preEE' :  197789,
+    '2022EE'    :  792640,
+    '2023preBPix':  662000,
+    '2023BPix'  :  330000,
+}
+Nmc_DsPhiPi = {
+    '2022preEE' :  1000000,
+    '2022EE'    :  1000000,
+    '2023preBPix':  1000000,
+    '2023BPix'  :  1000000,
+}
+Nmc_W3MuNu = {
+    '2022preEE' :  1000000,
+    '2022EE'    :  1000000,
+    '2023preBPix':  1000000,
+    '2023BPix'  :  1000000,
+}
+Nmc_ZTau3Mu = {
+    '2022preEE' :  195001,
+    '2022EE'    :  786411,
+    '2023preBPix':  677882,
+    '2023BPix'  :  317554,
+}
+
+Nmc_process = {
+    'WTau3Mu'   : Nmc_WTau3Mu,
+    'DsPhiMuMuPi': Nmc_DsPhiPi,
+    'W3MuNu'    : Nmc_W3MuNu,
+    'ZTau3Mu'   : Nmc_ZTau3Mu,
+}
+
 # xsec W -> Tau Nu [fb]
 eff_filterW = 1.0
 xsec_ppWxMuNu_SMP_Run3 = 20928000  # Cross-section for W -> Mu Nu in fb
@@ -96,9 +129,15 @@ Lumi_systematics = {
     '2022'          : 1.014,
     '2023'          : 1.013,
 }
+# W channel normalization
 xsec_ppW_sys  = 1.0160
 Br_Wmunu_sys  = 1.0141
 Br_Wtaunu_sys = 1.0185
+# Z channel normalization
+xsec_ppZ_sys  = 1.0157
+Br_Zmumu_sys  = 1.0020
+Br_Ztautau_sys= 1.0025
+
 uncorrelated_systematics = {
     '2022'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/2022_sysJson.json'),
     '2023'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/2023_sysJson.json'),
@@ -292,7 +331,7 @@ data_samples = {
 # samples processed with BDT
 bdt_output_path = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/'
 mc_bdt_samples = {
-    'WTau3Mu'       : bdt_output_path+'XGBout_signal_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root', 
+    'WTau3Mu'       : bdt_output_path+'XGBout_signal_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Dec10.root', 
     'DsPhiMuMuPi'   : bdt_output_path+'XGBout_DsPhiMuMuPi_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
     'W3MuNu'        : bdt_output_path+'XGBout_W3MuNu_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
     'peakingBkg'    : bdt_output_path+'XGBout_peakingBkg_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 

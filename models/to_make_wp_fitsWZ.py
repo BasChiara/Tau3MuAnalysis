@@ -9,6 +9,12 @@ import mva.config as config
 argparser = argparse.ArgumentParser()
 argparser.add_argument('-y','--year', choices=['22', '23'], default='22')
 argparser.add_argument('-b','--b_func', choices=['expo', 'const', 'poly1'], default='expo')
+argparser.add_argument('-o','--output',
+                    default='$COMBINEv10/WTau3Mu_limits/bias_study_v3/input_combine/',
+                    help='Output directory for the combine datacards. If not specified, the default is used')
+argparser.add_argument('--plot_outdir',
+                    default='$WWW/Tau3Mu_Run3/BDTtraining/AN_v2/Training_kFold_Optuna_HLT_overlap_LxyS2.0_2024Jul16/working_points/',
+                    help='Output directory for the plots. If not specified, the default is used')
 argparser.add_argument('-d','--dry_run', action='store_true')
 
 args = argparser.parse_args()
@@ -17,9 +23,9 @@ year = args.year
 working_points = config.wp_dict[year]
 print(f'Working points for {year}: {working_points}')
 
-plot_outdir  = '$WWW/Tau3Mu_Run3/Ztautau/sensitivity/'
-combine_dir  = '/afs/cern.ch/user/c/cbasile/Combine_v10/CMSSW_14_1_0_pre4/src/WTau3Mu_limits/WZresults/W_wp/input_combine/'
-tag         = 'fix_ZWratio'
+plot_outdir  = args.plot_outdir
+combine_dir  = args.output
+tag          = 'apply_LxyS2.0_cbWsig'
 b_func       = args.b_func
 
 for cat in working_points:

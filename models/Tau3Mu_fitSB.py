@@ -447,6 +447,7 @@ for cut in set_bdt_cut:
 
     ws = ROOT.RooWorkspace(wspace_name, wspace_name)
     getattr(ws, 'import')(data)
+    getattr(ws, 'import')(datatofit)
     getattr(ws, 'import')(gaus)  
     getattr(ws, 'import')(b_model)
     ws.Print()

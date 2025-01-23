@@ -10,6 +10,33 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import mva.config as config
 import style.color_text as ct
 
+py_step_labels = {
+    'nEvTau3Mu' : 'Preselection',
+    'nTriggerBit' : 'HLT bits',
+    'nEvTauMediumID' : r'$\mu$ ID',
+    'nEvTriggerFired_Total' : 'HLT emulation',
+    'nEvDiMuResVeto' : r'$\mu\mu$ res. veto',
+    'nEvReinforcedHLT' : 'HLT reinforcement',
+    'LxyS' : r'$L_{xy}/\sigma}$ cut',
+    'mass_range' : r'$M_{3\mu}$ range',
+    'phi_veto' : r'$\phi \to \mu\mu$ veto',
+    'BDT' : 'BDT'
+}
+
+LateX_step_labels = {
+    'nEvGenFilter' : 'Gen filter',
+    'nEvTau3Mu' : 'Preselection',
+    'nTriggerBit' : 'HLT bits',
+    'nEvTauMediumID' : 'Muon ID',
+    'nEvTriggerFired_Total' : 'HLT emulation',
+    'nEvDiMuResVeto' : '$\\mu\\mu$ resonances veto',
+    'nEvReinforcedHLT' : '\\hltDimu reinforcement',
+    'LxyS' : '$L_{xy}/\\sigma$ > 2.0',
+    'mass_range' : '$M_{3\\mu}$ range',
+    'phi_veto' : '$\\phi \\to \\mu\\mu$ veto',
+    'BDT' : 'BDT selection'
+}
+
 def get_Nevents(rdf, selection):
     Nraw = rdf.Filter(selection).Count().GetValue()
     Nweight = rdf.Filter(selection).Sum('lumi_factor').GetValue()
@@ -17,21 +44,10 @@ def get_Nevents(rdf, selection):
 
 def plot_WZvsYear(df_list, selection_step_list, var='yield_ratio', exp_WZratio=5.30, y_label=None):
 
-    step_labels = {
-    'nEvTau3Mu' : 'Preselection',
-    'nEvTauMediumID' : r'$\mu$ ID',
-    'nEvTriggerFired_Total' : 'HLT fired',
-    'nEvDiMuResVeto' : r'$\mu\mu$ res. veto',
-    'nEvReinforcedHLT' : 'HLT emul.',
-    'LxyS' : r'$L_{xy}/\sigma}$ cut',
-    'mass_range' : r'$M_{3\mu}$ range',
-    'phi_veto' : r'$\phi \to \mu\mu$ veto',
-    'BDT' : 'BDT'
-}
     fig, ax = plt.subplots()
     ax.axhline(exp_WZratio, color='grey', linestyle='--', label='expected')
     for year in df_list: ax.plot(selection_step_list, df_list[year][var], label=year, marker='o')
-    ax.set_xticklabels([step_labels[step] for step in selection_step_list], rotation=45)
+    ax.set_xticklabels([py_step_labels[step] for step in selection_step_list], rotation=45)
     # add orizontal line for expected ratio  
     ax.legend(loc='upper left')
     ax.grid()
@@ -43,19 +59,46 @@ def plot_WZvsYear(df_list, selection_step_list, var='yield_ratio', exp_WZratio=5
     fig.savefig(f'../outRoot/WvsZ_{var}.png')
     fig.savefig(f'../outRoot/WvsZ_{var}.pdf')
 
+def print_LateX_table(eras = ['2022preEE', '2022EE', '2023preBPix', '2023BPix'], process='WTau3Mu', onfile=False):
+    eff_dict = {}
+    eff_dict['step'] = [LateX_step_labels[name] for name in LateX_step_labels]
+    names = []
+    for era in eras:
+        df = pd.read_csv(f'../outRoot/efficiency_breakdown_{era}_{process}.csv')
+        abs_eff = df['efficiency']*100
+        eff_dict[era] = abs_eff
+    
+    dfLateX = pd.DataFrame(eff_dict)
+    # loop on the rows
+    if onfile:
+        with open(f'../outRoot/efficiency_LateXbreakdown_{process}.txt', 'w') as f:
+            for i in range(len(dfLateX)):
+                values = ' & '.join([f'{val:.2f}' for val in dfLateX.iloc[i].values[1:]])
+                selection = dfLateX.iloc[i].values[0]
+                f.write(f'{selection} & {values} \\\\ \n')
+    else: 
+        for i in range(len(dfLateX)):
+            values = ' & '.join([f'{val:.2f}' for val in dfLateX.iloc[i].values[1:]])
+            selection = dfLateX.iloc[i].values[0]
+            print(f'{selection} & {values} \\\\')
+
+
+
 argparser = argparse.ArgumentParser()
 argparser.add_argument('--process', choices=['WTau3Mu', 'W3MuNu', 'ZTau3Mu'], help='For which process to compute the efficiency breakdown')
 argparser.add_argument('--bdt',     action='store_true', help='Take the tree with BDT scores')
 argparser.add_argument('--compareWZ', action='store_true', help='Compare W and Z')
+argparser.add_argument('--LateX', action='store_true', help='Print LateX table')
 args = argparser.parse_args()
 
 years_list = ['2022preEE', '2022EE', '2023preBPix', '2023BPix']
-preselection_step_list = ['nEvTau3Mu', 
+preselection_step_list = ['nEvTau3Mu',
+                          'nTriggerBit',
                           'nEvTauMediumID', 
-                          #'nEvTriggerFired_Total', 
-                          #'nEvDiMuResVeto', 
+                          'nEvTriggerFired_Total', 
+                          'nEvDiMuResVeto', 
                           'nEvReinforcedHLT']
-selection_step_list = preselection_step_list + ['LxyS', 'mass_range', 'phi_veto', 'BDT']
+selection_step_list = ['nEvGenFilter'] + preselection_step_list + ['LxyS', 'mass_range', 'phi_veto', 'BDT']
 
 make_csv = not args.compareWZ
 
@@ -68,7 +111,11 @@ if make_csv:
         N_raw = np.array([], dtype=int)
         N_w = np.array([], dtype=float)
 
-        # efficency @ preselection
+        # number of events @ gen filter level
+        N_raw = np.append(N_raw, config.Nmc_process[args.process][year])
+        print(f'{ct.color_text.BOLD} -- {year} {ct.color_text.END} : Gen filter --')
+
+        # file with preselection efficiencies
         process = 'Tau3Mu' if args.process == 'WTau3Mu' else args.process
         preselection_file = f'../outRoot/WTau3Mu_MCanalyzer_{year}_HLT_overlap_on{process}.root'
         if not os.path.isfile(preselection_file):
@@ -78,6 +125,9 @@ if make_csv:
         eff_rdf = ROOT.RDataFrame('efficiency', preselection_file).AsNumpy()
         print(f'{ct.color_text.BOLD} -- {year} {ct.color_text.END} : preselection --')
         [print(f'{step} : {eff_rdf[step][0]}') for step in preselection_step_list ]
+    
+
+        # efficency @ preselection
         N_raw = np.append(N_raw, [eff_rdf[step][0] for step in preselection_step_list])
         N_w  = N_raw    
         print(N_raw)
@@ -130,11 +180,16 @@ if make_csv:
             print(bdt_selection)
         print('\n\n')
 
-        df = pd.DataFrame({'N_raw': N_raw, 'N_w': N_w})
+        df = pd.DataFrame({'slection' : selection_step_list ,'N_raw': N_raw, 'N_w': N_w})
         df['efficiency'] = df['N_raw']/df['N_raw'][0]
         df['efficiency_w'] = df['N_w']/df['N_w'][0]
         df.to_csv(f'../outRoot/efficiency_breakdown_{year}_{args.process}.csv', index=False)
-else:
+    
+    if args.LateX:
+        print(f'{ct.color_text.BOLD} -- {year} {ct.color_text.END} : LateX table --')
+        print_LateX_table(eras = years_list, process=args.process, onfile=True)
+
+elif args.compareWZ:
     
     print(f'Comparing W and Z')
 

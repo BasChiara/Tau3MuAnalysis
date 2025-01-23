@@ -86,7 +86,7 @@ out_data_filename = f'{args.combine_dir}/sensitivity_tree_{tag}.root'
 tau_mass = 1.777 # GeV
 mass_window_lo, mass_window_hi = config.mass_range_lo, config.mass_range_hi # GeV
 blind_region_lo, blind_region_hi = config.blind_range_lo, config.blind_range_hi # GeV
-fit_range_lo  , fit_range_hi   = blind_region_lo - 0.1, blind_region_hi + 0.1 # GeV
+fit_range_lo  , fit_range_hi   = blind_region_lo - 0.05, blind_region_hi + 0.05 # GeV
 
 # binning
 bin_w = 0.01 # GeV
@@ -151,6 +151,8 @@ if args.save_ws : file_ws = ROOT.TFile(wspace_filename, "RECREATE")
 
 # loop on BDT cuts
 for cut in set_bdt_cut:
+
+    catYY = f'{args.category}{args.year}'    
     # output tag
     point_tag           = f'{args.category}{args.year}' + (('_' + args.tag ) if args.tag else '') + f'_bdt{cut:,.4f}'
     # BDT selection
@@ -215,45 +217,49 @@ for cut in set_bdt_cut:
     # **** SIGNAL MODEL ****
     Mtau   = ROOT.RooRealVar('Mtau' , 'Mtau' , tau_mass)
     Mtau.setConstant(True)
-    # W
+    # W -> tau(3mu) nu
     dMtau_W   = ROOT.RooRealVar('dM_W', 'dM_W', 0, -0.04, 0.04)
     mean_W    = ROOT.RooFormulaVar('mean_W','mean_W', '(@0+@1)', ROOT.RooArgList(Mtau,dMtau_W) )
-    width_W   = ROOT.RooRealVar(f'width_W{args.category}{args.year}',  f'width_W{args.category}{args.year}',  0.01,    0.005, 0.05)
+    width_W   = ROOT.RooRealVar(f'width_W_{catYY}',  f'width_W_{catYY}',  0.01,    0.005, 0.05)
+    n_W       = ROOT.RooRealVar(f'n_W_{catYY}', f'n_W_{catYY}', 1.0, 0.1, 10.0)
+    alpha_W   = ROOT.RooRealVar(f'alpha_W_{catYY}', f'alpha_W_{catYY}', 1.0, 0.0, 10.0)
 
     nsig_W         = ROOT.RooRealVar('model_sig_W%s_norm'%process_name, 'model_sig_W%s_norm'%process_name, mc_W_dataset.sumEntries(), 0.0, 10*mc_W_dataset.sumEntries())
     
     gaus_W         = ROOT.RooGaussian('model_sig_W%s'%process_name, 'gaus_W%s'%process_name, mass, mean_W, width_W)
-    signal_model_W = ROOT.RooAddPdf('ext_model_sig_W%s'%process_name, 'ext_model_sig_W%s'%process_name, ROOT.RooArgList(gaus_W), nsig_W )
+    cb_W           = ROOT.RooCBShape('model_sig_W%s'%process_name, 'cb_W%s'%process_name, mass, mean_W, width_W, alpha_W, n_W)
+    signal_model_W = ROOT.RooAddPdf('ext_model_sig_W%s'%process_name, 'ext_model_sig_W%s'%process_name, ROOT.RooArgList(cb_W), nsig_W )
 
-    # Z -> crystal ball
+    # Z -> tau(3mu) tau
     dMtau_Z   = ROOT.RooRealVar('dM_Z', 'dM_Z', 0, -0.1, 0.1)
-    mean_Z    = ROOT.RooFormulaVar('mean_Z','mean_Z', '(@0+@1)', ROOT.RooArgList(Mtau,dMtau_Z) )
-    width_Z   = ROOT.RooRealVar(f'width_Z{args.category}{args.year}',  f'width_Z{args.category}{args.year}',  0.01,    0.005, 0.05)
-    n_Z      = ROOT.RooRealVar('n_Z', 'n_Z', 1.0, 0.001, 10.0)
-    alpha_Z  = ROOT.RooRealVar('alpha_Z', 'alpha_Z', 1.0, 0.0, 10.0)
+    mean_Z    = ROOT.RooFormulaVar('mean_Z', 'mean_Z', '(@0+@1)', ROOT.RooArgList(Mtau,dMtau_Z) )
+    width_Z   = ROOT.RooRealVar(f'width_Z_{catYY}',  f'width_Z_{catYY}',  0.01,    0.005, 0.05)
+    n_Z       = ROOT.RooRealVar(f'n_Z_{catYY}', f'n_Z_{catYY}', 1.0, 0.1, 10.0)
+    alpha_Z   = ROOT.RooRealVar(f'alpha_Z_{catYY}', f'alpha_Z_{catYY}', 1.0, 0.0, 10.0)
    
     nsig_Z   = ROOT.RooRealVar('model_sig_Z%s_norm'%process_name, 'model_sig_Z%s_norm'%process_name, mc_Z_dataset.sumEntries(), 0.0, 10*mc_Z_dataset.sumEntries())
     
-    cb_Z     = ROOT.RooCBShape('model_sig_Z%s'%process_name, 'cb_Z%s'%process_name, mass, mean_Z, width_Z, alpha_Z, n_Z)
-    gaus_Z   = ROOT.RooGaussian('model_sig_Z%s'%process_name, 'gaus_Z%s'%process_name, mass, mean_Z, width_Z)
+    cb_Z           = ROOT.RooCBShape('model_sig_Z%s'%process_name, 'cb_Z%s'%process_name, mass, mean_Z, width_Z, alpha_Z, n_Z)
+    gaus_Z         = ROOT.RooGaussian('model_sig_Z%s'%process_name, 'gaus_Z%s'%process_name, mass, mean_Z, width_Z)
     signal_model_Z = ROOT.RooAddPdf('ext_model_sig_Z%s'%process_name, 'ext_model_sig_Z%s'%process_name, ROOT.RooArgList(cb_Z), nsig_Z )
 
     # fix W to Z yield
     nsig_W.setConstant(True)
     nsig_Z.setConstant(True)
-    r_wz = ROOT.RooRealVar('r_wz', 'r_wz', nsig_W.getValV()/(nsig_W.getValV()+nsig_Z.getValV()))
-    s_model = ROOT.RooAddPdf(f'model_sig_{process_name}', f'model_sig_{process_name}', ROOT.RooArgList(gaus_W, cb_Z), ROOT.RooArgList(r_wz))
+    r_wz = ROOT.RooRealVar(f'r_wz_{catYY}', f'r_wz_{catYY}', nsig_W.getValV()/(nsig_W.getValV()+nsig_Z.getValV()))
+    
+    s_model = ROOT.RooAddPdf(f'model_sig_{process_name}', f'model_sig_{process_name}', ROOT.RooArgList(cb_W, cb_Z), ROOT.RooArgList(r_wz))
 
     # **** BACKGROUND MODEL ****
     bkg_model_name = f'model_bkg_{process_name}' 
     # exponential
-    slope = ROOT.RooRealVar(f'slope_{args.category}{args.year}', f'slope_{args.category}{args.year}', -1.0, -10.0, 10.0)
+    slope = ROOT.RooRealVar(f'slope_{catYY}', f'slope_{catYY}', -1.0, -10.0, 10.0)
     expo  = ROOT.RooExponential(bkg_model_name, bkg_model_name, mass, slope)
     # constant
     const = ROOT.RooPolynomial(bkg_model_name,bkg_model_name, mass)
     # polynomial
-    p0 = ROOT.RooRealVar(f'p0_{args.category}{args.year}', f'p0_{args.category}{args.year}', 0.0, -1.0, 1.0)
-    p1 = ROOT.RooRealVar(f'p1_{args.category}{args.year}', f'p1_{args.category}{args.year}', 0.0, -1.0, 1.0)
+    p0 = ROOT.RooRealVar(f'p0_{catYY}', f'p0_{catYY}', 0.0, -1.0, 1.0)
+    p1 = ROOT.RooRealVar(f'p1_{catYY}', f'p1_{catYY}', 0.0, -1.0, 1.0)
     poly1 = ROOT.RooChebychev(bkg_model_name,bkg_model_name, mass, ROOT.RooArgList(p1))
 
     b_model = expo
@@ -355,6 +361,7 @@ for cut in set_bdt_cut:
 
     c2 = ROOT.TCanvas("c2", "c2", 800, 800)
     ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
+    frame_b.SetMinimum(1e-5)
     frame_b.Draw()
     c2.SaveAs('%s/SigBkg_mass_%s.png'%(args.plot_outdir, point_tag)) 
     c2.SaveAs('%s/SigBkg_mass_%s.pdf'%(args.plot_outdir, point_tag))
@@ -402,12 +409,14 @@ for cut in set_bdt_cut:
     
     # W channel: fix signal mean value - width is fixed only during wp optimization
     dMtau_W.setConstant(True)
+    alpha_W.setConstant(True)
+    n_W.setConstant(True)
     if (args.fix_w) : width_W.setConstant(True)
     # Z channel: fix everything but width
     dMtau_Z.setConstant(True)
-    if (args.fix_w) : width_Z.setConstant(True)
     alpha_Z.setConstant(True)
     n_Z.setConstant(True)
+    if (args.fix_w) : width_Z.setConstant(True)
 
     # save observed data // bkg-only Asimov with name 'dat_obs'
     fulldata = ROOT.RooDataSet('full_data', 'full_data', data_tree, thevars, sgn_selection) # fixme : this is useless
@@ -438,7 +447,7 @@ for cut in set_bdt_cut:
     datacard_name = f'{args.combine_dir}/datacard_{wspace_tag}.txt'
     du.combineDatacard_writer(
         mode         = 'VTau3Mu',
-        input_mc     = mc_W_file, # fixme: calculate systematics from W channel
+        input_mc     = [mc_W_file, mc_Z_file],
         selection    = sgn_selection,
         ws_filename  = wspace_filename,
         workspace    = ws,

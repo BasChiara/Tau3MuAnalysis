@@ -167,7 +167,7 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], to_ploton = [], file_nam
         h_ratio = h_num.Clone("h_ratio")
         h_ratio.Sumw2()
         h_ratio.Divide(histo_den)
-        h_ratio.SetMarkerStyle(20) 
+        if draw_opt_num != 'hist': h_ratio.SetMarkerStyle(20) 
         h_ratio_list.append(h_ratio)
 
     
@@ -184,6 +184,7 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], to_ploton = [], file_nam
     )           
     for h_num in histo_num:
         h_num.SetStats(0)          # No statistics on upper plot
+        if draw_opt_num == 'hist': h_num.SetMarkerStyle(0)
         CMS.cmsDraw(h_num, 
         f'{draw_opt_num} same',
         lwidth = h_num.GetLineWidth(), 
