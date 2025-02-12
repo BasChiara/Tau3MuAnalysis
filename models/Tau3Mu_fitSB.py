@@ -1,4 +1,4 @@
-#############################################
+############################################
 #  code to fit Tau-> 3 Mu signal and bkg   #
 #############################################
 
@@ -49,16 +49,16 @@ runblind = not args.unblind # don't show (nor fit!) data in the signal mass wind
 # **** INPUT ****
 input_tree_name = 'tree_w_BDT'
 
-mc_file     = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_signal_kFold_HLT_overlap_LxyS150_2024Apr29.root' if not args.signal else args.signal
+mc_file     = config.mc_bdt_samples['WTau3Mu'] if not args.signal else args.signal
 print(f'{ct.BOLD}{ct.BOLD}[+]{ct.END}{ct.END} added MC file :\n {mc_file}')
 
-data_file   = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_data_kFold_HLT_overlap_LxyS150_2024Apr29_open.root' if not args.data else args.data
+data_file   = config.data_bdt_samples['WTau3Mu'] if not args.data else args.data
 print(f'{ct.BOLD}[+]{ct.END} added DATA file :\n {data_file}')
 
-if not os.path.exists(args.signal):
+if not os.path.exists(mc_file):
     print(f'{ct.RED}[ERROR]{ct.END} MC file {mc_file} does NOT exist')
     exit()
-if not os.path.exists(args.data):
+if not os.path.exists(data_file):
     print(f'{ct.RED}[ERROR]{ct.END} DATA file {data_file} does NOT exist')
     exit()
 

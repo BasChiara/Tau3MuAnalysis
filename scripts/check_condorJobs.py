@@ -23,7 +23,7 @@ parser.add_option('--job_dir',                              help='job-report dir
 parser.add_option('--out_dir',                              help='root ntuples directory'              , default='/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/')
 parser.add_option('--era',                                  help='era ID to process'                   , default='2022Cv1')
 parser.add_option('--resubmit', action='store_true',        help='resubmit failed jobs'                )
-parser.add_option('--no_out', action='store_true',        help='resubmit failed jobs'                )
+parser.add_option('--no_out',   action='store_true',        help='check if there is the output file')
 parser.add_option('--dryrun',   action='store_true',        help='when --resubmit -> dryrun mode')
 parser.add_option('--debug',    action='store_true',        help='useful printout'                     ) 
 
@@ -135,7 +135,7 @@ for d in job_dir_list :
                             job_is_ok = False
                             print(f'   {ct.RED}[WARNING]{ct.END} : job {ijob} has {nevts} processed events')
                     # saved events
-                    if l.startswith('Events after HLT_DoubleMu reinforcement'): 
+                    if l.startswith('Events -> HLT_DoubleMu reinforcement'): 
                         nevts = int(l.split()[-1])
                         if nevts > 0 : 
                             N_saved_events += nevts

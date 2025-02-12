@@ -210,6 +210,7 @@ color_process = {
     'DsPhiPi': ROOT.kViolet,
     'DataSB' : ROOT.kBlue,
     'ZTau3Mu': ROOT.kCyan+2,
+    'invMedID': ROOT.kOrange+ 2,
 }
 legend_process = {
     'Tau3Mu' : '#tau#rightarrow 3#mu',
@@ -217,6 +218,7 @@ legend_process = {
     'DsPhiPi': 'D_{s}#rightarrow#phi#pi',
     'DataSB' : 'data SB',
     'ZTau3Mu': 'Z#rightarrow #tau (3#mu)#tau',
+    'invMedID': 'inverted muonID',
 }
 bdt_label_process ={
    'Tau3Mu' : 0,
@@ -230,6 +232,7 @@ bdt_label_process ={
 
 mc_path     = '/afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/'
 data_path   = '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/'
+
 WTau3Mu_signals  = [
     # 2022
     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap_onTau3Mu.root',
@@ -430,8 +433,8 @@ def tauEta(eta):
 
 features_NbinsXloXhiLabelLog = {
     'tau_fit_pt'        : [ 20, 10, 50,  'p_{T}(3 #mu) (GeV)',      0],
-    'tau_fit_mt'        : [ 30, 0, 120,   'M_{T}(3 #mu)',            0],
-    'tau_relIso'        : [ 20, 0, 0.5,  'rel. Isolation (3 #mu)',  1],
+    'tau_fit_mt'        : [ 30, 0, 120,   'M_{T}(3 #mu)',           0],
+    'tau_relIso'        : [ 50, 0, 3.0,  'rel. Isolation (3 #mu)',  1],
     'tau_met_Dphi'      : [ 32, 0, 6.4,  '#Delta #phi (3 #mu, MET)',0],
     'tau_met_pt'        : [ 20, 0, 100., 'MET (GeV)',               0],
     'tau_met_ratio_pt'  : [ 30, 0., 3.,  'MET/p_{T}(3 #mu)',        0],
@@ -442,11 +445,12 @@ features_NbinsXloXhiLabelLog = {
     'tau_mu13_dZ'       : [ 20, 0, 0.2, '#Delta z (#mu_1, #mu_3)',  0],
     'tau_mu23_dZ'       : [ 20, 0, 0.2, '#Delta z (#mu_2, #mu_3)',  0],
     'tau_Lxy_sign_BS'   : [ 30, 0, 30,  'SV L_{xy}/#sigma',         0],
-    'tau_fit_vprob'     : [ 20, 0,  1,  'SV probability',           0],
-    'tau_cosAlpha_BS'   : [ 10, 0.98,1,  'cos_{#alpha}(SV, BS)',    1],
-    'tau_mu1_TightID_PV': [  2,-0.5,1.5, '#mu_1 ID',                0],
-    'tau_mu2_TightID_PV': [  2,-0.5,1.5, '#mu_2 ID',                0],
-    'tau_mu3_TightID_PV': [  2,-0.5,1.5, '#mu_3 ID',                0],
+    'tau_fit_vprob'     : [ 20, 0,  1,  'SV probability',           1],
+    'tau_cosAlpha_BS'   : [100, -1, 1,  'cos_{#alpha}(SV, BS)',     1],
+    'tau_mu1_TightID_PV': [  2,-0.5,1.5, 'Tight #mu_{1} ID',        0],
+    'tau_mu2_TightID_PV': [  2,-0.5,1.5, 'Tight #mu_{2} ID',        0],
+    'tau_mu3_TightID_PV': [  2,-0.5,1.5, 'Tight #mu_{3} ID',        0],
+    'tri_muonID'        : [  4,-0.5,3.5, 'Medium ID_{#mu_1}+ID_{#mu_2}+ID_{#mu_3}',                0],
     'tauEta'            : [  8,-0.5,7.5, '3#mu #eta bins',          0],
     'tau_fit_eta'       : [ 25, -2.5, 2.5,'#eta (3 #mu)',           0],
     'tau_fit_mass'      : [ 40,1.6, 2.0, 'M(3 #mu)',                0],

@@ -6,6 +6,7 @@ RUNTIME_H=12
 FILES_PER_JOB=50
 HLT_CONF='HLT_overlap'
 EOS_PATH='/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/'
+#EOS_PATH='/eos/user/c/cbasile/Tau3MuRun3/data/bkg_samples/reMini2023/'
 DATA_PATH='data/data_reMini2023/'
 
 

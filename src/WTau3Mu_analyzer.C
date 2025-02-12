@@ -87,7 +87,11 @@ void WTau3Mu_analyzer::Loop(){
 
          if(debug && nTauTo3Mu > 1) std::cout << " + tau cand with mT " << TauPlusMET_Tau_Puppi_mT[t] << std::endl; 
          // ------- muons MediumID ------
+      #ifdef BKG_SAMPLE_
+         if(RecoPartFillP4(t)) continue; // invert MediumID for background estimation
+      #else
          if(!RecoPartFillP4(t)) continue;
+      #endif
          flag_MediumID = true; nTauMediumID++;
 
          // ------- HLT matching ------
@@ -125,8 +129,8 @@ void WTau3Mu_analyzer::Loop(){
          if (isMC_) applyHLT_SF();
 
          // muonsID
-         tau_mu1_MediumID   = Muon_isMedium[TauTo3Mu_mu1_idx[t]];   tau_mu2_MediumID   = Muon_isMedium[TauTo3Mu_mu2_idx[t]];   tau_mu3_MediumID   = Muon_isMedium[TauTo3Mu_mu2_idx[t]];
-         tau_mu1_LooseID    = Muon_isLoose[TauTo3Mu_mu1_idx[t]];    tau_mu2_LooseID    = Muon_isLoose[TauTo3Mu_mu2_idx[t]];    tau_mu3_LooseID    = Muon_isLoose[TauTo3Mu_mu2_idx[t]];
+         tau_mu1_MediumID   = Muon_isMedium[TauTo3Mu_mu1_idx[t]];   tau_mu2_MediumID   = Muon_isMedium[TauTo3Mu_mu2_idx[t]];   tau_mu3_MediumID   = Muon_isMedium[TauTo3Mu_mu3_idx[t]];
+         tau_mu1_LooseID    = Muon_isLoose[TauTo3Mu_mu1_idx[t]];    tau_mu2_LooseID    = Muon_isLoose[TauTo3Mu_mu2_idx[t]];    tau_mu3_LooseID    = Muon_isLoose[TauTo3Mu_mu3_idx[t]];
          tau_mu1_SoftID_PV  = Muon_isSoft[TauTo3Mu_mu1_idx[t]];     tau_mu2_SoftID_PV  = Muon_isSoft[TauTo3Mu_mu2_idx[t]];     tau_mu3_SoftID_PV  = Muon_isSoft[TauTo3Mu_mu3_idx[t]];
          tau_mu1_SoftID_BS  = Muon_isSoft_BS[TauTo3Mu_mu1_idx[t]];  tau_mu2_SoftID_BS  = Muon_isSoft_BS[TauTo3Mu_mu2_idx[t]];  tau_mu3_SoftID_BS  = Muon_isSoft_BS[TauTo3Mu_mu3_idx[t]];
          tau_mu1_TightID_PV = Muon_isTight[TauTo3Mu_mu1_idx[t]];    tau_mu2_TightID_PV = Muon_isTight[TauTo3Mu_mu2_idx[t]];    tau_mu3_TightID_PV = Muon_isTight[TauTo3Mu_mu3_idx[t]];
@@ -209,7 +213,8 @@ void WTau3Mu_analyzer::Loop(){
          }
 
          outTree_->Fill();
-         break;
+         break; // only one tau candidate per event
+      
       }// loop on tau cands
 
       // HLT summary

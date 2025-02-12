@@ -5,6 +5,8 @@
 #include <cmath>
 #include <vector>
 
+//#define BKG_SAMPLE_
+
 class WTau3Mu_analyzer : public WTau3Mu_tools{
 
    public:
@@ -65,6 +67,10 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
          std::cout << "> HLT path : " << HLT_tag << std::endl;
          std::cout << "> running on " << DATA_MC_tag << " - " << process_ << std::endl;
          std::cout << "-------------------------------------------" << std::endl;
+         #ifdef BKG_SAMPLE_
+         std::cout << " [BKG] sample is enabled " << std::endl;
+         #endif
+         
       }
       virtual ~WTau3Mu_analyzer(){}
 

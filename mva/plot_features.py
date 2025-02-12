@@ -38,7 +38,7 @@ parser.add_argument('--bdt_cut',        default= 0.995, type= float,            
 parser.add_argument('--debug',          action = 'store_true' ,                                      help='set it to have useful printout')
 parser.add_argument('--isMulticlass',   action = 'store_true',                                       help='set to use teh multiclass setting')
 parser.add_argument('--LxySign_cut',    default=  0.0,  type = float,                                help='set random state for reproducible results')
-parser.add_argument('-p', '--process',  choices = ['Tau3Mu', 'W3MuNu', 'DsPhiPi', 'ZTau3Mu'], default = 'Tau3Mu',help='which process in the simulation')
+parser.add_argument('-p', '--process',  choices = ['Tau3Mu', 'W3MuNu', 'DsPhiPi', 'ZTau3Mu', 'invMedID'], default = 'Tau3Mu',help='which process in the simulation')
 parser.add_argument('-s', '--signal',   action = 'append',                                           help='file with signal events with BDT applied')
 parser.add_argument('-d', '--data',     action = 'append',                                           help='file with data events with BDT applied')
 parser.add_argument('-y', '--year',     choices= ['2022', '2023', 'Run3'],   default= '2022',                 help='data-taking year to process')
@@ -64,6 +64,8 @@ base_selection = ' & '.join([
 
 ])
 sig_selection  = base_selection 
+if (args.process == 'invMedID') : 
+    sig_selection = base_selection
 bkg_selection  = base_selection + f'& {cfg.sidebands_selection}'
 if (args.process == 'W3MuNu') : 
     sig_selection = bkg_selection
@@ -75,13 +77,13 @@ print('[B] background-selection : %s'%bkg_selection)
 #  ------------ PICK SIGNAL & BACKGROUND -------------- #
 if(args.signal is None):
     signals     = [
-        '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_signal_reMini_2024Jan03.root'
+        cfg.mc_bdt_samples[args.process]
     ]
 else :
     signals = args.signal 
 if(args.data is None):
     backgrounds  = [
-        '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/XGBout_data_reMini_2024Jan03_open.root'
+        cfg.data_bdt_samples[args.process]
     ]
 else :
     backgrounds = args.data 
@@ -107,7 +109,6 @@ ROOT.gStyle.SetOptStat(0)
 ROOT.gStyle.SetLineWidth(2)
 ROOT.gStyle.SetPadTickX(1)
 ROOT.gStyle.SetPadTickY(1)
-#ROOT.gStyle.SetHistMinimumZero()
 ROOT.gStyle.SetLegendBorderSize(0)
 ROOT.gStyle.SetLegendTextSize(0.035)
 CMS.SetExtraText("Preliminary")
