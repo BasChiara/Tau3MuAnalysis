@@ -64,8 +64,8 @@ class WTau3Mu_tools : public WTau3Mu_base{
    int    applyMuonSF(const int& TauIdx);
    // HLT DoubleMu4_3_LowMass
    int    parseHLT_SF(const TString & era = "2022preEE");
-   float  get_dimuon_efficiency(const float& pt, const float& eta, const float& DR, const TString& trigger = "L1", const TString& dataset = "mc");
-   float  get_trimuon_efficiency(const TString& dataset = "mc");
+   float  get_dimuon_efficiency(const float& pt, const float& eta, const float& DR, const TString& trigger = "L1", const TString& dataset = "mc", float* error = nullptr);
+   float  get_trimuon_efficiency(const TString& dataset = "mc", float* error = nullptr);
    int    applyHLT_SF();
    // PU re-weight
    int    parsePUweights(const TString & era = "2022preEE");
@@ -109,21 +109,26 @@ class WTau3Mu_tools : public WTau3Mu_base{
    float tau_mu1_IDrecoSF_sysDOWN, tau_mu2_IDrecoSF_sysDOWN, tau_mu3_IDrecoSF_sysDOWN;
 
    // HLT_DoubleMu4_3_LowMass SF
-   // L1
-   TH2Poly* h_mc_L1_efficiency_barrel = 0;
-   TH2Poly* h_mc_L1_efficiency_overlap = 0;
-   TH2Poly* h_mc_L1_efficiency_endcap = 0;
-   TH2Poly* h_data_L1_efficiency_barrel = 0;
-   TH2Poly* h_data_L1_efficiency_overlap = 0;
-   TH2Poly* h_data_L1_efficiency_endcap = 0;
+   //L1
+   TH2F* h_L1_efficiency_MC = 0;
+   TH2F* h_L1_efficiency_DATA = 0;
+   TH2F* h_HLT_efficiency_MC =0;
+   TH2F* h_HLT_efficiency_DATA =0;
+   //// L1
+   //TH2Poly* h_mc_L1_efficiency_barrel = 0;
+   //TH2Poly* h_mc_L1_efficiency_overlap = 0;
+   //TH2Poly* h_mc_L1_efficiency_endcap = 0;
+   //TH2Poly* h_data_L1_efficiency_barrel = 0;
+   //TH2Poly* h_data_L1_efficiency_overlap = 0;
+   //TH2Poly* h_data_L1_efficiency_endcap = 0;
 
-   // HLT
-   TH2Poly* h_mc_HLT_efficiency_barrel = 0;
-   TH2Poly* h_mc_HLT_efficiency_overlap = 0;
-   TH2Poly* h_mc_HLT_efficiency_endcap = 0;
-   TH2Poly* h_data_HLT_efficiency_barrel = 0;
-   TH2Poly* h_data_HLT_efficiency_overlap = 0;
-   TH2Poly* h_data_HLT_efficiency_endcap = 0;
+   //// HLT
+   //TH2Poly* h_mc_HLT_efficiency_barrel = 0;
+   //TH2Poly* h_mc_HLT_efficiency_overlap = 0;
+   //TH2Poly* h_mc_HLT_efficiency_endcap = 0;
+   //TH2Poly* h_data_HLT_efficiency_barrel = 0;
+   //TH2Poly* h_data_HLT_efficiency_overlap = 0;
+   //TH2Poly* h_data_HLT_efficiency_endcap = 0;
 
    float tau_DoubleMu4_3_LowMass_SF, tau_DoubleMu4_3_LowMass_SF_sysUP, tau_DoubleMu4_3_LowMass_SF_sysDOWN;
    TH1F* h_DiMuon_HLTcand = new TH1F("h_DiMuon_HLTcand", "DiMuon HLT cand", 4, -0.5, 3.5);

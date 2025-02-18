@@ -67,8 +67,7 @@ void WTau3Mu_analyzer::Loop(){
          // --- pT V weights
          float pT_var = (process_ == "Tau3Mu" || process_ == "W3MuNu" ? W_gen_pt : Z_gen_pt);
          pTV_weight = 1.0, pTV_weight_up = 1.0, pTV_weight_down = 1.0;
-         pTV_weight_up = apply_SFfromTHist1D(pT_var, h_pTVweights);
-      
+         pTV_weight_up = apply_SFfromTHist1D(pT_var, h_pTVweights); 
       }
 
       // --- PU weights
@@ -142,13 +141,14 @@ void WTau3Mu_analyzer::Loop(){
          tau_mu3_IDrecoSF_sysUP = -1.; tau_mu3_IDrecoSF_sysDOWN = -1.;  
          if(isMC_) applyMuonSF(t);
 
-         weight = lumi_factor * PU_weight * NLO_weight * tau_mu1_IDrecoSF * tau_mu2_IDrecoSF * tau_mu3_IDrecoSF; 
+         weight = lumi_factor * PU_weight * NLO_weight  * pTV_weight * tau_mu1_IDrecoSF * tau_mu2_IDrecoSF * tau_mu3_IDrecoSF * tau_DoubleMu4_3_LowMass_SF; 
 
          // muons kinematics
          tau_mu1_pt  = TauTo3Mu_mu1_pt[t];   tau_mu2_pt  = TauTo3Mu_mu2_pt[t];   tau_mu3_pt  = TauTo3Mu_mu3_pt[t];
          tau_mu1_eta = TauTo3Mu_mu1_eta[t];  tau_mu2_eta = TauTo3Mu_mu2_eta[t];  tau_mu3_eta = TauTo3Mu_mu3_eta[t];
          tau_mu1_z   = Muon_z[TauTo3Mu_mu1_idx[t]]; tau_mu2_z   = Muon_z[TauTo3Mu_mu2_idx[t]]; tau_mu3_z   = Muon_z[TauTo3Mu_mu3_idx[t]];
          tau_mu12_dZ = TauTo3Mu_dZmu12[t];   tau_mu23_dZ = TauTo3Mu_dZmu23[t];   tau_mu13_dZ = TauTo3Mu_dZmu13[t];
+         tau_mu12_dR = ROOT::Math::VectorUtil::DeltaR(RecoMu1_P4, RecoMu2_P4); tau_mu23_dR = ROOT::Math::VectorUtil::DeltaR(RecoMu2_P4, RecoMu3_P4); tau_mu13_dR = ROOT::Math::VectorUtil::DeltaR(RecoMu1_P4, RecoMu3_P4);
          if ( Muon_charge[TauTo3Mu_mu1_idx[t]]*Muon_charge[TauTo3Mu_mu2_idx[t]] < 0. ) tau_mu12_M = (RecoMu1_P4+RecoMu2_P4).M();
          tau_mu12_fitM = TauTo3Mu_mu12_fit_mass[t];
          if ( Muon_charge[TauTo3Mu_mu2_idx[t]]*Muon_charge[TauTo3Mu_mu3_idx[t]] < 0. ) tau_mu23_M = (RecoMu2_P4+RecoMu3_P4).M();
@@ -306,7 +306,11 @@ void WTau3Mu_analyzer::saveOutput(){
       h_muonSF_lowpT->Write();
       h_muonSF_lowpT_sysUP->Write();
       h_muonSF_lowpT_sysDOWN->Write();
-      // HLT
+      // Trigger
+      h_L1_efficiency_MC->Write();
+      h_L1_efficiency_DATA->Write();
+      h_HLT_efficiency_MC->Write();
+      h_HLT_efficiency_DATA->Write();
       h_DiMuon_HLTcand->Write();
       // PU
       h_PUweights->Write();
@@ -416,12 +420,15 @@ void WTau3Mu_analyzer::outTreeSetUp(){
    outTree_->Branch("tau_mu12_dZ",     &tau_mu12_dZ,  "tau_mu12_dZ/F");
    outTree_->Branch("tau_mu13_dZ",     &tau_mu13_dZ,  "tau_mu13_dZ/F");
    outTree_->Branch("tau_mu23_dZ",     &tau_mu23_dZ,  "tau_mu23_dZ/F");
+   outTree_->Branch("tau_mu12_dR",     &tau_mu12_dR,  "tau_mu12_dR/F");
+   outTree_->Branch("tau_mu13_dR",     &tau_mu13_dR,  "tau_mu13_dR/F");
+   outTree_->Branch("tau_mu23_dR",     &tau_mu23_dR,  "tau_mu23_dR/F");
    outTree_->Branch("tau_mu12_M",      &tau_mu12_M,   "tau_mu12_M/F");
-   outTree_->Branch("tau_mu12_fitM",      &tau_mu12_fitM,   "tau_mu12_fitM/F");
+   outTree_->Branch("tau_mu12_fitM",   &tau_mu12_fitM,"tau_mu12_fitM/F");
    outTree_->Branch("tau_mu13_M",      &tau_mu13_M,   "tau_mu13_M/F");
-   outTree_->Branch("tau_mu13_fitM",      &tau_mu13_fitM,   "tau_mu13_fitM/F");
+   outTree_->Branch("tau_mu13_fitM",   &tau_mu13_fitM,"tau_mu13_fitM/F");
    outTree_->Branch("tau_mu23_M",      &tau_mu23_M,   "tau_mu23_M/F");
-   outTree_->Branch("tau_mu23_fitM",      &tau_mu23_fitM,   "tau_mu23_fitM/F");
+   outTree_->Branch("tau_mu23_fitM",   &tau_mu23_fitM,"tau_mu23_fitM/F");
    // * tau canditates
    outTree_->Branch("n_tau",            &n_tau,            "n_tau/I");
    outTree_->Branch("tau_gen_mass",     &tau_gen_mass,     "tau_gen_mass/F");

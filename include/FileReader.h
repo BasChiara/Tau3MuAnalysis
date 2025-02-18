@@ -36,7 +36,7 @@ class FileReader{
       char Buffer[5000];
       std::string NtupleDir;
       char MyRootFile[10000];
-      const bool debug = true;
+      const bool debug = false;
 
 
 };

@@ -235,8 +235,8 @@ namespace LumiRun3
 
 namespace scale_factor_src
 {
-    // muon ID
     inline std::string base_dir = "/afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/";
+    // muon ID
     inline std::map<TString, std::string> IDsf_jsonfile_Jpsi{
         {"2022preEE"      , base_dir + "/include/scale_factors/ScaleFactors_Muon_Jpsi_ID_2022_schemaV2.json"}, 
         {"2022EE"         , base_dir + "/include/scale_factors/ScaleFactors_Muon_Jpsi_ID_2022_EE_schemaV2.json"}, 
@@ -251,6 +251,18 @@ namespace scale_factor_src
     };
     // HLT_DoubleMu
     inline std::string HLTeff_rootfile = base_dir + "corrections/HLT_DoubleMu4_3_LowMass/HLT_DoubleMu_efficiency2022.root";
+    inline std::map<TString, TString> L1_HLT_mPOG_eff_files{
+        {"2022preEE"      , base_dir + "corrections/HLT_DoubleMu4_3_LowMass/muonPOG/Run2022/HLT_L1_efficiency_abseta_pt.root"},
+        {"2022EE"         , base_dir + "corrections/HLT_DoubleMu4_3_LowMass/muonPOG/Run2022/HLT_L1_efficiency_abseta_pt.root"},
+        {"2023preBPix"    , base_dir + "corrections/HLT_DoubleMu4_3_LowMass/muonPOG/Run2023/HLT_L1_efficiency_abseta_pt.root"},
+        {"2023BPix"       , base_dir + "corrections/HLT_DoubleMu4_3_LowMass/muonPOG/Run2023/HLT_L1_efficiency_abseta_pt.root"},
+    };
+    inline std::string L1_mPOG_eff_MC    = "L1_MCefficiency";
+    inline std::string L1_mPOG_eff_DATA  = "L1_DATAefficiency";
+    inline std::string HLT_mPOG_eff_MC   = "HLT_MCefficiency";
+    inline std::string HLT_mPOG_eff_DATA = "HLT_DATAefficiency";
+
+
     // PU weights
     // - central weights
     inline TString PUweight_rootfile = base_dir + "corrections/pileup/weights/puWeights_CollisionsRun3_GoldenJson_2024Aug26.root"; 
@@ -263,7 +275,7 @@ namespace scale_factor_src
     // - recalc with Tau3Mu_nanoAOD
     inline TString myPUweight_rootfile = base_dir + "corrections/pileup/weights/PUweights_Run3_WTau3MuNanoAOD.root"; 
     inline std::map<TString, TString> myPUweights_hist{
-        {"2022preEE"      , "myPUweights_GoldenJson_2022preEE_nomina"},
+        {"2022preEE"      , "myPUweights_GoldenJson_2022preEE"},
         {"2022EE"         , "myPUweights_GoldenJson_2022EE"},
         {"2023preBPix"    , "myPUweights_GoldenJson_2023preBPix"},
         {"2023BPix"       , "myPUweights_GoldenJson_2023BPix"},
