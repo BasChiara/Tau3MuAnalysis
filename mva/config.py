@@ -334,11 +334,11 @@ data_samples = {
 # samples processed with BDT
 bdt_output_path = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/'
 mc_bdt_samples = {
-    'WTau3Mu'       : bdt_output_path+'XGBout_signal_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Dec10.root', 
+    'WTau3Mu'       : bdt_output_path+'XGBout_signal_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2025Feb18.root', 
     'DsPhiMuMuPi'   : bdt_output_path+'XGBout_DsPhiMuMuPi_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
     'W3MuNu'        : bdt_output_path+'XGBout_W3MuNu_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
     'peakingBkg'    : bdt_output_path+'XGBout_peakingBkg_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
-    'ZTau3Mu'       : bdt_output_path+'XGBout_ZTau3Mu_MC_kFold_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
+    'ZTau3Mu'       : bdt_output_path+'XGBout_ZTau3Mu_MC_kFold_Optuna_HLT_overlap_LxyS2.0_2025Feb18.root', 
 }
 data_bdt_samples = {
     'WTau3Mu'       : bdt_output_path+'XGBout_data_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root',

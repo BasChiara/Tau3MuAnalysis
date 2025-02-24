@@ -702,21 +702,21 @@ int WTau3Mu_tools::parseHLT_SF(const TString & era){
 float WTau3Mu_tools::get_dimuon_efficiency(const float& pt, const float& eta, const float& DR, const TString& trigger, const TString& dataset, float* error){
    
    float l1_efficiency = -99, hlt_efficiency = -99;
-   float l1_efficiency_error = 0.0, hlt_efficiency_error = 0.0;
-
+   float l1_efficiency_error = 0.0, hlt_efficiency_error = 0.0; 
+   float pt_touse = (pt > 50.0 ? 45.0 : pt);
    if (debug) std::cout << Form(" [HLT] get dimuon efficiency for (pt, eta, DR) = (%.2f, %.2f, %.2f) ", pt, eta, DR) << std::endl;
    if (dataset == "data"){
-      l1_efficiency_error  = h_L1_efficiency_DATA->GetBinError(h_L1_efficiency_DATA->FindBin(eta, pt));
-      hlt_efficiency_error = h_HLT_efficiency_DATA->GetBinError(h_HLT_efficiency_DATA->FindBin(eta, pt)); 
+      l1_efficiency_error  = h_L1_efficiency_DATA->GetBinError(h_L1_efficiency_DATA->FindBin(eta, pt_touse));
+      hlt_efficiency_error = h_HLT_efficiency_DATA->GetBinError(h_HLT_efficiency_DATA->FindBin(eta, pt_touse)); 
    
-      l1_efficiency  = h_L1_efficiency_DATA->GetBinContent(h_L1_efficiency_DATA->FindBin(eta, pt));
-      hlt_efficiency = h_HLT_efficiency_DATA->GetBinContent(h_HLT_efficiency_DATA->FindBin(eta, pt));
+      l1_efficiency  = h_L1_efficiency_DATA->GetBinContent(h_L1_efficiency_DATA->FindBin(eta, pt_touse));
+      hlt_efficiency = h_HLT_efficiency_DATA->GetBinContent(h_HLT_efficiency_DATA->FindBin(eta, pt_touse));
    } else if (dataset == "mc"){
-      l1_efficiency_error  = h_L1_efficiency_MC->GetBinError(h_L1_efficiency_MC->FindBin(eta, pt));
-      hlt_efficiency_error = h_HLT_efficiency_MC->GetBinError(h_HLT_efficiency_MC->FindBin(eta, pt));
+      l1_efficiency_error  = h_L1_efficiency_MC->GetBinError(h_L1_efficiency_MC->FindBin(eta, pt_touse));
+      hlt_efficiency_error = h_HLT_efficiency_MC->GetBinError(h_HLT_efficiency_MC->FindBin(eta, pt_touse));
    
-      l1_efficiency = h_L1_efficiency_MC->GetBinContent(h_L1_efficiency_MC->FindBin(eta, pt));
-      hlt_efficiency = h_HLT_efficiency_MC->GetBinContent(h_HLT_efficiency_MC->FindBin(eta, pt));
+      l1_efficiency = h_L1_efficiency_MC->GetBinContent(h_L1_efficiency_MC->FindBin(eta, pt_touse));
+      hlt_efficiency = h_HLT_efficiency_MC->GetBinContent(h_HLT_efficiency_MC->FindBin(eta, pt_touse));
    }
    if (error != 0){ 
        if (debug) std::cout << Form(" [L1] efficiency = %.3f +/- %.3f \t [HLT] efficiency = %.3f +/- %.3f", l1_efficiency, l1_efficiency_error, hlt_efficiency, hlt_efficiency_error) << std::endl;

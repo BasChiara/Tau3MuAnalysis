@@ -102,7 +102,7 @@ def ratio_plot( histo_num = [], histo_den = [], to_ploton = [], file_name = 'rat
     c.SaveAs(file_name+'.pdf')
     return c
 
-def ratio_plot_CMSstyle(histo_num = [], histo_den = [], to_ploton = [], file_name = 'ratio_plot', **kwargs):
+def ratio_plot_CMSstyle(histo_num = [], histo_den = [], description =[], leg_coord = [0.6, 0.7, 0.85, 0.85], to_ploton = [], file_name = 'ratio_plot', **kwargs):
     # parse argument
     #for key, value in kwargs.items():
     #    print(f'{key} : {value}')
@@ -170,7 +170,18 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], to_ploton = [], file_nam
         if draw_opt_num != 'hist': h_ratio.SetMarkerStyle(20) 
         h_ratio_list.append(h_ratio)
 
-    
+    leg = None
+    if description:
+        leg = CMS.cmsLeg(
+            leg_coord[0], leg_coord[1], leg_coord[2], leg_coord[3],
+            textSize=0.04
+        )
+        leg.SetFillStyle(0)
+        leg.SetBorderSize(0)
+        leg.SetTextFont(42)
+        leg.AddEntry(histo_den, description[-1], draw_opt_den) 
+        for i, h_num in enumerate(histo_num):
+            leg.AddEntry(h_num, description[i], draw_opt_num)
     # draw in the upper pad
     c.cd(1)
     #histo_den.Draw("HISTE")
@@ -194,6 +205,7 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], to_ploton = [], file_nam
         fstyle = h_num.GetFillStyle(),
         ) 
     [obj.Draw() for obj in to_ploton]
+    if leg: leg.Draw()
     c.SetLogy(log_y)
     CMS.fixOverlay()
     # draw in the ratio pad 
@@ -212,4 +224,78 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], to_ploton = [], file_nam
     c.SaveAs(file_name + '.root')
 
     c.Close()
+    return 1
+
+def plot_CMSstle(histo = [], description =[], leg_coord = [0.6, 0.7, 0.85, 0.85], to_ploton = [], file_name = 'histo', **kwargs):
+
+    # if not an input list, make it a list
+    if not isinstance(histo, list): histo = [histo]
+    # parse argument
+    x_lim        = kwargs['x_lim'] if 'x_lim' in kwargs else [histo[0].GetBinLowEdge(1), histo[0].GetBinLowEdge(histo[0].GetNbinsX()+1)]
+    y_lim        = kwargs['y_lim'] if 'y_lim' in kwargs  else [histo[0].GetMinimum(), histo[0].GetMaximum()]
+    x_label      = kwargs['x_label'] if 'x_label' in kwargs else histo[0].GetXaxis().GetTitle()
+    y_label      = kwargs['y_label'] if 'y_label' in kwargs else histo[0].GetYaxis().GetTitle()
+    log_y        = kwargs['log_y'] if 'log_y' in kwargs else False
+    log_x        = kwargs['log_x'] if 'log_x' in kwargs else False
+    CMSextraText = kwargs['CMSextraText'] if 'CMSextraText' in kwargs else 'Preliminary'
+    isMC         = kwargs['isMC'] if 'isMC' in kwargs else False
+    year         = kwargs['year'] if 'year' in kwargs else 2022
+    draw_opt     = kwargs['draw_opt'] if 'draw_opt' in kwargs else 'hist'
+    
+    # CMS style setting
+    if isMC :
+        CMS.SetLumi('')
+        CMSextraText = 'Simulation ' + CMSextraText
+    else: CMS.SetLumi(LumiVal_plots[str(year)])
+    CMS.SetExtraText(CMSextraText)
+
+    # CMS style canva
+    x_min = x_lim[0]
+    x_max = x_lim[1]
+    y_min = y_lim[0]
+    y_max = y_lim[1]
+
+
+    canv = CMS.cmsCanvas('canv',
+                         x_min,x_max,
+                         y_min, y_max,
+                         x_label,
+                         y_label,
+                         square=CMS.kSquare,
+                         extraSpace=0.05,
+                         iPos=11
+    )
+    
+    leg = None
+    if description:
+        leg = CMS.cmsLeg(
+            leg_coord[0], leg_coord[1], leg_coord[2], leg_coord[3],
+            textSize=0.04
+        )
+        leg.SetFillStyle(0)
+        leg.SetBorderSize(0)
+        leg.SetTextFont(42)
+            
+    for i, h in enumerate(histo):
+        CMS.cmsDraw(
+            h, 
+            style = draw_opt, 
+            lwidth = h.GetLineWidth(),
+            lstyle = h.GetLineStyle(), 
+            mcolor = h.GetLineColor(), 
+            marker = h.GetMarkerStyle(),
+            fcolor = h.GetFillColor(), 
+            fstyle = h.GetFillStyle()
+        )
+        if leg : leg.AddEntry(h, description[i], 'pe2')
+        [obj.Draw() for obj in to_ploton]
+    
+    CMS.fixOverlay()
+    if leg: leg.Draw()
+    canv.SetLogy(log_y)
+    canv.SetLogx(log_x)
+    canv.SaveAs(file_name + '.png')
+    canv.SaveAs(file_name + '.pdf')
+    canv.SaveAs(file_name + '.root')
+    canv.Close()
     return 1

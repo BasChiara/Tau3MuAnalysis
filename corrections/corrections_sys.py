@@ -18,7 +18,7 @@ sys_sources = {
     'NLO'           : [['NLO_weight'], 1],
     'PU'            : [['PU_weight'], 1],
     'mc_stat'       : [[''], 0],
-    #'HLT_DoubleMu'  : [['tau_DoubleMu4_3_LowMass_SF'], 0],
+    'HLT_DoubleMu'  : [['tau_DoubleMu4_3_LowMass_SF'], 1],
     'HLT_Tau3Mu'    : [['HLT_isfired_Tau3Mu'],2],
     'pT_V'          : [['pTV_weight'], 2],
 }
