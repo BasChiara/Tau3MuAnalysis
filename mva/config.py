@@ -203,9 +203,9 @@ sensitivity_dict = dict(zip(year_list, [dict(zip(cat_list, cat_sensitivity_22)),
 #########################
 #   STYLE per PROCESS   #
 #########################
-process_name = ['Tau3Mu', 'W3MuNu', 'DsPhiPi', 'DataSB']
+process_name = ['WTau3Mu', 'W3MuNu', 'DsPhiPi', 'DataSB']
 color_process = {
-    'Tau3Mu' : ROOT.kRed,
+    'WTau3Mu' : ROOT.kRed,
     'W3MuNu' : ROOT.kGreen+2,
     'DsPhiPi': ROOT.kViolet,
     'DataSB' : ROOT.kBlue,
@@ -213,7 +213,7 @@ color_process = {
     'invMedID': ROOT.kOrange+ 2,
 }
 legend_process = {
-    'Tau3Mu' : '#tau#rightarrow 3#mu',
+    'WTau3Mu' : '#tau#rightarrow 3#mu',
     'W3MuNu' : 'W#rightarrow #mu #nu',
     'DsPhiPi': 'D_{s}#rightarrow#phi#pi',
     'DataSB' : 'data SB',
@@ -221,7 +221,7 @@ legend_process = {
     'invMedID': 'inverted muonID',
 }
 bdt_label_process ={
-   'Tau3Mu' : 0,
+   'WTau3Mu' : 0,
    'DataSB' : 1,
    'W3MuNu' : 2,
 }

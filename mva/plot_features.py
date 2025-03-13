@@ -38,7 +38,7 @@ parser.add_argument('--bdt_cut',        default= 0.995, type= float,            
 parser.add_argument('--debug',          action = 'store_true' ,                                      help='set it to have useful printout')
 parser.add_argument('--isMulticlass',   action = 'store_true',                                       help='set to use teh multiclass setting')
 parser.add_argument('--LxySign_cut',    default=  0.0,  type = float,                                help='set random state for reproducible results')
-parser.add_argument('-p', '--process',  choices = ['Tau3Mu', 'W3MuNu', 'DsPhiPi', 'ZTau3Mu', 'invMedID'], default = 'Tau3Mu',help='which process in the simulation')
+parser.add_argument('-p', '--process',  choices = ['WTau3Mu', 'W3MuNu', 'DsPhiPi', 'ZTau3Mu', 'invMedID'], default = 'Tau3Mu',help='which process in the simulation')
 parser.add_argument('-s', '--signal',   action = 'append',                                           help='file with signal events with BDT applied')
 parser.add_argument('-d', '--data',     action = 'append',                                           help='file with data events with BDT applied')
 parser.add_argument('-y', '--year',     choices= ['2022', '2023', 'Run3'],   default= '2022',                 help='data-taking year to process')
