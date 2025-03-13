@@ -72,7 +72,7 @@ void WTau3Mu_analyzer::Loop(){
 
       // --- PU weights
       PU_weight = 1.0; PU_weight_down = 1.0; PU_weight_up = 1.0;
-      if (isMC_) applyPUreweight();
+      if (isMC_ && year_ != "2024" ) applyPUreweight();
 
       // --- loop on TAU candidates
       flag_MediumID = false;

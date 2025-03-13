@@ -1,0 +1,4 @@
+root://eoscms.cern.ch///store/group/phys_bphys/cbasile/Tau3MuNano_2025Mar06//ParkingDoubleMuonLowMass1/crab_data_Run2024Fv1_1/250306_092532/0000/tau3muNANO_data_2025Mar06_
+root://eoscms.cern.ch///store/group/phys_bphys/cbasile/Tau3MuNano_2025Mar06//ParkingDoubleMuonLowMass1/crab_data_Run2024Fv1_1/250306_092532/0001/tau3muNANO_data_2025Mar06_1
+root://eoscms.cern.ch///store/group/phys_bphys/cbasile/Tau3MuNano_2025Mar06//ParkingDoubleMuonLowMass1/crab_data_Run2024Fv1_1/250306_092532/0002/tau3muNANO_data_2025Mar06_2
+root://eoscms.cern.ch///store/group/phys_bphys/cbasile/Tau3MuNano_2025Mar06//ParkingDoubleMuonLowMass1/crab_data_Run2024Fv1_1/250306_092532/0003/tau3muNANO_data_2025Mar06_3

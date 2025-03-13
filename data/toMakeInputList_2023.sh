@@ -1,7 +1,7 @@
 # script to create input .txt files
 
-FILE_PATH='/pnfs/roma1.infn.it/data/cms/store/group/phys_bphys/cbasile/Tau3MuNano2023_2024Jan24/'
-SITE='T2_IT_Rome'
+#FILE_PATH='/pnfs/roma1.infn.it/data/cms/store/group/phys_bphys/cbasile/Tau3MuNano2023_2024Jan24/'
+#SITE='T2_IT_Rome'
 
 FILE_PATH='/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano_2024Aug03/'
 SITE='eos'

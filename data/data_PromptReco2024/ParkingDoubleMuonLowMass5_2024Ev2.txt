@@ -1,0 +1,1 @@
+root://eoscms.cern.ch///store/group/phys_bphys/cbasile/Tau3MuNano_2025Mar12//ParkingDoubleMuonLowMass5/crab_data_Run2024Ev2_5/250312_163631/0000/tau3muNANO_data_2025Mar12_

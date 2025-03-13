@@ -169,6 +169,87 @@ namespace yearID
         {"ParkingDoubleMuonLowMass5_2023Dv2"       , 234},
         {"ParkingDoubleMuonLowMass6_2023Dv2"       , 234},
         {"ParkingDoubleMuonLowMass7_2023Dv2"       , 234},
+        {"2024"    , 240}, 
+        {"ParkingDoubleMuonLowMass0_2024Bv1"       , 242},
+        {"ParkingDoubleMuonLowMass1_2024Bv1"       , 242},
+        {"ParkingDoubleMuonLowMass2_2024Bv1"       , 242},
+        {"ParkingDoubleMuonLowMass3_2024Bv1"       , 242},
+        {"ParkingDoubleMuonLowMass4_2024Bv1"       , 242},
+        {"ParkingDoubleMuonLowMass5_2024Bv1"       , 242},
+        {"ParkingDoubleMuonLowMass6_2024Bv1"       , 242},
+        {"ParkingDoubleMuonLowMass7_2024Bv1"       , 242},
+        {"ParkingDoubleMuonLowMass0_2024Cv1"       , 243},
+        {"ParkingDoubleMuonLowMass1_2024Cv1"       , 243},
+        {"ParkingDoubleMuonLowMass2_2024Cv1"       , 243},
+        {"ParkingDoubleMuonLowMass3_2024Cv1"       , 243},
+        {"ParkingDoubleMuonLowMass4_2024Cv1"       , 243},
+        {"ParkingDoubleMuonLowMass5_2024Cv1"       , 243},
+        {"ParkingDoubleMuonLowMass6_2024Cv1"       , 243},
+        {"ParkingDoubleMuonLowMass7_2024Cv1"       , 243},
+        {"ParkingDoubleMuonLowMass0_2024Dv1"       , 244},
+        {"ParkingDoubleMuonLowMass1_2024Dv1"       , 244},
+        {"ParkingDoubleMuonLowMass2_2024Dv1"       , 244},
+        {"ParkingDoubleMuonLowMass3_2024Dv1"       , 244},
+        {"ParkingDoubleMuonLowMass4_2024Dv1"       , 244},
+        {"ParkingDoubleMuonLowMass5_2024Dv1"       , 244},
+        {"ParkingDoubleMuonLowMass6_2024Dv1"       , 244},
+        {"ParkingDoubleMuonLowMass7_2024Dv1"       , 244},
+        {"ParkingDoubleMuonLowMass0_2024Ev1"       , 245},
+        {"ParkingDoubleMuonLowMass1_2024Ev1"       , 245},
+        {"ParkingDoubleMuonLowMass2_2024Ev1"       , 245},
+        {"ParkingDoubleMuonLowMass3_2024Ev1"       , 245},
+        {"ParkingDoubleMuonLowMass4_2024Ev1"       , 245},
+        {"ParkingDoubleMuonLowMass5_2024Ev1"       , 245},
+        {"ParkingDoubleMuonLowMass6_2024Ev1"       , 245},
+        {"ParkingDoubleMuonLowMass7_2024Ev1"       , 245},
+        {"ParkingDoubleMuonLowMass0_2024Ev2"       , 245},
+        {"ParkingDoubleMuonLowMass1_2024Ev2"       , 245},
+        {"ParkingDoubleMuonLowMass2_2024Ev2"       , 245},
+        {"ParkingDoubleMuonLowMass3_2024Ev2"       , 245},
+        {"ParkingDoubleMuonLowMass4_2024Ev2"       , 245},
+        {"ParkingDoubleMuonLowMass5_2024Ev2"       , 245},
+        {"ParkingDoubleMuonLowMass6_2024Ev2"       , 245},
+        {"ParkingDoubleMuonLowMass7_2024Ev2"       , 245},
+        {"ParkingDoubleMuonLowMass0_2024Fv1"       , 246},
+        {"ParkingDoubleMuonLowMass1_2024Fv1"       , 246},
+        {"ParkingDoubleMuonLowMass2_2024Fv1"       , 246},
+        {"ParkingDoubleMuonLowMass3_2024Fv1"       , 246},
+        {"ParkingDoubleMuonLowMass4_2024Fv1"       , 246},
+        {"ParkingDoubleMuonLowMass5_2024Fv1"       , 246},
+        {"ParkingDoubleMuonLowMass6_2024Fv1"       , 246},
+        {"ParkingDoubleMuonLowMass7_2024Fv1"       , 246},
+        {"ParkingDoubleMuonLowMass0_2024Gv1"       , 247},
+        {"ParkingDoubleMuonLowMass1_2024Gv1"       , 247},
+        {"ParkingDoubleMuonLowMass2_2024Gv1"       , 247},
+        {"ParkingDoubleMuonLowMass3_2024Gv1"       , 247},
+        {"ParkingDoubleMuonLowMass4_2024Gv1"       , 247},
+        {"ParkingDoubleMuonLowMass5_2024Gv1"       , 247},
+        {"ParkingDoubleMuonLowMass6_2024Gv1"       , 247},
+        {"ParkingDoubleMuonLowMass7_2024Gv1"       , 247},
+        {"ParkingDoubleMuonLowMass0_2024Hv1"       , 248},
+        {"ParkingDoubleMuonLowMass1_2024Hv1"       , 248},
+        {"ParkingDoubleMuonLowMass2_2024Hv1"       , 248},
+        {"ParkingDoubleMuonLowMass3_2024Hv1"       , 248},
+        {"ParkingDoubleMuonLowMass4_2024Hv1"       , 248},
+        {"ParkingDoubleMuonLowMass5_2024Hv1"       , 248},
+        {"ParkingDoubleMuonLowMass6_2024Hv1"       , 248},
+        {"ParkingDoubleMuonLowMass7_2024Hv1"       , 248},
+        {"ParkingDoubleMuonLowMass0_2024Iv1"       , 249},
+        {"ParkingDoubleMuonLowMass1_2024Iv1"       , 249},
+        {"ParkingDoubleMuonLowMass2_2024Iv1"       , 249},
+        {"ParkingDoubleMuonLowMass3_2024Iv1"       , 249},
+        {"ParkingDoubleMuonLowMass4_2024Iv1"       , 249},
+        {"ParkingDoubleMuonLowMass5_2024Iv1"       , 249},
+        {"ParkingDoubleMuonLowMass6_2024Iv1"       , 249},
+        {"ParkingDoubleMuonLowMass7_2024Iv1"       , 249},
+        {"ParkingDoubleMuonLowMass0_2024Iv2"       , 249},
+        {"ParkingDoubleMuonLowMass1_2024Iv2"       , 249},
+        {"ParkingDoubleMuonLowMass2_2024Iv2"       , 249},
+        {"ParkingDoubleMuonLowMass3_2024Iv2"       , 249},
+        {"ParkingDoubleMuonLowMass4_2024Iv2"       , 249},
+        {"ParkingDoubleMuonLowMass5_2024Iv2"       , 249},
+        {"ParkingDoubleMuonLowMass6_2024Iv2"       , 249},
+        {"ParkingDoubleMuonLowMass7_2024Iv2"       , 249},
     };
 }
 
@@ -194,6 +275,7 @@ namespace LumiRun3
         {"2022EE"         , 17.755+3.078}, 
         {"2023preBPix"    , 0.601+17.516}, 
         {"2023BPix"       , 9.690}, 
+        {"2024"           , 0.12+7.14+7.88+11.22+27.72+37.57+5.43+11.28},
     };
     // Nmc @ filter level
     inline std::map<TString, float> Nmc{
@@ -201,6 +283,7 @@ namespace LumiRun3
         {"2022EE"         , 792640}, 
         {"2023preBPix"    , 662000}, 
         {"2023BPix"       , 330000}, 
+        {"2024"           , 3894160},
     };
     // Br (tau -> 3mu)
     inline float Br_t3m = 1e-7;
@@ -210,7 +293,8 @@ namespace LumiRun3
         {"2022preEE"      , (Lumi["2022preEE"]*xsec_ppWxTauNu*Br_t3m)/Nmc["2022preEE"]},//0.0001452},			 
         {"2022EE"         , (Lumi["2022EE"]*xsec_ppWxTauNu*Br_t3m)/Nmc["2022EE"]},//0.0000554},	
         {"2023preBPix"    , (Lumi["2023preBPix"]*xsec_ppWxTauNu*Br_t3m)/Nmc["2023preBPix"]},//0.0000574}, 
-        {"2023BPix"       , (Lumi["2023BPix"]*xsec_ppWxTauNu*Br_t3m)/Nmc["2023BPix"]},//0.0000619}, 
+        {"2023BPix"       , (Lumi["2023BPix"]*xsec_ppWxTauNu*Br_t3m)/Nmc["2023BPix"]},//0.0000619},
+        {"2024"           , (Lumi["2024"]*xsec_ppWxTauNu*Br_t3m)/Nmc["2024"]},//0.0000619},
     };
     inline std::map<TString, float> LumiFactor_W3MuNu{
         {"DEFAULT"        , 1.0}, 
@@ -225,7 +309,8 @@ namespace LumiRun3
         {"2022preEE"      , Lumi["2022preEE"]*xsec_ppZxTauTau*2.*Br_t3m/195001}, 
         {"2022EE"         , Lumi["2022EE"]*xsec_ppZxTauTau*2.*Br_t3m/786411}, 
         {"2023preBPix"    , Lumi["2023preBPix"]*xsec_ppZxTauTau*2.*Br_t3m/677882}, 
-        {"2023BPix"       , Lumi["2023BPix"]*xsec_ppZxTauTau*2.*Br_t3m/317554}, 
+        {"2023BPix"       , Lumi["2023BPix"]*xsec_ppZxTauTau*2.*Br_t3m/317554},
+        {"2024"           , Lumi["2024"]*xsec_ppZxTauTau*2.*Br_t3m/4103413},
     };
 }
 
@@ -241,13 +326,14 @@ namespace scale_factor_src
         {"2022preEE"      , base_dir + "/include/scale_factors/ScaleFactors_Muon_Jpsi_ID_2022_schemaV2.json"}, 
         {"2022EE"         , base_dir + "/include/scale_factors/ScaleFactors_Muon_Jpsi_ID_2022_EE_schemaV2.json"}, 
         {"2023preBPix"    , base_dir + "/include/scale_factors/ScaleFactors_Muon_Jpsi_ID_2023_schemaV2.json"}, 
-        {"2023BPix"       , base_dir + "/include/scale_factors/ScaleFactors_Muon_Jpsi_ID_2023_schemaV2.json"}, 
+        {"2023BPix"       , base_dir + "/include/scale_factors/ScaleFactors_Muon_Jpsi_ID_2023_schemaV2.json"},
+        {"2024"           , base_dir + "/include/scale_factors/ScaleFactors_Muon_Jpsi_ID_2023_schemaV2.json"}, // fixme : to be updated
     };
     inline std::map<TString, std::string> IDsf_jsonfile_Z{
         {"2022preEE"      , base_dir + "/include/scale_factors/ScaleFactors_Muon_Z_ID_ISO_2022_schemaV2.json"}, 
         {"2022EE"         , base_dir + "/include/scale_factors/"}, 
         {"2023preBPix"    , base_dir + "/include/scale_factors/ScaleFactors_Muon_Z_ID_ISO_2023_schemaV2.json"}, 
-        {"2023BPix"       , base_dir + "/include/scale_factors/"}, 
+        {"2023BPix"       , base_dir + "/include/scale_factors/"},
     };
     // HLT_DoubleMu
     inline std::string HLTeff_rootfile = base_dir + "corrections/HLT_DoubleMu4_3_LowMass/HLT_DoubleMu_efficiency2022.root";
@@ -256,6 +342,7 @@ namespace scale_factor_src
         {"2022EE"         , base_dir + "corrections/HLT_DoubleMu4_3_LowMass/muonPOG/Run2022/HLT_L1_efficiency_abseta_pt.root"},
         {"2023preBPix"    , base_dir + "corrections/HLT_DoubleMu4_3_LowMass/muonPOG/Run2023/HLT_L1_efficiency_abseta_pt.root"},
         {"2023BPix"       , base_dir + "corrections/HLT_DoubleMu4_3_LowMass/muonPOG/Run2023/HLT_L1_efficiency_abseta_pt.root"},
+        {"2024"           , base_dir + "corrections/HLT_DoubleMu4_3_LowMass/muonPOG/Run2023/HLT_L1_efficiency_abseta_pt.root"}, // fixme : to be updated
     };
     inline std::string L1_mPOG_eff_MC    = "L1_MCefficiency";
     inline std::string L1_mPOG_eff_DATA  = "L1_DATAefficiency";
@@ -271,6 +358,7 @@ namespace scale_factor_src
         {"2022EE"         , "Collisions2022_359022_362760_eraEFG_GoldenJson"},
         {"2023preBPix"    , "Collisions2023_366403_369802_eraBC_GoldenJson"},
         {"2023BPix"       , "Collisions2023_369803_370790_eraD_GoldenJson"},
+        {"2024"           , "Collisions2022_355100_357900_eraBCD_GoldenJson"}, // fixme : to be updated
     };
     // - recalc with Tau3Mu_nanoAOD
     inline TString myPUweight_rootfile = base_dir + "corrections/pileup/weights/PUweights_Run3_WTau3MuNanoAOD.root"; 
@@ -290,6 +378,7 @@ namespace scale_factor_src
         {"2022EE"         , "h_Wgen_2022EE_ratio_pTeta"},
         {"2023preBPix"    , "h_Wgen_2023preBPix_ratio_pTeta"},
         {"2023BPix"       , "h_Wgen_2023BPix_ratio_pTeta"},
+        {"2024"           , "h_Wgen_2023BPix_ratio_pTeta"}, // fixme : to be updated
     }; 
 
     // pT Z and W from data [SMP]

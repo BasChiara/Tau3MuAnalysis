@@ -55,10 +55,11 @@ peakB_sv_selection   = f'(tau_Lxy_sign_BS > {5.0} & tau_fit_vprob > {0.10} )'
 
 # filetr level number of events
 Nmc_WTau3Mu = {
-    '2022preEE' :  197789,
-    '2022EE'    :  792640,
+    '2022preEE'  :  197789,
+    '2022EE'     :  792640,
     '2023preBPix':  662000,
-    '2023BPix'  :  330000,
+    '2023BPix'   :  330000,
+    '2024'       :  3894160,
 }
 Nmc_DsPhiPi = {
     '2022preEE' :  1000000,
@@ -71,14 +72,15 @@ Nmc_W3MuNu = {
     '2022EE'    :  1000000,
     '2023preBPix':  1000000,
     '2023BPix'  :  1000000,
+    '2024'      :  1000000,
 }
 Nmc_ZTau3Mu = {
     '2022preEE' :  195001,
     '2022EE'    :  786411,
     '2023preBPix':  677882,
     '2023BPix'  :  317554,
+    '2024'      :  4103413,
 }
-
 Nmc_process = {
     'WTau3Mu'   : Nmc_WTau3Mu,
     'DsPhiMuMuPi': Nmc_DsPhiPi,
@@ -111,7 +113,8 @@ year_selection = {
     '2023preBPix'   : '((year_id == 230) | ((year_id > 231) & (year_id < 234))) ', # era BC
     '2023BPix'      : '((year_id == 231) | ((year_id > 233) & (year_id < 240))) ', # era D
     '2023'          : '((year_id >  229) & (year_id < 240))',
-    'Run3'          : '((year_id >  219) & (year_id < 240))',
+    '2024'          : '((year_id >  239) & (year_id < 250))',
+    'Run3'          : '((year_id >  219) & (year_id < 260))',
 }
 LumiVal_plots = {
     '2022preEE'     : "13.6",
@@ -120,6 +123,7 @@ LumiVal_plots = {
     '2023preBPix'   : "18.0",
     '2023BPix'      : "9.7",
     '2023'          : "27.7",
+    '2024'          : "108.4",
     'Run3'          : "62.2",
 }
 ###             ###
@@ -128,6 +132,7 @@ LumiVal_plots = {
 Lumi_systematics = {
     '2022'          : 1.014,
     '2023'          : 1.013,
+    '2024'          : 1.000, # fixme : put the correct value
 }
 # W channel normalization
 xsec_ppW_sys  = 1.0160
@@ -239,7 +244,9 @@ WTau3Mu_signals  = [
     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_onTau3Mu.root',
     # 2023
     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap_onTau3Mu.root',
-    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onTau3Mu.root'
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onTau3Mu.root',
+    # 2024
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2024_HLT_overlap_onTau3Mu.root',
 ]
 
 DsPhiPi_signals = [
@@ -257,7 +264,9 @@ ZTau3Mu_signals = [
     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_onZTau3Mu.root',
     # 2023
     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap_onZTau3Mu.root',
-    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onZTau3Mu.root'
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onZTau3Mu.root',
+    # 2024
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2024_HLT_overlap_onZTau3Mu.root',
 ]
 
 DsPhiPi_data = [
@@ -294,14 +303,30 @@ data_background  = [
     data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv4_HLT_overlap.root',
     data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv1_HLT_overlap.root',
     data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv2_HLT_overlap.root',
+    #2024
+    data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Bv1_HLT_overlap.root',
+    data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Cv1_HLT_overlap.root',
+    data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Dv1_HLT_overlap.root',
+    data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Ev1_HLT_overlap.root',
+    data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Ev2_HLT_overlap.root',
+    data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Fv1_HLT_overlap.root',
+    data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Gv1_HLT_overlap.root',
+    data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Hv1_HLT_overlap.root',
+    data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Iv1_HLT_overlap.root',
+    data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Iv2_HLT_overlap.root',
+
+
+
 ]
 W3MuNu_background = [
     #2022
-     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap_onW3MuNu.root',
-     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_onW3MuNu.root',
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap_onW3MuNu.root',
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_onW3MuNu.root',
     #2023
-     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap_onW3MuNu.root',
-     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onW3MuNu.root',
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap_onW3MuNu.root',
+    mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onW3MuNu.root',
+    #2024
+    
 ]
 
 Peaking_background = [
