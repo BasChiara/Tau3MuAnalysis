@@ -70,15 +70,15 @@ def main():
     defaultoutputdir='./jobReport'
 
     # jobs params
-    parser.add_option('-q', '--queue',       action='store',     dest='queue',        help='run in batch in queue specified as option (default -q 8nh)', default='8nh')
+    parser.add_option('-q', '--queue',       action='store',     dest='queue',        help='run in batch in queue specified as option (default -q 8nh)' , default='8nh')
     parser.add_option('-n', '--nfileperjob', action='store',     dest='nfileperjob',  help='number of files processed by the single job'                , default=50,   type='int')
     parser.add_option('-s', '--dirpersplit', action='store',     dest='dirpersplit',  help='number of directories processed together'                   , default=1,   type='int')
-    parser.add_option('-p', '--prefix',      action='store',     dest='prefix',       help='the prefix to be added to the output'                      , default=defaultoutputdir)
-    parser.add_option('-a', '--application', action='store',     dest='application',  help='the executable to be run'                                  , default=executable)
-    parser.add_option('-c', '--create',      action='store_true',dest='create',       help='create only the jobs, do not submit them'                  , default=False)
-    parser.add_option('-t', '--testnjobs',   action='store',     dest='testnjobs',    help='submit only the first n jobs'                              , default=1000000, type='int')
-    parser.add_option('-N', '--neventsjob',  action='store',     dest='neventsjob',   help='split the jobs with n events  / batch job'                 , default=200,   type='int')
-    parser.add_option('-T', '--eventsperfile',action='store',    dest='eventsperfile',help='number of events per input file'                        , default=-1,   type='int')
+    parser.add_option('-p', '--prefix',      action='store',     dest='prefix',       help='the prefix to be added to the output'                       , default=defaultoutputdir)
+    parser.add_option('-a', '--application', action='store',     dest='application',  help='the executable to be run'                                   , default=executable)
+    parser.add_option('-c', '--create',      action='store_true',dest='create',       help='create only the jobs, do not submit them'                   , default=False)
+    parser.add_option('-t', '--testnjobs',   action='store',     dest='testnjobs',    help='submit only the first n jobs'                               , default=1000000, type='int')
+    parser.add_option('-N', '--neventsjob',  action='store',     dest='neventsjob',   help='split the jobs with n events  / batch job'                  , default=200,   type='int')
+    parser.add_option('-T', '--eventsperfile',action='store',    dest='eventsperfile',help='number of events per input file'                            , default=-1,   type='int')
     parser.add_option('-r', '--runtime',     action='store',     dest='runtime',      help='New runtime for condor resubmission in hours. default None: will take the original one.', default=8, type=int);
     parser.add_option('--scheduler',         action='store',     dest='scheduler',    help='select the batch scheduler (lsf,condor). Default=condor'   , default='condor')
     # application params
@@ -86,7 +86,7 @@ def main():
     parser.add_option('-F', '--Nfiles',      action='store',     dest='Nfiles',       help='number of files in a remote directory', default = 1000, type ='int')
     parser.add_option('--DsPhiPi',           action='store_true',dest='isDsPhiPi',    help='wether to run on the control channel Ds->Phi(MuMu)Pi', default = False)
     parser.add_option('--HLT_path',          choices=['HLT_DoubleMu', 'HLT_Tau3Mu', 'HLT_overlap'], dest='HLT_path', help='HLT path to use', default = 'HLT_Tau3Mu')
-    parser.add_option('--debug',       action='store_true',dest='debug',        help='useful printouts', default = False)
+    parser.add_option('--debug',             action='store_true',dest='debug',        help='useful printouts', default = False)
     (opt, args) = parser.parse_args()
     
     if len(args) != 1:
@@ -123,7 +123,7 @@ def main():
     #  process xxx file per job
     max_file_dir    = 1000
     root_files_job  = opt.nfileperjob
-    files_to_submit = opt.Nfiles
+    files_to_submit = opt.Nfiles+1 
     exp_dir         = int(files_to_submit/max_file_dir) + (1 if files_to_submit%max_file_dir > 0 else 0)
     exp_job_number  = int(files_to_submit/root_files_job) + (1 if files_to_submit%root_files_job > 0 else 0)
     if opt.debug : print(f'\t> processing {files_to_submit} files in {exp_dir} directories')

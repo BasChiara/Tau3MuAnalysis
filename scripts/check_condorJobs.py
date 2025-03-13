@@ -36,6 +36,7 @@ Ndataset = 8
 job_dir_list = []
 for i_dataset in range(Ndataset):
     matching = glob.glob(f'{opt.job_dir}/{base_name}{str(i_dataset)}_{opt.era}_*') 
+    if (opt.debug): print(matching)
     
     if len(matching) == 1 :
        job_dir_list.append(matching[0]) 

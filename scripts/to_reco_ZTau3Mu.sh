@@ -19,3 +19,5 @@
 # 2023
 ./bin/Analyzer_app -i data/mc_reMini2023/MonteCarlo_ZTau3Mu_2023preBPix.txt  -o outRoot/ -d MC -y 2023preBPix    -a Tau3Mu -p ZTau3Mu
 ./bin/Analyzer_app -i data/mc_reMini2023/MonteCarlo_ZTau3Mu_2023BPix.txt     -o outRoot/ -d MC -y 2023BPix       -a Tau3Mu -p ZTau3Mu
+# 2024
+./bin/Analyzer_app -i data/mc_PromptReco_2024/MonteCarlo_ZTau3Mu_2024.txt    -o outRoot/ -d MC -y 2024           -a Tau3Mu -p ZTau3Mu
