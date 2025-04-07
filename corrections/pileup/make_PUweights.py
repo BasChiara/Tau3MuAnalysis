@@ -9,7 +9,7 @@ from plots.color_text import color_text as ct
 
 
 parser = argparse.ArgumentParser(description='Make pileup weights')
-parser.add_argument('--era', choices=['2022preEE', '2022EE', '2023preBPix', '2023BPix'], default='2022preEE', help='era to be used')
+parser.add_argument('--era', choices=['2022preEE', '2022EE', '2023preBPix', '2023BPix', '2024'], default='2022preEE', help='era to be used')
 parser.add_argument('--mc_central', action='store_true', help='extract MC PU from central configuration')
 parser.add_argument('--mc_central_nano',    action='store_true', help='extract MC PU from nanoAOD files with NO selection')
 parser.add_argument('--mc_nano',    action='store_true', help='extract MC PU from nanoAOD files with tau3mu preselection')
@@ -60,26 +60,30 @@ central_GoldenJson = {
     "2023BPix" : [
         base_cJson + "Collisions23/Cert_Collisions2023_eraD_369803_370790_Golden.json",
         ],
-}
-base_myJson_120X = "/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/PhysicsTools/Tau3muNANO/production/"
-base_myJson_130X = "/eos/user/c/cbasile/Tau3MuRun3/CMSSW_13_0_13/src/PhysicsTools/Tau3muNANO/production/"
-my_AnalysisJson = {
-    "2022preEE" : [
-        base_myJson_120X + "Tau3MuNano_2024Aug06/crab_data_Run2022Cv1_0/results/lumisToProcess.json",
-        base_myJson_120X + "Tau3MuNano_2024Aug06/crab_data_Run2022Dv1_0/results/lumisToProcess.json",
-        base_myJson_120X + "Tau3MuNano_2024Aug06/crab_data_Run2022Dv2_0/results/lumisToProcess.json",
-        ],
-    "2022EE"    :[
-        base_myJson_120X + "Tau3MuNano_2024Aug05/crab_data_Run2022Ev1_0/results/lumisToProcess.json",
-        base_myJson_130X + "Tau3MuNano_2024Aug02/crab_data_Run2022Fv1_0/results/lumisToProcess.json",
-        base_myJson_130X + "Tau3MuNano_2024Aug02/crab_data_Run2022Gv1_0/results/lumisToProcess.json",
+    "2024" : [
+        base_cJson + "Collisions24/Cert_Collisions2024_378981_386951_Golden.json",
     ]
 }
+#base_myJson_120X = "/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/PhysicsTools/Tau3muNANO/production/"
+#base_myJson_130X = "/eos/user/c/cbasile/Tau3MuRun3/CMSSW_13_0_13/src/PhysicsTools/Tau3muNANO/production/"
+#my_AnalysisJson = {
+#    "2022preEE" : [
+#        base_myJson_120X + "Tau3MuNano_2024Aug06/crab_data_Run2022Cv1_0/results/lumisToProcess.json",
+#        base_myJson_120X + "Tau3MuNano_2024Aug06/crab_data_Run2022Dv1_0/results/lumisToProcess.json",
+#        base_myJson_120X + "Tau3MuNano_2024Aug06/crab_data_Run2022Dv2_0/results/lumisToProcess.json",
+#        ],
+#    "2022EE"    :[
+#        base_myJson_120X + "Tau3MuNano_2024Aug05/crab_data_Run2022Ev1_0/results/lumisToProcess.json",
+#        base_myJson_130X + "Tau3MuNano_2024Aug02/crab_data_Run2022Fv1_0/results/lumisToProcess.json",
+#        base_myJson_130X + "Tau3MuNano_2024Aug02/crab_data_Run2022Gv1_0/results/lumisToProcess.json",
+#    ]
+#}
 central_PuJson ={
     "2022preEE"     : base_cJson + "Collisions22/PileUp/BCD/pileup_JSON.txt",
     "2022EE"        : base_cJson + "Collisions22/PileUp/EFG/pileup_JSON.txt",
     "2023preBPix"   : base_cJson + "Collisions23/PileUp/BC/pileup_JSON.txt",
     "2023BPix"      : base_cJson + "Collisions23/PileUp/D/pileup_JSON.txt",
+    "2024"          : "/eos/user/c/cbasile/Tau3MuRun3/CMSSW_14_0_16/src/PhysicsTools/Tau3muNANO/production/PileUp/pileup_JSON.txt",  # made with brilcalc -> https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupJSONFileforData#Creating_the_pileup_files 
     
 }
 
@@ -103,8 +107,6 @@ os.system(hadd_cmd)
 os.system(f'rm {out_file_data}_*.root')
 
 
-
-
 # -------------- PILEUP in MC -------------- #
 # central nanoAOD files
 nano_files ={
@@ -112,14 +114,16 @@ nano_files ={
     "2022EE"        : "/afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/corrections/NLO_W/WtoTauNu_Tauto3Mu_Run3Summer22EENanoAODv12_fileList.txt",
     "2023preBPix"   : "/afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/corrections/NLO_W/WtoTauNu_Tauto3Mu_Run3Summer23preBPixNanoAODv12_fileList.txt",
     "2023BPix"      : "/afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/corrections/NLO_W/WtoTauNu_Tauto3Mu_Run3Summer23BPixNanoAODv12_fileList.txt",
+    "2024"         : None, # fixme: search for the file
 }
 # nanoAOD files with tau3mu preselection
-nano_base = '/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano_2024Aug03/WtoTauNu_Tauto3Mu_TuneCP5_13p6TeV_pythia8/'
+nano_base = '/eos/cms/store/group/phys_bphys/cbasile/'
 t3m_nano_files ={
-    "2022preEE"     : nano_base + "crab_WnuTau3Mu_2022/240803_095729/0000/",
-    "2022EE"        : nano_base + "crab_WnuTau3Mu_2022EE/240803_095719/0000/",
-    "2023preBPix"   : nano_base + "crab_WnuTau3Mu_2023preBPix/240803_095748/0000/", 
-    "2023BPix"      : nano_base + "crab_WnuTau3Mu_2023BPix/240803_095801/0000/" 
+    "2022preEE"     : nano_base + "Tau3MuNano_2024Aug03/WtoTauNu_Tauto3Mu_TuneCP5_13p6TeV_pythia8/crab_WnuTau3Mu_2022/240803_095729/0000/",
+    "2022EE"        : nano_base + "Tau3MuNano_2024Aug03/WtoTauNu_Tauto3Mu_TuneCP5_13p6TeV_pythia8/crab_WnuTau3Mu_2022EE/240803_095719/0000/",
+    "2023preBPix"   : nano_base + "Tau3MuNano_2024Aug03/WtoTauNu_Tauto3Mu_TuneCP5_13p6TeV_pythia8/crab_WnuTau3Mu_2023preBPix/240803_095748/0000/", 
+    "2023BPix"      : nano_base + "Tau3MuNano_2024Aug03/WtoTauNu_Tauto3Mu_TuneCP5_13p6TeV_pythia8/crab_WnuTau3Mu_2023BPix/240803_095801/0000/",
+    "2024"          : nano_base + "Tau3MuNano_2025Mar07/WtoTauNu-Tauto3Mu_TuneCP5_13p6TeV_pythia8/crab_WnuTau3Mu_2024/250307_172820/0000/"
 }
 
 # miniAOD files with no preselection
@@ -128,7 +132,8 @@ mini_files ={
     "2022preEE"     : mini_base + "crab_WnuTau3Mu_2022/240907_130417/0000/",
     "2022EE"        : mini_base + "crab_WnuTau3Mu_2022EE/240907_130452/0000/",
     "2023preBPix"   : mini_base + "crab_WnuTau3Mu_2023preBPix/240907_130532/0000/", 
-    "2023BPix"      : mini_base + "crab_WnuTau3Mu_2023BPix/240907_130611/0000/" 
+    "2023BPix"      : mini_base + "crab_WnuTau3Mu_2023BPix/240907_130611/0000/",
+    "2024"          : None # not produced yet
 }
 # -- PU profile from MC campaign configuarion -- #
 h_mc_PU = ROOT.TH1F('h_mc_PU', 'h_mc_PU', 100, 0, 100)

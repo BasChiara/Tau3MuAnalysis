@@ -76,7 +76,12 @@ def fillPileupHistogram(lumiInfo, calcOption, binning, hContents, minbXsec, run,
     LSintLumi = lumiInfo[0]
     RMSInt = lumiInfo[1]*minbXsec
     AveNumInt = lumiInfo[2]*minbXsec
-
+    #print("Run %d, LS %d: intlumi %.2f, RMSInt %.2f, AveNumInt %.2f" % (run, ls, LSintLumi, RMSInt, AveNumInt))
+    # if AveNumInt > binning.xMax -> ignore
+    if AveNumInt > binning.xMax:
+        print("Run %d, LS %d: Average number of interactions %.2f exceeds maximum binning value %.2f" % (run, ls, AveNumInt, binning.xMax))
+        return
+    
     # First, re-constitute lumi distribution for this LS from RMS:
     if RMSInt > 0:
         areaAbove = MyErf((AveNumInt-binning.edges)/Sqrt2/RMSInt)

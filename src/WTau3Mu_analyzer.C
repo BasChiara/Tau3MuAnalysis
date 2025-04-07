@@ -45,6 +45,8 @@ void WTau3Mu_analyzer::Loop(){
       Rho_Fj  = Rho_fixedGridRhoFastjetAll;
 
       opposite_side_tag_ = -1;
+      pTV_weight = 1.0, pTV_weight_up = 1.0, pTV_weight_down = 1.0;
+      NLO_weight = 1.0; NLO_weight_up = 1.0; NLO_weight_down = 1.0;
       if(isMC_){
          // --- MC truth & matching
          if (process_ == "ZTau3Mu") opposite_side_tag_ = GenPartFillP4_Z();
@@ -60,19 +62,17 @@ void WTau3Mu_analyzer::Loop(){
 
          Z_gen_mass = GenZ_P4.M(); Z_gen_pt = GenZ_P4.Pt(); Z_gen_eta = GenZ_P4.Eta(); Z_gen_phi = GenZ_P4.Phi();
 
-         // --- NLO weights
-         NLO_weight = 1.0; NLO_weight_up = 1.0; NLO_weight_down = 1.0;
+         // --- NLO weights   
          if (process_ == "Tau3Mu" || process_ == "W3MuNu") applyNLOreweight(W_gen_pt, W_gen_eta);
          else if (process_ == "ZTau3Mu") applyNLOreweight(Z_gen_pt, Z_gen_eta);
          // --- pT V weights
-         float pT_var = (process_ == "Tau3Mu" || process_ == "W3MuNu" ? W_gen_pt : Z_gen_pt);
-         pTV_weight = 1.0, pTV_weight_up = 1.0, pTV_weight_down = 1.0;
+         float pT_var = (process_ == "Tau3Mu" || process_ == "W3MuNu" ? W_gen_pt : Z_gen_pt);    
          pTV_weight_up = apply_SFfromTHist1D(pT_var, h_pTVweights); 
       }
 
       // --- PU weights
       PU_weight = 1.0; PU_weight_down = 1.0; PU_weight_up = 1.0;
-      if (isMC_ && year_ != "2024" ) applyPUreweight();
+      if (isMC_) applyPUreweight();
 
       // --- loop on TAU candidates
       flag_MediumID = false;
@@ -141,8 +141,9 @@ void WTau3Mu_analyzer::Loop(){
          tau_mu3_IDrecoSF_sysUP = -1.; tau_mu3_IDrecoSF_sysDOWN = -1.;  
          if(isMC_) applyMuonSF(t);
 
-         weight = lumi_factor * PU_weight * NLO_weight  * pTV_weight * tau_mu1_IDrecoSF * tau_mu2_IDrecoSF * tau_mu3_IDrecoSF * tau_DoubleMu4_3_LowMass_SF; 
-
+         if (isMC_) weight = lumi_factor * PU_weight * NLO_weight  * pTV_weight * tau_mu1_IDrecoSF * tau_mu2_IDrecoSF * tau_mu3_IDrecoSF * tau_DoubleMu4_3_LowMass_SF; 
+         else weight = 1.0;
+         
          // muons kinematics
          tau_mu1_pt  = TauTo3Mu_mu1_pt[t];   tau_mu2_pt  = TauTo3Mu_mu2_pt[t];   tau_mu3_pt  = TauTo3Mu_mu3_pt[t];
          tau_mu1_eta = TauTo3Mu_mu1_eta[t];  tau_mu2_eta = TauTo3Mu_mu2_eta[t];  tau_mu3_eta = TauTo3Mu_mu3_eta[t];

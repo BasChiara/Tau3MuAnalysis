@@ -1,4 +1,6 @@
 import ROOT
+ROOT.gROOT.SetBatch(True)
+ROOT.gStyle.SetOptStat(0)
 import correctionlib
 
 

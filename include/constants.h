@@ -351,14 +351,15 @@ namespace scale_factor_src
 
 
     // PU weights
-    // - central weights
-    inline TString PUweight_rootfile = base_dir + "corrections/pileup/weights/puWeights_CollisionsRun3_GoldenJson_2024Aug26.root"; 
+    // - central weights + my weights for 2024
+    //inline TString PUweight_rootfile = base_dir + "corrections/pileup/weights/puWeights_CollisionsRun3_GoldenJson_2024Aug26.root"; 
+    inline TString PUweight_rootfile = base_dir + "corrections/pileup/weights/puWeights_Collisions22_23_24_GoldenJson_2025Mar25.root";
     inline std::map<TString, TString> centralPUweights_hist{
         {"2022preEE"      , "Collisions2022_355100_357900_eraBCD_GoldenJson"},
         {"2022EE"         , "Collisions2022_359022_362760_eraEFG_GoldenJson"},
         {"2023preBPix"    , "Collisions2023_366403_369802_eraBC_GoldenJson"},
         {"2023BPix"       , "Collisions2023_369803_370790_eraD_GoldenJson"},
-        {"2024"           , "Collisions2022_355100_357900_eraBCD_GoldenJson"}, // fixme : to be updated
+        {"2024"           , "myPUweights_GoldenJson_2024"},
     };
     // - recalc with Tau3Mu_nanoAOD
     inline TString myPUweight_rootfile = base_dir + "corrections/pileup/weights/PUweights_Run3_WTau3MuNanoAOD.root"; 
