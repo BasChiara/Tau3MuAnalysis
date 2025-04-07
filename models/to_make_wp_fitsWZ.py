@@ -7,7 +7,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import mva.config as config
 
 argparser = argparse.ArgumentParser()
-argparser.add_argument('-y','--year',   choices=['22', '23'], default='22')
+argparser.add_argument('-y','--year',   choices=['22', '23', '24'], default='22')
 argparser.add_argument('-b','--b_func', choices=['expo', 'const', 'poly1'], default='expo')
 argparser.add_argument('-t','--tag',    default='apply_LxyS2.0')
 argparser.add_argument('-o','--output',

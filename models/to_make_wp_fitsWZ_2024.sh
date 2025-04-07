@@ -1,0 +1,9 @@
+# terrible way I know :(
+
+
+# A24
+python3 WZTau3Mu_fitSB.py --signal_W /eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output//XGBout_WTau3Mu_MC_2024only.root --signal_Z /eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output//XGBout_ZTau3Mu_MC_2024only.root -d /eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output//XGBout_WTau3Mu_DATA_2024only.root --plot_outdir $WWW/Tau3Mu_Run3/BDTtraining/AN_v7/BDT_wp2024/ --goff --save_ws --sys_unc -b expo --combine_dir $COMBINEv10/tau3murun3_combination/Wchannel/AN_results/ANv7_topUp/input_combine/ --tag ANv7 -y 24 -c A --bdt_cut 0.997
+# B24
+python3 WZTau3Mu_fitSB.py --signal_W /eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output//XGBout_WTau3Mu_MC_2024only.root --signal_Z /eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output//XGBout_ZTau3Mu_MC_2024only.root -d /eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output//XGBout_WTau3Mu_DATA_2024only.root --plot_outdir $WWW/Tau3Mu_Run3/BDTtraining/AN_v7/BDT_wp2024/ --goff --save_ws --sys_unc -b expo --combine_dir $COMBINEv10/tau3murun3_combination/Wchannel/AN_results/ANv7_topUp/input_combine/ --tag ANv7 -y 24 -c B --bdt_cut 0.996
+# C24
+python3 WZTau3Mu_fitSB.py --signal_W /eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output//XGBout_WTau3Mu_MC_2024only.root --signal_Z /eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output//XGBout_ZTau3Mu_MC_2024only.root -d /eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output//XGBout_WTau3Mu_DATA_2024only.root --plot_outdir $WWW/Tau3Mu_Run3/BDTtraining/AN_v7/BDT_wp2024/ --goff --save_ws --sys_unc -b expo --combine_dir $COMBINEv10/tau3murun3_combination/Wchannel/AN_results/ANv7_topUp/input_combine/ --tag ANv7 -y 24 -c C --bdt_cut 0.996

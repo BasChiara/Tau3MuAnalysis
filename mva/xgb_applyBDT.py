@@ -37,7 +37,8 @@ parser.add_argument('--process',        choices= ['WTau3Mu', 'W3MuNu', 'data', '
 parser.add_argument('--isMC',           action = 'store_true' ,                                         help='set if running on MonteCarlo')
 parser.add_argument('--isMulticlass',   action = 'store_true' ,                                         help='set if applying a multiclass classifier')
 parser.add_argument('--LxySign_cut',    default=  0.0,  type = float,                                   help='cut over 3muons SV displacement significance')
-parser.add_argument('-d', '--data',     action = 'append',                                              help='dataset to apply BDT weights')
+#parser.add_argument('-d', '--data',     action = 'append',                                              help='dataset to apply BDT weights')
+parser.add_argument('-d', '--data',     nargs='+',                                              help='dataset to apply BDT weights')
 
 args = parser.parse_args()
 tag = '_'.join([args.process, 'MC' if args.isMC else 'DATA']) + ( ('_' + args.tag)  if args.tag else '')
@@ -133,10 +134,16 @@ for i, iclas in classifiers.items():
         dat.loc[:,'bdt_score_w3m']             += iclas.predict_proba(dat[bdt_inputs], iteration_range = (starting_epoch, best_iteration +1))[:, 2] / n_class
     else:
         dat.loc[:,'bdt_fold%d_score' %i] = iclas.predict_proba(dat[bdt_inputs])[:, 1]
+        dat.loc[:,'bdt_fold%d_isTrainSet'%i] = np.zeros(dat.shape[0])
         dat.loc[:,'bdt_score'] += iclas.predict_proba(dat[bdt_inputs])[:, 1] / n_class
 
-#newfile_base = '%s/XGBout_'%(args.data_outdir) + args.process
-#newfile_tail = ('MC_' if args.isMC else 'DATA_') + args.tag + ".root"
+# FIXME: very ugly
+if not 'PU_weight_down' in dat.columns: dat['PU_weight_down'] = np.zeros(dat.shape[0])
+if not 'PU_weight_up'   in dat.columns: dat['PU_weight_up']   = np.zeros(dat.shape[0])
+if not 'train_weight'   in dat.columns: dat['train_weight']   = np.ones(dat.shape[0])
+if not 'target'         in dat.columns: dat['target']         = np.ones(dat.shape[0]).astype(int) if args.isMC else np.zeros(dat.shape[0]).astype(int)
+if not 'tau_charge_weight' in dat.columns: dat['tau_charge_weight'] = np.ones(dat.shape[0])
+
 newfile      = '%s/XGBout_'%(args.data_outdir) + tag + '.root' 
 
 print('[OUT] output file saved in %s'%newfile)

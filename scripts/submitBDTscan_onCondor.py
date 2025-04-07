@@ -27,7 +27,7 @@ def main():
     parser.add_option('--tag',               action='store',            dest='tag',             help='tag that identifies the task')
     parser.add_option('--plot_outdir',       action='store',            dest='plot_outdir',             help='copy the output plot in the specified EOS path',          default = '')
     parser.add_option('--category',          choices=['A', 'B', 'C', 'ABC'],   dest='category',        help='events category',                                         default = 'A')
-    parser.add_option('--year',              choices=['22', '23'],      dest='year',            help='data taking year',                                        default = '22')
+    parser.add_option('--year',              choices=['22', '23', '24'],dest='year',            help='data taking year',                                        default = '22')
     parser.add_option('--debug',             action='store_true',       dest='debug',           help='useful printouts',                                        default = False)
     parser.add_option('--BDTmin',            action='store',            dest='BDTmin',          help='minimum BDT value',                                       default = 0.9800) 
     parser.add_option('--BDTmax',            action='store',            dest='BDTmax',          help='maximum BDT value',                                       default = 0.9980)
@@ -88,7 +88,7 @@ cmsenv
 cd {pwd} 
 echo $PWD\n
 
-python3 models/Tau3Mu_fitSB.py --plot_outdir {eos} --combine_dir {workdir}/input_combine/ -s {signal} -d {data} --category {cat} -y {year} --tag {tag} --optim_bdt --save_ws --bkg_func expo --BDTmin {bdtmin} --BDTmax {bdtmax} --BDTstep {bdtstep} --goff
+python3 models/Tau3Mu_fitSB.py --plot_outdir {eos} --combine_dir {workdir}/input_combine/ -s {signal} -d {data} --category {cat} -y {year} --tag {tag} --optim_bdt --save_ws --bkg_func expo --fix_w --BDTmin {bdtmin} --BDTmax {bdtmax} --BDTstep {bdtstep} --goff
 
     '''.format(
         pwd = pwd,

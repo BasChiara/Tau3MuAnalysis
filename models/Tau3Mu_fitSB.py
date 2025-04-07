@@ -33,7 +33,7 @@ parser.add_argument('-u','--unblind',   action = 'store_true' ,                 
 parser.add_argument('-b','--bkg_func',  choices = ['expo', 'const', 'poly1', 'dynamic'], default = 'expo',  help='background model, \'dynamic\' : fit constant as Nb < --lowB_th')
 parser.add_argument('--lowB_th',        type= float,                default= 35.0,                          help='if --const_lowB is given specyfies the min bkg events to fit with expo')
 parser.add_argument('-c','--category',  choices = ['A', 'B', 'C'],  default = 'A',                          help='which categories to fit')
-parser.add_argument('-y','--year',      choices = ['22','23'],      default = '22',                         help='which CMS dataset to use')
+parser.add_argument('-y','--year',      choices = ['22','23', '24'],default = '22',                         help='which CMS dataset to use')
 parser.add_argument('--optim_bdt',      action = 'store_true',                                              help='run BDT cut optimization')
 parser.add_argument('--BDTmin',         type =float,                default = 0.9900,                       help='if --optim_bdt defines in the min BDT threshold in the scan')
 parser.add_argument('--BDTmax',         type =float,                default = 0.9995,                       help='if --optim_bdt defines in the max BDT threshold in the scan')

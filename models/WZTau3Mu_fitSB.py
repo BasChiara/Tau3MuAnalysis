@@ -38,7 +38,7 @@ parser.add_argument('-u','--unblind',   action = 'store_true' ,                 
 parser.add_argument('-b','--bkg_func',  choices = ['expo', 'const', 'poly1', 'dynamic'], default = 'expo',  help='background model, \'dynamic\' : fit constant as Nb < --lowB_th')
 parser.add_argument('--lowB_th',        type= float,                default= 35.0,                          help='if --const_lowB is given specyfies the min bkg events to fit with expo')
 parser.add_argument('-c','--category',  choices = ['A', 'B', 'C'],  default = 'A',                          help='which categories to fit')
-parser.add_argument('-y','--year',      choices = ['22','23'],      default = '22',                         help='which CMS dataset to use')
+parser.add_argument('-y','--year',      choices = config.year_list, default = '22',                         help='which CMS dataset to use')
 parser.add_argument('--optim_bdt',      action = 'store_true',                                              help='run BDT cut optimization')
 parser.add_argument('--BDTmin',         type =float,                default = 0.9900,                       help='if --optim_bdt defines in the min BDT threshold in the scan')
 parser.add_argument('--BDTmax',         type =float,                default = 0.9995,                       help='if --optim_bdt defines in the max BDT threshold in the scan')
@@ -73,6 +73,9 @@ if not os.path.exists(data_file):
 print(f'{ct.BOLD}[+]{ct.END} added DATA file :\n {data_file}')
 
 # **** OUTPUT settings **** 
+if not os.path.exists(args.plot_outdir): os.makedirs(args.plot_outdir)
+if not os.path.exists(args.combine_dir): os.makedirs(args.combine_dir)
+
 process_name = 'VTau3Mu_%s%s'%(args.category, args.year)
 tag = (f'bdt{args.bdt_cut:,.4f}_{process_name}' if not args.optim_bdt else f'bdt_scan_{process_name}') + ('_' + args.tag ) if not (args.tag is None) else ''
 set_bdt_cut = [args.bdt_cut] if not args.optim_bdt else np.arange(args.BDTmin, args.BDTmax, args.BDTstep) 
@@ -210,7 +213,7 @@ for cut in set_bdt_cut:
     # skip if no events in one of the 2 sidebands
     print (f'entries in left SB {bkg_dataset.sumEntries("", "left_SB")}')
     print (f'entries in right SB {bkg_dataset.sumEntries("", "right_SB")}')
-    if (bkg_dataset.sumEntries("", "left_SB") == 0 or bkg_dataset.sumEntries("", "right_SB") == 0): continue
+    #if (bkg_dataset.sumEntries("", "left_SB") == 0 or bkg_dataset.sumEntries("", "right_SB") == 0): continue
    
     fit_with_const = (args.bkg_func == 'const') or ((args.bkg_func == 'dynamic') and (bkg_dataset.sumEntries() < args.lowB_th))
     
