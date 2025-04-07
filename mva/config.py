@@ -114,6 +114,14 @@ year_selection = {
     '2023BPix'      : '((year_id == 231) | ((year_id > 233) & (year_id < 240))) ', # era D
     '2023'          : '((year_id >  229) & (year_id < 240))',
     '2024'          : '((year_id >  239) & (year_id < 250))',
+    '2024B'         : '((year_id > 239) & (year_id < 241)) | ((year_id > 241) & (year_id <= 242)) ', # era B
+    '2024C'         : '(((year_id > 239) & (year_id < 241)) | ((year_id > 242) & (year_id <= 243)))', # era C
+    '2024D'         : '((year_id > 239) & (year_id < 241)) | ((year_id > 243) & (year_id <= 244)) ', # era D
+    '2024E'         : '((year_id > 239) & (year_id < 241)) | ((year_id > 244) & (year_id <= 245)) ', # era E
+    '2024F'         : '((year_id > 239) & (year_id < 241)) | ((year_id > 245) & (year_id <= 246)) ', # era F
+    '2024G'         : '((year_id > 239) & (year_id < 241)) | ((year_id > 246) & (year_id <= 247)) ', # era G
+    '2024H'         : '((year_id > 239) & (year_id < 241)) | ((year_id > 247) & (year_id <= 248)) ', # era H
+    '2024I'         : '((year_id > 239) & (year_id < 241)) | ((year_id > 248) & (year_id <= 249)) ', # era I
     'Run3'          : '((year_id >  219) & (year_id < 260))',
 }
 LumiVal_plots = {
@@ -124,6 +132,14 @@ LumiVal_plots = {
     '2023BPix'      : "9.7",
     '2023'          : "27.7",
     '2024'          : "108.4",
+    '2024B'         : "0.13",
+    '2024C'         : "7.24",
+    '2024D'         : "7.96",
+    '2024E'         : "11.32",
+    '2024F'         : "29.45",
+    '2024G'         : "40.08",
+    '2024H'         : "5.79",
+    '2024I'         : "12.07",
     'Run3'          : "170.6",#"62.2",
 }
 ###             ###
