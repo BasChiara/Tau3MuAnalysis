@@ -1,0 +1,2 @@
+# PromptReco 2024 - April 2025
+/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano_2025Apr01/DstoPhiPi-Phito2Mu_Fil-Mu_TuneCP5_13p6TeV_pythia8-evtgen/crab_DstoPhiPi_2024/250401_100311/0000/

@@ -265,7 +265,9 @@ DsPhiPi_signals = [
     mc_path + 'outRoot/DsPhiMuMuPi_MCanalyzer_2022EE_HLT_overlap_onDsPhiPi.root',
     # 2023
     mc_path + 'outRoot/DsPhiMuMuPi_MCanalyzer_2023preBPix_HLT_overlap_onDsPhiPi.root',
-    mc_path + 'outRoot/DsPhiMuMuPi_MCanalyzer_2023BPix_HLT_overlap_onDsPhiPi.root'
+    mc_path + 'outRoot/DsPhiMuMuPi_MCanalyzer_2023BPix_HLT_overlap_onDsPhiPi.root',
+    # 2024
+    mc_path + 'outRoot/DsPhiMuMuPi_MCanalyzer_2024_HLT_overlap_onDsPhiPi.root',
 ]
 
 ZTau3Mu_signals = [
@@ -295,6 +297,17 @@ DsPhiPi_data = [
     data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv4_HLT_overlap.root',
     data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv1_HLT_overlap.root',
     data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv2_HLT_overlap.root',
+    #2024
+    data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Bv1_HLT_overlap.root',
+    data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Cv1_HLT_overlap.root',
+    data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Dv1_HLT_overlap.root',
+    data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Ev1_HLT_overlap.root',
+    data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Ev2_HLT_overlap.root',
+    data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Fv1_HLT_overlap.root',
+    data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Gv1_HLT_overlap.root',
+    data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Hv1_HLT_overlap.root',
+    data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Iv1_HLT_overlap.root',
+    data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Iv2_HLT_overlap.root',
 ]
 
 data_background  = [

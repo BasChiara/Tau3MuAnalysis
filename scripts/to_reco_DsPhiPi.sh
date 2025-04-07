@@ -19,3 +19,5 @@
 # 2023
 ./bin/Analyzer_app -i data/mc_reMini2023/MonteCarlo_DsPhiMuMuPi_2023preBPix.txt  -o outRoot/ -d MC -y 2023preBPix    -a DsPhiPi -p DsPhiPi
 ./bin/Analyzer_app -i data/mc_reMini2023/MonteCarlo_DsPhiMuMuPi_2023BPix.txt     -o outRoot/ -d MC -y 2023BPix       -a DsPhiPi -p DsPhiPi
+# 2024
+./bin/Analyzer_app -i data/mc_PromptReco_2024/MonteCarlo_DsPhiMuMuPi_2024.txt    -o outRoot/ -d MC -y 2024           -a DsPhiPi -p DsPhiPi

@@ -58,4 +58,9 @@ os.system(hadd_command)
 
 # check if the output file exists
 print('\n... cecking if the output is OK')
-check_file(out_file)
+if args.app.startswith('WTau3Mu'):
+   tree = 'WTau3Mu_tree'
+elif args.app.startswith('DsPhiMuMuPi') :
+   tree = 'DsPhiMuMuPi_tree'
+else : tree = None
+check_file(out_file, tree)
