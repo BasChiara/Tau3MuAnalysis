@@ -1,3 +1,4 @@
+import ROOT
 import os
 import sys
 import argparse
@@ -5,6 +6,24 @@ import glob
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from plots.color_text import color_text as ct
+
+def check_file(file_path, tree_name = 'WTau3Mu_tree'):
+   if not os.path.isfile(file_path):
+      print(f' {ct.RED}[ERROR]{ct.END} file {file_path} does not exist')
+      return False
+   f = ROOT.TFile(file_path)
+   if f.IsZombie():
+      print(f' {ct.RED}[ERROR]{ct.END} file {file_path} is corrupted')
+      return False
+   if not f.Get(tree_name):
+      print(f' {ct.RED}[ERROR]{ct.END} file {file_path} does not contain tree {tree_name}')
+      return False
+   
+   print(f' {ct.GREEN}[OK]{ct.END} file {file_path} is OK')
+   return True
+   
+
+   
 
 usage = 'usage : python hadd_file.py'
 parser = argparse.ArgumentParser(usage = usage)
@@ -30,6 +49,7 @@ for n in range(N_datasetParkingDoubleMuonLowMass):
       continue
    path_to_hadd = args.path+'/'+args.dataset+str(n)+'_'+args.year+args.era+'/'+args.app+'_'+args.dataset+str(n)+'_'+args.year+args.era+'_'+args.hlt+'_*.root'
    # number of file to hadd
+   file_list = glob.glob(path_to_hadd)
    N_files = len(glob.glob(path_to_hadd))
    hadd_command += ' '+path_to_hadd
 print(f'{ct.BOLD} [i]{ct.END} adding {N_files} files from {args.dataset}_{args.year}{args.era} to {out_file}')
@@ -37,10 +57,5 @@ print(f'{ct.BOLD} [i]{ct.END} adding {N_files} files from {args.dataset}_{args.y
 os.system(hadd_command)
 
 # check if the output file exists
-print('\n... cecking if the output file exists')
-if not os.path.isfile(out_file):
-   print(f' {ct.RED}[ERROR]{ct.END} output file {out_file} does not exist')
-   sys.exit(1)
-else:
-   print(f' {ct.GREEN}[+]{ct.END} output file {out_file} exists :)')
-   sys.exit(0)
+print('\n... cecking if the output is OK')
+check_file(out_file)

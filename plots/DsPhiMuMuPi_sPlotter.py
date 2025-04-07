@@ -1,12 +1,14 @@
 import ROOT
 ROOT.gROOT.SetBatch(True)
 import argparse
-import os
 import numpy as np
-import plotting_tools as pt
+
+import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+print(f'[i] sys.path = {sys.path[0]}')
 import mva.config as cfg
+import plots.plotting_tools as pt
 
 def make_sPlot(
         observable, 
@@ -188,8 +190,12 @@ base_selection = '(' + ' & '.join([
 ]) + ')'
 print('[i] base_selection = %s'%base_selection)
 # BDT input features
-observable_list = cfg.features + ['bdt_score']
+#observable_list = cfg.features + ['bdt_score']
+observable_list  = ['bdt_score', 'Ds_Lxy_val_BS', 'Ds_Lxy_err_BS', 'tau_Lxy_sign_BS']
 for obs in observable_list:
+
+    print(f'\n[+] plotting {obs}')
+
     make_sPlot(
         observable = obs,
         mc_norm = 'norm_factor',

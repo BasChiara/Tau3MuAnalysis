@@ -184,6 +184,7 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], description =[], leg_coo
             leg.AddEntry(h_num, description[i], draw_opt_num)
     # draw in the upper pad
     c.cd(1)
+    c.SetLogy(log_y)
     #histo_den.Draw("HISTE")
     CMS.cmsDraw(histo_den,
         f'{draw_opt_den}',
@@ -206,7 +207,6 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], description =[], leg_coo
         ) 
     [obj.Draw() for obj in to_ploton]
     if leg: leg.Draw()
-    c.SetLogy(log_y)
     CMS.fixOverlay()
     # draw in the ratio pad 
     c.cd(2)
@@ -217,12 +217,12 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], description =[], leg_coo
     mcolor = h_ratio_den.GetLineColor(), 
     fcolor = h_ratio_den.GetFillColor(),
     )
-    [CMS.cmsDraw(h_ratio, f'{draw_opt_num} same', lwidth = h_ratio.GetLineWidth(),mcolor = h_ratio.GetLineColor(), fcolor = h_ratio.GetFillColor(), ) for h_ratio in h_ratio_list]
+    [CMS.cmsDraw(h_ratio, f'PE same', lwidth = h_ratio.GetLineWidth(),mcolor = h_ratio.GetLineColor(), fcolor = h_ratio.GetFillColor(), ) for h_ratio in h_ratio_list]
     c.cd()
     c.SaveAs(file_name + '.png')
     c.SaveAs(file_name + '.pdf')
     c.SaveAs(file_name + '.root')
-
+    c.Clear()
     c.Close()
     return 1
 

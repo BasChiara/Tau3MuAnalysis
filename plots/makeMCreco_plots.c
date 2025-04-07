@@ -7,7 +7,8 @@
    //SetIO("../outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap_onTau3Mu.root", "WTau3Mu_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2022preEE/");
    //SetIO("../outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_onTau3Mu.root", "WTau3Mu_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2022EE/");
    //SetIO("../outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap_onTau3Mu.root", "WTau3Mu_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2023preBPix/");
-   SetIO("../outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onTau3Mu.root", "WTau3Mu_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2023BPix/");
+   //SetIO("../outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onTau3Mu.root", "WTau3Mu_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2023BPix/");
+   SetIO("../outRoot/WTau3Mu_MCanalyzer_2024_HLT_overlap_onTau3Mu.root", "WTau3Mu_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2024/");
 
    // muons ID
    draw_many_histos({"tau_mu1_MediumID", "tau_mu2_MediumID", "tau_mu3_MediumID"}, {"mu1", "mu2", "mu3"},"#mu medium ID", 2, -0.5,1.5, "Muons_MediumID", true);
