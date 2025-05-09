@@ -9,10 +9,8 @@ ROOT.TH1.SetDefaultSumw2()
 #ROOT.RooMsgService.instance().setGlobalKillBelow(ROOT.RooFit.ERROR)
 #ROOT.Math.MinimizerOptions.SetDefaultMinimizer("Minuit")
 import os
-from math import pi, sqrt
+from math import sqrt
 import numpy as np
-from glob import glob
-from array import array 
 import argparse
 # import custom configurations
 import sys
@@ -21,6 +19,7 @@ import mva.config as config
 from style.color_text import color_text as ct
 import models.datacard_utils as du
 import models.fit_utils as fitu
+import models.CMSStyle as CMS
 
 
 parser = argparse.ArgumentParser()
@@ -49,6 +48,7 @@ parser.add_argument('--debug',          action = 'store_true' ,                 
 args = parser.parse_args()
 
 category_by_eta = True
+USE_CMS_STYLE = True
 runblind = not args.unblind # don't show (nor fit!) data in the signal mass window
 
 # **** INPUT ****
@@ -83,6 +83,7 @@ print('\n')
 print(f'BDT selection scenario {set_bdt_cut}')
 
 wspace_filename = f'{args.combine_dir}/wspace_{tag}.root'
+plotwspace_filename = f'{args.plot_outdir}/wspace_plot_{tag}.root'
 out_data_filename = f'{args.combine_dir}/sensitivity_tree_{tag}.root'
 
 # **** CONSTANTS  *** #
@@ -97,7 +98,7 @@ nbins = int(np.rint((mass_window_hi-mass_window_lo)/bin_w)) # needed just for pl
 if (args.debug): print(f'{ct.BOLD}[INFO]{ct.END} binning {nbins} of type {type(nbins)}')
 
 
-mass = ROOT.RooRealVar('tau_fit_mass', '3-#mu mass'  , mass_window_lo,  mass_window_hi, 'GeV' )
+mass = ROOT.RooRealVar('tau_fit_mass', 'M(3#mu)'  , mass_window_lo,  mass_window_hi, 'GeV' )
 mass.setRange('left_SB', mass_window_lo, blind_region_lo)
 mass.setRange('right_SB', blind_region_hi, mass_window_hi)
 mass.setRange('fit_range', fit_range_lo,fit_range_hi)
@@ -357,21 +358,31 @@ for cut in set_bdt_cut:
         nbins, 
         title='#tau -> 3 #mu signal+bkg - CAT %s BDTscore > %.3f'%(args.category, cut),
     ) 
-    # print N signal and N background on plot
-    fitu.add_summary_text(frame_b, f'Nw = {nsig_W.getValV():.2f} +/- {nsig_W.getError():.2f}', x = tau_mass, y=0.90*frame_b.GetMaximum())
-    fitu.add_summary_text(frame_b, f'Nz = {nsig_Z.getValV():.2f} +/- {nsig_Z.getError():.2f}', x = tau_mass, y=0.85*frame_b.GetMaximum())
-    fitu.add_summary_text(frame_b, f'Nb = {nbkg.getValV():.2f} +/- {nbkg.getError():.2f}',     x = tau_mass, y=0.80*frame_b.GetMaximum())
-
-    c2 = ROOT.TCanvas("c2", "c2", 800, 800)
-    ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
-    frame_b.SetMinimum(1e-5)
-    frame_b.Draw()
-    c2.SaveAs('%s/SigBkg_mass_%s.png'%(args.plot_outdir, point_tag)) 
-    c2.SaveAs('%s/SigBkg_mass_%s.pdf'%(args.plot_outdir, point_tag))
-    if not args.goff :
-        c2.SetLogy(1)
-        c2.SaveAs('%s/SigBkg_mass_Log_%s.png'%(args.plot_outdir, point_tag)) 
-        c2.SaveAs('%s/SigBkg_mass_Log_%s.pdf'%(args.plot_outdir, point_tag))
+    if USE_CMS_STYLE:
+        frame_b.SetTitle('')
+        fitu.apply_cms_style(frame_b, 
+                             outfile='%s/SigBkg_mass_%s'%(args.plot_outdir, point_tag), 
+                             cat=args.category, 
+                             year='20'+args.year, 
+                             Preliminary=True,
+                             )
+    else:
+        # print N signal and N background on plot
+        fitu.add_summary_text(frame_b, f'Nw = {nsig_W.getValV():.2f} +/- {nsig_W.getError():.2f}', x = tau_mass, y=0.90*frame_b.GetMaximum())
+        fitu.add_summary_text(frame_b, f'Nz = {nsig_Z.getValV():.2f} +/- {nsig_Z.getError():.2f}', x = tau_mass, y=0.85*frame_b.GetMaximum())
+        fitu.add_summary_text(frame_b, f'Nb = {nbkg.getValV():.2f} +/- {nbkg.getError():.2f}',     x = tau_mass, y=0.80*frame_b.GetMaximum())  
+        c2 = ROOT.TCanvas("c2", "c2", 800, 800)
+        ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
+        frame_b.SetMinimum(1e-5)
+        frame_b.Draw()
+        c2.SaveAs('%s/SigBkg_mass_%s.png'%(args.plot_outdir, point_tag)) 
+        c2.SaveAs('%s/SigBkg_mass_%s.pdf'%(args.plot_outdir, point_tag))
+        if not args.goff :
+            c2.SetLogy(1)
+            c2.SaveAs('%s/SigBkg_mass_Log_%s.png'%(args.plot_outdir, point_tag)) 
+            c2.SaveAs('%s/SigBkg_mass_Log_%s.pdf'%(args.plot_outdir, point_tag))
+    
+    
 
     # S/B in SR
     B = (nbkg.getValV())*(ext_bkg_model.createIntegral(ROOT.RooArgSet(mass), ROOT.RooArgSet(mass), 'sig_range').getValV())
@@ -443,6 +454,7 @@ for cut in set_bdt_cut:
     # save workspace
     file_ws.cd()
     ws.Write()
+    
     print(f'{ct.BOLD}[o]{ct.END} workspace saved to {wspace_filename}')
 
     #### WRITE THE DATACARD ####
@@ -465,6 +477,7 @@ for cut in set_bdt_cut:
         write_sys    = args.sys_unc,
     )
 
+file_ws.Close()
 if not args.optim_bdt: exit()
 tree_dict = dict(zip(df_columns, np.array([bdt_cut, sig_Nexp, sig_eff, bkg_Nexp, bkg_Nexp_Sregion, bkg_eff, PunziS_val, PunziS_err, AMS_val])))
 #if (ROOT.gROOT.GetVersion() == '6.22/09' ):

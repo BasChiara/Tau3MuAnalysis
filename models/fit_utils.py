@@ -1,10 +1,12 @@
 import ROOT
+ROOT.gROOT.SetBatch(True)
 import numpy as np
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import mva.config as config
 from style.color_text import color_text as ct
+import models.CMSStyle as CMS
 
  # *** RooFit Variables ***
 def get_RooVariables(mass_window_lo, mass_window_hi, blind_region_lo, blind_region_hi, fit_range_lo, fit_range_hi):
@@ -134,20 +136,25 @@ def draw_fit_pull(frame_fit, frame_pull= None, fitvar = None, out_name = 'Pull D
     frame_pull.Draw()
     c.SaveAs(out_name+'.png')
     c.SaveAs(out_name+'.pdf')
+    c.SaveAs(out_name+'.C')
     if logy:
         up_pad.SetLogy()
         c.SaveAs(out_name+'_log.png')
         c.SaveAs(out_name+'_log.pdf')
+        c.SaveAs(out_name+'_log.C')
     c.Close()
     return True
 
-def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title = 'fit'):
+def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title = 'fit', CMSstyle = False):
+    
+    
     frame = fitvar.frame(ROOT.RooFit.Title(title))
     # bacground model
     data.plotOn(
         frame, 
         ROOT.RooFit.Binning(nbins), 
-        ROOT.RooFit.MarkerSize(1.)
+        ROOT.RooFit.MarkerSize(1.),
+        ROOT.RooFit.Name("data")
     )
     bkg_func.plotOn(
         frame,
@@ -155,6 +162,7 @@ def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title 
         ROOT.RooFit.Range('full_range'),
         ROOT.RooFit.NormRange('left_SB,right_SB'),
         ROOT.RooFit.MoveToBack(),
+        ROOT.RooFit.Name('bkg_func'),
     )
     # signal model(s)
     colors = [ROOT.kRed, ROOT.kGreen+2, ROOT.kMagenta, ROOT.kOrange, ROOT.kCyan, ROOT.kYellow]
@@ -175,9 +183,59 @@ def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title 
             ROOT.RooFit.LineColor(colors[i]),
             ROOT.RooFit.Range('full_range'),
             ROOT.RooFit.NormRange('full_range'),
-            #ROOT.RooFit.MoveToBack(),
+            ROOT.RooFit.Name(f'sig_func_{i}'),
         )
+
     return frame
+
+def apply_cms_style(frame, outfile, cat, year, Preliminary = True, margin = 0.12):
+    CMS.setTDRStyle()
+    x_txt = 0.50
+    # LaTeX for text
+    latex = ROOT.TLatex()
+    latex.SetNDC()
+    latex.SetTextAlign(12)
+    latex.SetTextSize(0.05)
+    latex.SetTextFont(42)
+    latex.SetTextColor(ROOT.kBlack)
+
+    #legend
+    legend = ROOT.TLegend(x_txt, 0.60, 0.90, 0.80)
+    legend.SetBorderSize(0)
+    legend.SetFillStyle(0)
+    legend.SetTextSize(0.04)
+    legend.SetTextFont(42)
+    
+    legend.AddEntry(frame.findObject('data'), 'Data', 'lep')
+    legend.AddEntry(frame.findObject('bkg_func'), 'Background-only fit', 'l')
+    legend.AddEntry(frame.findObject('sig_func_0'), 'W#rightarrow #tau(3#mu)#nu (Br=10^{-7})', 'l')
+    legend.AddEntry(frame.findObject('sig_func_1'), 'Z#rightarrow #tau(3#mu)#tau (Br=10^{-7})', 'l')
+
+    # frame settings
+    frame.SetMaximum(10)
+    frame.SetMinimum(1e-5)
+    #frame.GetYaxis().SetTitleOffset(1.4)
+    frame.GetYaxis().SetTitleSize(0.05)
+    frame.GetYaxis().SetLabelSize(0.045)
+    #frame.GetXaxis().SetTitleOffset(1.2)
+    frame.GetXaxis().SetTitleSize(0.05)
+    frame.GetXaxis().SetLabelSize(0.045)
+
+    
+    canv  = ROOT.TCanvas("c2", "c2", 800, 800)
+    ROOT.gPad.SetMargin(margin,0.05,margin,0.07) # left, right, bottom, top
+    frame.Draw()
+    latex.DrawLatex(x_txt, 0.85, f'V Category {cat}')
+    CMS.setCMSLumiStyle(canv, 
+                        iPosX=11, 
+                        era=year, 
+                        extra='Preliminary' if Preliminary else '')
+    
+    if legend: legend.Draw()
+    ROOT.gPad.Update()        # Ensure the pad is updated
+    ROOT.gPad.RedrawAxis()    # Redraw the axes on top
+    canv.SaveAs(outfile + '.png')
+    canv.SaveAs(outfile + '.pdf')
 
 
 def add_summary_text(frame, text = '', x = 0.2, y = 0.8, size = 0.04):
