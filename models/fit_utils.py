@@ -154,11 +154,13 @@ def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title 
         frame, 
         ROOT.RooFit.Binning(nbins), 
         ROOT.RooFit.MarkerSize(1.),
+        ROOT.RooFit.LineWidth(2),
         ROOT.RooFit.Name("data")
     )
     bkg_func.plotOn(
         frame,
         ROOT.RooFit.LineColor(ROOT.kBlue),
+        ROOT.RooFit.LineWidth(2),
         ROOT.RooFit.Range('full_range'),
         ROOT.RooFit.NormRange('left_SB,right_SB'),
         ROOT.RooFit.MoveToBack(),
@@ -225,7 +227,7 @@ def apply_cms_style(frame, outfile, cat, year, Preliminary = True, margin = 0.12
     canv  = ROOT.TCanvas("c2", "c2", 800, 800)
     ROOT.gPad.SetMargin(margin,0.05,margin,0.07) # left, right, bottom, top
     frame.Draw()
-    latex.DrawLatex(x_txt, 0.85, f'V Category {cat}')
+    latex.DrawLatex(x_txt, 0.85, f'#bf{{V Category {cat}}}')
     CMS.setCMSLumiStyle(canv, 
                         iPosX=11, 
                         era=year, 

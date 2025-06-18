@@ -30,32 +30,32 @@ def weight_systematics(sys1, sys2, weight):
 
     
 def fully_correlated_sys_writer(card, W_f, kwargs):
-    mode = kwargs['mode'] if 'mode' in kwargs else 'WTau3Mu'
+    process_name  = kwargs['process_name'] if 'process_name' in kwargs else 'wt3m'
     year = kwargs['year'] if 'year' in kwargs else '16'
 
-    if mode == 'WTau3Mu':
+    if 'W' in process_name or 'w' in process_name:
         card.write(
-'''lumi{yy}             lnN           {Lsys}               -
-xsec_ppWx           lnN           {xsec_ppWx}               -
-Br_Wmunu            lnN           {Br_Wmunu}               -
-Br_Wtaunu           lnN           {Br_Wtaunu}               -
+'''lumi_13p6TeV_{yyyy}             lnN           {Lsys}               -
+xsec_13p6TeV_ppwx           lnN           {xsec_ppWx}               -
+BR_wmn              lnN           {Br_Wmunu}               -
+BR_wtn              lnN           {Br_Wtaunu}               -
 '''.format(
             Lsys     = config.Lumi_systematics['20'+year],          # luminosity uncertainty
-            yy       = year,
+            yyyy     = year,
             xsec_ppWx= config.xsec_ppW_sys,         # pp->Wx cross section uncertainty
             Br_Wmunu = config.Br_Wmunu_sys,         # W->munu branching ratio uncertainty
             Br_Wtaunu= config.Br_Wtaunu_sys         # W->taunu branching ratio uncertainty
         )
         )
-    elif mode == 'VTau3Mu':
+    elif 'V' in process_name or 'v' in process_name:
         card.write(
-'''lumi{yy}             lnN           {Lsys}               -
-xsec_ppVx           lnN           {xsec_ppWx:.4f}               -
-Br_Vmux            lnN           {Br_Wmunu:.4f}               -
-Br_Vtaux           lnN           {Br_Wtaunu:.4f}               -
+'''lumi_13p6TeV_{yyyy}             lnN           {Lsys}               -
+xsec_13p6TeV_ppvx             lnN           {xsec_ppWx:.4f}               -
+BR_vmn             lnN           {Br_Wmunu:.4f}               -
+BR_vtn             lnN            {Br_Wtaunu:.4f}               -
 '''.format(
             Lsys     = config.Lumi_systematics['20'+year],          # luminosity uncertainty
-            yy       = year,
+            yyyy     = '20'+year,
             xsec_ppWx= weight_systematics(config.xsec_ppW_sys,  config.xsec_ppZ_sys,   W_f),         # pp->Wx cross section uncertainty
             Br_Wmunu = weight_systematics(config.Br_Wmunu_sys,  config.Br_Zmumu_sys,   W_f),         # W->munu branching ratio uncertainty
             Br_Wtaunu= weight_systematics(config.Br_Wtaunu_sys, config.Br_Ztautau_sys, W_f),        # W->taunu branching ratio uncertainty
@@ -66,7 +66,7 @@ Br_Vtaux           lnN           {Br_Wtaunu:.4f}               -
 
 def combineDatacard_writer(**kwargs):
     # needed arguments
-    mode            = kwargs['mode'] if 'mode' in kwargs else 'WTau3Mu'
+    process_name    = kwargs['process_name'] if 'process_name' in kwargs else 'wt3m'
     input_mc        = kwargs['input_mc'] if 'input_mc' in kwargs else None
     selection_mc    = kwargs['selection'] if 'selection' in kwargs else None
     wspace_filename = kwargs['ws_filename'] if 'ws_filename' in kwargs else None
@@ -81,12 +81,14 @@ def combineDatacard_writer(**kwargs):
     Ndata           = kwargs['Ndata'] if 'Ndata' in kwargs else 0
     write_sys       = kwargs['write_sys']  if 'write_sys' in kwargs else False
 
+    cat_yyyy = f'{cat}_20{year}'
+
     # get S and B model from workspace
     if not workspace:
         print(f'{ct.RED}[ERROR]{ct.END} NO workspace provided')
         return 1
     wspace_name = workspace.GetName()
-    process_name = f'{mode}_{cat}{year}'
+    
     
     # -- signal -- #
     signal_model = workspace.pdf(f'model_sig_{process_name}')
@@ -95,12 +97,12 @@ def combineDatacard_writer(**kwargs):
         return 1
     width_list = []
     WZ_ratio = 1.0
-    if mode == 'WTau3Mu':
-        width_list.append( signal_model.getVariables().find(f'width_{cat}{year}') )
-    elif mode == 'VTau3Mu':
-        width_list.append( signal_model.getVariables().find(f'width_W_{cat}{year}') )
-        width_list.append( signal_model.getVariables().find(f'width_Z_{cat}{year}') )
-        WZ_ratio = signal_model.getVariables().find(f'r_wz_{cat}{year}').getVal()
+    if 'W' in process_name or 'w' in process_name:
+        width_list.append( signal_model.getVariables().find(f'signal_width_{cat_yyyy}') )
+    elif 'V' in process_name or 'v' in process_name:
+        width_list.append( signal_model.getVariables().find(f'signal_width_W_{cat_yyyy}') )
+        width_list.append( signal_model.getVariables().find(f'signal_width_Z_{cat_yyyy}') )
+        WZ_ratio = signal_model.getVariables().find(f'r_wz_{cat_yyyy}').getVal()
     
     # -- background -- #
     b_model = workspace.pdf(f'model_bkg_{process_name}')
@@ -109,8 +111,9 @@ def combineDatacard_writer(**kwargs):
         print(f'{ct.RED}[ERROR]{ct.END} NO background model found in the workspace')
         return 1
     if bkg_func == 'expo' : 
-        slope = b_model.getVariables().find(f'slope_{cat}{year}')
-    elif bkg_func == 'poly1': slope = b_model.getVariables().find(f'p1_{cat}{year}')
+        slope = b_model.getVariables().find(f'background_slope_{cat_yyyy}')
+        if not slope:  print(f'{ct.RED}[ERROR]{ct.END} NO background slope found in the workspace')
+    elif bkg_func == 'poly1': slope = b_model.getVariables().find(f'p1_{cat_yyyy}')
     else :  slope = None
     print(slope)
     
@@ -118,16 +121,17 @@ def combineDatacard_writer(**kwargs):
     sys_dict = {}
     sys_sources = []
     shape_sys = {}
+
     if write_sys:
         # uncorrelated systematics from scale factors 
         sys_dict = corr_sys.correction_sys(input_mc, 'tree_w_BDT', selection_mc, cat, year)
         # uncorrelated sys for LxyS cut 
-        with open(config.LxySign_cut_systematics[f'20{year}']) as f:
+        with open(config.LxySign_cut_systematics['20'+year]) as f:
             sys_dict['LxyS_cut'] = json.load(f)[f'{cat}']
         sys_sources = sys_dict.keys()
         
         # uncorrelated systematics from shape variations
-        with open(config.shape_systematics['20' + year]) as f:
+        with open(config.shape_systematics['20'+year]) as f:
             shape_sys = json.load(f)[f'{cat}{year}']
         f.close()
     
@@ -179,9 +183,9 @@ rate                             {signal:.4f}              {bkg:.4f}
         # **SF**
         for sys in sys_sources:
             card.write(
-'{systematic_name}_{corr_deg}       lnN           {sys_tot:.3f}               -\n'.format(
+'{systematic_name}{corr_deg}       lnN           {sys_tot:.3f}               -\n'.format(
                 systematic_name = sys,
-                corr_deg = sys_dict[sys]['corregree'],
+                corr_deg = '_' + sys_dict[sys]['corregree'] if sys_dict[sys]['corregree'] else '',
                 sys_tot = sys_dict[sys]['total']
                 )
             )
@@ -196,16 +200,16 @@ rate                             {signal:.4f}              {bkg:.4f}
                     err         = np.max([1e-4, width_error])
                 )
                 )
-                print(f' width = {width.getVal()} +/- {shape_sys["width"]}')
+                print(f' width = {width.getVal():.5f} +/- {width.getError():.5f}(fit) +/- {width_error:.5f}(sys+fit)')
         # **BACKGROUND**
         card.write(
 '''
-bkgNorm_{c}{yy}       rateParam     {proc}              bkg      1.      [{bkg_lo:.2f},{bkg_hi:.2f}]
-bkgNorm_{c}{yy}       flatParam
+bkg_scale_v_{c}_{yyyy}       rateParam     {proc}              bkg      1.      [{bkg_lo:.2f},{bkg_hi:.2f}]
+bkg_scale_v_{c}_{yyyy}       flatParam
 '''.format(
                 proc     = process_name,
                 c        = cat,
-                yy       = year,
+                yyyy     = '20' + year if not year.startswith('20') else year,
                 bkg_lo   = bkg_norm_lo,
                 bkg_hi   = bkg_norm_hi, 
             )

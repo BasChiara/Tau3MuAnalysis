@@ -76,7 +76,7 @@ print(f'{ct.BOLD}[+]{ct.END} added DATA file :\n {data_file}')
 if not os.path.exists(args.plot_outdir): os.makedirs(args.plot_outdir)
 if not os.path.exists(args.combine_dir): os.makedirs(args.combine_dir)
 
-process_name = 'VTau3Mu_%s%s'%(args.category, args.year)
+process_name = f'vt3m_{args.category}_20{args.year}'#'VTau3Mu_%s%s'%(args.category, args.year)
 tag = (f'bdt{args.bdt_cut:,.4f}_{process_name}' if not args.optim_bdt else f'bdt_scan_{process_name}') + ('_' + args.tag ) if not (args.tag is None) else ''
 set_bdt_cut = [args.bdt_cut] if not args.optim_bdt else np.arange(args.BDTmin, args.BDTmax, args.BDTstep) 
 print('\n')
@@ -156,9 +156,10 @@ if args.save_ws : file_ws = ROOT.TFile(wspace_filename, "RECREATE")
 # loop on BDT cuts
 for cut in set_bdt_cut:
 
-    catYY = f'{args.category}{args.year}'    
+    catYY = f'{args.category}_20{args.year}'    
     # output tag
     point_tag           = f'{args.category}{args.year}' + (('_' + args.tag ) if args.tag else '') + f'_bdt{cut:,.4f}'
+    point_tag.replace('.', 'p') # replace dot with p for the tag
     # BDT selection
     bdt_selection       = f'(bdt_score > {cut:,.4f})'
     sgn_selection       = ' & '.join([bdt_selection, base_selection])
@@ -216,7 +217,7 @@ for cut in set_bdt_cut:
     print (f'entries in right SB {bkg_dataset.sumEntries("", "right_SB")}')
     #if (bkg_dataset.sumEntries("", "left_SB") == 0 or bkg_dataset.sumEntries("", "right_SB") == 0): continue
    
-    fit_with_const = (args.bkg_func == 'const') or ((args.bkg_func == 'dynamic') and (bkg_dataset.sumEntries() < args.lowB_th))
+    fit_with_const = (args.bkg_func == 'const') or ((args.bkg_func == 'dynamic') and (args.category == 'C'))
     
     # **** SIGNAL MODEL ****
     Mtau   = ROOT.RooRealVar('Mtau' , 'Mtau' , tau_mass)
@@ -224,7 +225,7 @@ for cut in set_bdt_cut:
     # W -> tau(3mu) nu
     dMtau_W   = ROOT.RooRealVar('dM_W', 'dM_W', 0, -0.04, 0.04)
     mean_W    = ROOT.RooFormulaVar('mean_W','mean_W', '(@0+@1)', ROOT.RooArgList(Mtau,dMtau_W) )
-    width_W   = ROOT.RooRealVar(f'width_W_{catYY}',  f'width_W_{catYY}',  0.01,    0.005, 0.05)
+    width_W   = ROOT.RooRealVar(f'signal_width_W_{catYY}',  f'signal_width_W_{catYY}',  0.01,    0.005, 0.05)
     n_W       = ROOT.RooRealVar(f'n_W_{catYY}', f'n_W_{catYY}', 1.0, 0.1, 10.0)
     alpha_W   = ROOT.RooRealVar(f'alpha_W_{catYY}', f'alpha_W_{catYY}', 1.0, 0.0, 10.0)
 
@@ -235,9 +236,9 @@ for cut in set_bdt_cut:
     signal_model_W = ROOT.RooAddPdf('ext_model_sig_W%s'%process_name, 'ext_model_sig_W%s'%process_name, ROOT.RooArgList(cb_W), nsig_W )
 
     # Z -> tau(3mu) tau
-    dMtau_Z   = ROOT.RooRealVar('dM_Z', 'dM_Z', 0, -0.1, 0.1)
+    dMtau_Z   = ROOT.RooRealVar('dM_Z', 'dM_Z', 0, -0.04, 0.04)
     mean_Z    = ROOT.RooFormulaVar('mean_Z', 'mean_Z', '(@0+@1)', ROOT.RooArgList(Mtau,dMtau_Z) )
-    width_Z   = ROOT.RooRealVar(f'width_Z_{catYY}',  f'width_Z_{catYY}',  0.01,    0.005, 0.05)
+    width_Z   = ROOT.RooRealVar(f'signal_width_Z_{catYY}',  f'signal_width_Z_{catYY}',  0.01,    0.005, 0.05)
     n_Z       = ROOT.RooRealVar(f'n_Z_{catYY}', f'n_Z_{catYY}', 1.0, 0.1, 10.0)
     alpha_Z   = ROOT.RooRealVar(f'alpha_Z_{catYY}', f'alpha_Z_{catYY}', 1.0, 0.0, 10.0)
    
@@ -257,7 +258,7 @@ for cut in set_bdt_cut:
     # **** BACKGROUND MODEL ****
     bkg_model_name = f'model_bkg_{process_name}' 
     # exponential
-    slope = ROOT.RooRealVar(f'slope_{catYY}', f'slope_{catYY}', -1.0, -10.0, 10.0)
+    slope = ROOT.RooRealVar(f'background_slope_{catYY}', f'background_slope_{catYY}', 0.0, -5.0, 5.0)
     expo  = ROOT.RooExponential(bkg_model_name, bkg_model_name, mass, slope)
     # constant
     const = ROOT.RooPolynomial(bkg_model_name,bkg_model_name, mass)
@@ -447,9 +448,20 @@ for cut in set_bdt_cut:
     data.Print()
 
     ws = ROOT.RooWorkspace(wspace_name, wspace_name)
-    getattr(ws, 'import')(data)
-    getattr(ws, 'import')(s_model) 
-    getattr(ws, 'import')(b_model)
+    pdfs = ROOT.RooArgSet(s_model, b_model)
+    ws.Import(
+        pdfs,
+        ROOT.RooFit.RenameVariable("tau_fit_mass", "m3m"),
+        ROOT.RooFit.RecycleConflictNodes()
+    )
+    ws.Import(
+        data,
+        ROOT.RooFit.RenameVariable("tau_fit_mass", "m3m"),
+        ROOT.RooFit.RecycleConflictNodes()
+    )
+    #getattr(ws, 'import')(data)
+    #getattr(ws, 'import')(s_model) 
+    #getattr(ws, 'import')(b_model)
     ws.Print()
     # save workspace
     file_ws.cd()
@@ -461,7 +473,7 @@ for cut in set_bdt_cut:
     print(f'{ct.BOLD}[i]{ct.END} writing datacard')
     datacard_name = f'{args.combine_dir}/datacard_{wspace_tag}.txt'
     du.combineDatacard_writer(
-        mode         = 'VTau3Mu',
+        process_name = process_name,
         input_mc     = [mc_W_file, mc_Z_file],
         selection    = sgn_selection,
         ws_filename  = wspace_filename,
@@ -469,7 +481,7 @@ for cut in set_bdt_cut:
         datacard_name= datacard_name,
         year         = args.year,
         cat          = args.category,
-        bkg_func     = args.bkg_func,
+        bkg_func     = 'const' if fit_with_const else 'expo',
         Nobs         = -1 if runblind else fulldata.numEntries(),
         Nsig         = nsig_W.getValV() + nsig_Z.getValV(),
         Nbkg         = nbkg.getVal(),

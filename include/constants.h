@@ -335,8 +335,7 @@ namespace scale_factor_src
         {"2023preBPix"    , base_dir + "/include/scale_factors/ScaleFactors_Muon_Z_ID_ISO_2023_schemaV2.json"}, 
         {"2023BPix"       , base_dir + "/include/scale_factors/"},
     };
-    // HLT_DoubleMu
-    inline std::string HLTeff_rootfile = base_dir + "corrections/HLT_DoubleMu4_3_LowMass/HLT_DoubleMu_efficiency2022.root";
+    // HLT_DoubleMu -- MUO POG tool efficiency
     inline std::map<TString, TString> L1_HLT_mPOG_eff_files{
         {"2022preEE"      , base_dir + "corrections/HLT_DoubleMu4_3_LowMass/muonPOG/Run2022/HLT_L1_efficiency_abseta_pt.root"},
         {"2022EE"         , base_dir + "corrections/HLT_DoubleMu4_3_LowMass/muonPOG/Run2022/HLT_L1_efficiency_abseta_pt.root"},
@@ -349,6 +348,23 @@ namespace scale_factor_src
     inline std::string HLT_mPOG_eff_MC   = "HLT_MCefficiency";
     inline std::string HLT_mPOG_eff_DATA = "HLT_DATAefficiency";
 
+    // HLT_Tau3Mu -- BPH PAG tool efficiency
+    inline std::map<TString, TString> L1_eff_files{
+        {"2022preEE"      , base_dir + "corrections/HLT_DoubleMu4_3_LowMass/bphPAG/Run2022/efficiencies_L1_dRincl.root"},
+        {"2022EE"         , base_dir + "corrections/HLT_DoubleMu4_3_LowMass/bphPAG/Run2022/efficiencies_L1_dRincl.root"},
+        {"2023preBPix"    , base_dir + "corrections/HLT_DoubleMu4_3_LowMass/bphPAG/Run2023/efficiencies_L1_dRincl.root"},
+        {"2023BPix"       , base_dir + "corrections/HLT_DoubleMu4_3_LowMass/bphPAG/Run2023/efficiencies_L1_dRincl.root"},
+        {"2024"           , base_dir + ""}, // fixme : to be updated
+    };
+    inline std::map<TString, TString> HLT_eff_files{
+        {"2022preEE"      , base_dir + "corrections/HLT_DoubleMu4_3_LowMass/bphPAG/Run2022/efficiencies_HLT_dRincl.root"},
+        {"2022EE"         , base_dir + "corrections/HLT_DoubleMu4_3_LowMass/bphPAG/Run2022/efficiencies_HLT_dRincl.root"},
+        {"2023preBPix"    , base_dir + "corrections/HLT_DoubleMu4_3_LowMass/bphPAG/Run2023/efficiencies_HLT_dRincl.root"},
+        {"2023BPix"       , base_dir + "corrections/HLT_DoubleMu4_3_LowMass/bphPAG/Run2023/efficiencies_HLT_dRincl.root"},
+        {"2024"           , base_dir + ""}, // fixme : to be updated
+    };
+    inline std::string h_eff_MC_name    = "h_eff_MC";
+    inline std::string h_eff_DATA_name  = "h_eff_data";
 
     // PU weights
     // - central weights + my weights for 2024

@@ -8,7 +8,7 @@ import mva.config as config
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument('-y','--year',   choices=['22', '23', '24'], default='22')
-argparser.add_argument('-b','--b_func', choices=['expo', 'const', 'poly1'], default='expo')
+argparser.add_argument('-b','--b_func', choices=['expo', 'const', 'poly1', 'dynamic'], default='expo')
 argparser.add_argument('-t','--tag',    default='apply_LxyS2.0')
 argparser.add_argument('-o','--output',
                     default='$COMBINEv10/WTau3Mu_limits/bias_study_v3/input_combine/',
@@ -25,7 +25,21 @@ working_points = config.wp_dict[year]
 print(f'Working points for {year}: {working_points}')
 
 plot_outdir  = args.plot_outdir
+if plot_outdir.startswith('$'):
+    plot_outdir = os.path.expandvars(plot_outdir)
+if not os.path.exists(plot_outdir):
+    os.makedirs(plot_outdir)
+    print(f'[OUT] created directory {plot_outdir}')
+else:
+    print(f'[OUT] using existing directory {plot_outdir}')
 combine_dir  = args.output
+if combine_dir.startswith('$'):
+    combine_dir = os.path.expandvars(combine_dir)
+if not os.path.exists(combine_dir):
+    os.makedirs(combine_dir)
+    print(f'[OUT] created directory {combine_dir}')
+else:
+    print(f'[OUT] using existing directory {combine_dir}')
 tag          = args.tag
 b_func       = args.b_func
 

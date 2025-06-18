@@ -688,14 +688,31 @@ int WTau3Mu_tools::applyMuonSF(const int& TauIdx){
 
 int WTau3Mu_tools::parseHLT_SF(const TString & era){
 
-   TFile * file_efficiency = new TFile(scale_factor_src::L1_HLT_mPOG_eff_files[era]);
-   std::cout << "[+] parse L1 and HLT SFs from \n " << file_efficiency->GetName() << std::endl;
-   // L1
-   h_L1_efficiency_MC     = (TH2F*)file_efficiency->Get(scale_factor_src::L1_mPOG_eff_MC.c_str());   h_L1_efficiency_MC->SetDirectory(0);
-   h_L1_efficiency_DATA   = (TH2F*)file_efficiency->Get(scale_factor_src::L1_mPOG_eff_DATA.c_str()); h_L1_efficiency_DATA->SetDirectory(0);
-   // HLT
-   h_HLT_efficiency_MC    = (TH2F*)file_efficiency->Get(scale_factor_src::HLT_mPOG_eff_MC.c_str());   h_HLT_efficiency_MC->SetDirectory(0);
-   h_HLT_efficiency_DATA  = (TH2F*)file_efficiency->Get(scale_factor_src::HLT_mPOG_eff_DATA.c_str()); h_HLT_efficiency_DATA->SetDirectory(0);
+   //TFile * file_efficiency = new TFile(scale_factor_src::L1_HLT_mPOG_eff_files[era]);
+   //std::cout << "[+] parse L1 and HLT SFs from \n " << file_efficiency->GetName() << std::endl;
+   //// L1
+   //h_L1_efficiency_MC     = (TH2F*)file_efficiency->Get(scale_factor_src::L1_mPOG_eff_MC.c_str());   h_L1_efficiency_MC->SetDirectory(0);
+   //h_L1_efficiency_DATA   = (TH2F*)file_efficiency->Get(scale_factor_src::L1_mPOG_eff_DATA.c_str()); h_L1_efficiency_DATA->SetDirectory(0);
+   //// HLT
+   //h_HLT_efficiency_MC    = (TH2F*)file_efficiency->Get(scale_factor_src::HLT_mPOG_eff_MC.c_str());   h_HLT_efficiency_MC->SetDirectory(0);
+   //h_HLT_efficiency_DATA  = (TH2F*)file_efficiency->Get(scale_factor_src::HLT_mPOG_eff_DATA.c_str()); h_HLT_efficiency_DATA->SetDirectory(0);
+   // --- L1 
+   TFile * file_efficiency_L1 = new TFile(scale_factor_src::L1_eff_files[era]);
+   std::cout << "[+] parse L1 SFs from \n " << file_efficiency_L1->GetName() << std::endl;
+   h_L1_efficiency_MC     = (TH2F*)file_efficiency_L1->Get(scale_factor_src::h_eff_MC_name.c_str());
+   h_L1_efficiency_MC->SetDirectory(0); h_L1_efficiency_MC->SetName("h_HLT_DoubleMu_L1efficiency_MC");
+   h_L1_efficiency_DATA   = (TH2F*)file_efficiency_L1->Get(scale_factor_src::h_eff_DATA_name.c_str());
+   h_L1_efficiency_DATA->SetDirectory(0); h_L1_efficiency_DATA->SetName("h_HLT_DoubleMu_L1efficiency_DATA");
+   file_efficiency_L1->Close();
+   // --- HLT
+   TFile * file_efficiency_HLT = new TFile(scale_factor_src::HLT_eff_files[era]);
+   std::cout << "[+] parse HLT SFs from \n " << file_efficiency_HLT->GetName() << std::endl;
+   h_HLT_efficiency_MC     = (TH2F*)file_efficiency_HLT->Get(scale_factor_src::h_eff_MC_name.c_str());
+   h_HLT_efficiency_MC->SetDirectory(0); h_HLT_efficiency_MC->SetName("h_HLT_DoubleMu_HLT_efficiency_MC");
+   h_HLT_efficiency_DATA   = (TH2F*)file_efficiency_HLT->Get(scale_factor_src::h_eff_DATA_name.c_str());
+   h_HLT_efficiency_DATA->SetDirectory(0); h_HLT_efficiency_DATA->SetName("h_HLT_DoubleMu_HLT_efficiency_DATA");
+   file_efficiency_HLT->Close();
+
    return 0;
 }// parseHLT_SF()
 
@@ -704,23 +721,25 @@ float WTau3Mu_tools::get_dimuon_efficiency(const float& pt, const float& eta, co
    float l1_efficiency = -99, hlt_efficiency = -99;
    float l1_efficiency_error = 0.0, hlt_efficiency_error = 0.0; 
    float pt_touse = (pt > 50.0 ? 45.0 : pt);
-   if (debug) std::cout << Form(" [HLT] get dimuon efficiency for (pt, eta, DR) = (%.2f, %.2f, %.2f) ", pt, eta, DR) << std::endl;
+   float x = pt_touse, y = fabs(eta);
+   if (debug) std::cout << Form(" [HLT] get dimuon efficiency for (pt, eta) = (%.2f, %.2f) ", pt, eta) << std::endl;
    if (dataset == "data"){
-      l1_efficiency_error  = h_L1_efficiency_DATA->GetBinError(h_L1_efficiency_DATA->FindBin(eta, pt_touse));
-      hlt_efficiency_error = h_HLT_efficiency_DATA->GetBinError(h_HLT_efficiency_DATA->FindBin(eta, pt_touse)); 
+      l1_efficiency_error  = h_L1_efficiency_DATA->GetBinError(h_L1_efficiency_DATA->FindBin(x,y));
+      hlt_efficiency_error = h_HLT_efficiency_DATA->GetBinError(h_HLT_efficiency_DATA->FindBin(x,y)); 
    
-      l1_efficiency  = h_L1_efficiency_DATA->GetBinContent(h_L1_efficiency_DATA->FindBin(eta, pt_touse));
-      hlt_efficiency = h_HLT_efficiency_DATA->GetBinContent(h_HLT_efficiency_DATA->FindBin(eta, pt_touse));
+      l1_efficiency  = h_L1_efficiency_DATA->GetBinContent(h_L1_efficiency_DATA->FindBin(x,y));
+      hlt_efficiency = h_HLT_efficiency_DATA->GetBinContent(h_HLT_efficiency_DATA->FindBin(x,y));
    } else if (dataset == "mc"){
-      l1_efficiency_error  = h_L1_efficiency_MC->GetBinError(h_L1_efficiency_MC->FindBin(eta, pt_touse));
-      hlt_efficiency_error = h_HLT_efficiency_MC->GetBinError(h_HLT_efficiency_MC->FindBin(eta, pt_touse));
+      l1_efficiency_error  = h_L1_efficiency_MC->GetBinError(h_L1_efficiency_MC->FindBin(x,y));
+      hlt_efficiency_error = h_HLT_efficiency_MC->GetBinError(h_HLT_efficiency_MC->FindBin(x,y));
    
-      l1_efficiency = h_L1_efficiency_MC->GetBinContent(h_L1_efficiency_MC->FindBin(eta, pt_touse));
-      hlt_efficiency = h_HLT_efficiency_MC->GetBinContent(h_HLT_efficiency_MC->FindBin(eta, pt_touse));
+      l1_efficiency = h_L1_efficiency_MC->GetBinContent(h_L1_efficiency_MC->FindBin(x,y));
+      hlt_efficiency = h_HLT_efficiency_MC->GetBinContent(h_HLT_efficiency_MC->FindBin(x,y));
    }
    if (error != 0){ 
-       if (debug) std::cout << Form(" [L1] efficiency = %.3f +/- %.3f \t [HLT] efficiency = %.3f +/- %.3f", l1_efficiency, l1_efficiency_error, hlt_efficiency, hlt_efficiency_error) << std::endl;
-      *error = (l1_efficiency*hlt_efficiency) * sqrt( (l1_efficiency_error/l1_efficiency)*(l1_efficiency_error/l1_efficiency) + (hlt_efficiency_error/hlt_efficiency)*(hlt_efficiency_error/hlt_efficiency) );
+      if (debug) std::cout << Form(" [L1] efficiency = %.3f +/- %.3f \t [HLT] efficiency = %.3f +/- %.3f", l1_efficiency, l1_efficiency_error, hlt_efficiency, hlt_efficiency_error) << std::endl;
+      //*error = (l1_efficiency*hlt_efficiency) * sqrt( (l1_efficiency_error/l1_efficiency)*(l1_efficiency_error/l1_efficiency) + (hlt_efficiency_error/hlt_efficiency)*(hlt_efficiency_error/hlt_efficiency) );
+      *error = sqrt( (l1_efficiency_error*hlt_efficiency)*(l1_efficiency_error*hlt_efficiency) + (l1_efficiency*hlt_efficiency_error)*(l1_efficiency*hlt_efficiency_error) );
       if (debug) std::cout << Form(" [Dimuon] efficiency = %.3f +/- %.3f", l1_efficiency*hlt_efficiency, *error) << std::endl;
    }
 
@@ -737,11 +756,11 @@ float WTau3Mu_tools::get_trimuon_efficiency(const TString& dataset, float* error
    eff_mu23 = get_dimuon_efficiency(RecoMu3_P4.Pt(), fabs(RecoMu3_P4.Eta()), -1.0 , "", dataset, &eff_mu23_err); 
    eff_mu13 = get_dimuon_efficiency(RecoMu3_P4.Pt(), fabs(RecoMu3_P4.Eta()), -1.0 , "", dataset, &eff_mu13_err);
 
-   trimuon_eff = 1 - (1 - eff_mu12) * (1 - eff_mu23) * (1 - eff_mu13);
-   trimuon_eff_err = (eff_mu12_err/(1-eff_mu12)) * (eff_mu12_err/(1-eff_mu12));
+   trimuon_eff      = 1 - (1 - eff_mu12) * (1 - eff_mu23) * (1 - eff_mu13);
+   trimuon_eff_err  = (eff_mu12_err/(1-eff_mu12)) * (eff_mu12_err/(1-eff_mu12));
    trimuon_eff_err += (eff_mu23_err/(1-eff_mu23)) * (eff_mu23_err/(1-eff_mu23));
    trimuon_eff_err += (eff_mu13_err/(1-eff_mu13)) * (eff_mu13_err/(1-eff_mu13));
-   trimuon_eff_err = (1-trimuon_eff) * sqrt(trimuon_eff_err);
+   trimuon_eff_err  = (1-trimuon_eff) * sqrt(trimuon_eff_err);
 
    *error = trimuon_eff_err;
    
