@@ -60,7 +60,8 @@ print(f'[i] BDT selection : {bdt_selection_dict}')
 selection = " & ".join([
     config.base_selection, 
     config.phi_veto, 
-    config.sidebands_selection if args.isMC else '(1)',
+    config.year_selection[args.year],
+    config.sidebands_selection if not args.isMC else '(1)',
     ])
 data_rdf  = ROOT.RDataFrame('tree_w_BDT', input_sample).Filter(selection)
 

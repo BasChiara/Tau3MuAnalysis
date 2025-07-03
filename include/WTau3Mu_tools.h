@@ -83,7 +83,9 @@ class WTau3Mu_tools : public WTau3Mu_base{
    const std::string muons_IDsf_set_ = "NUM_MediumID_DEN_TrackerMuons";
 
 
-   // gen particle P4 
+   // gen particle P4
+   UInt_t gen_tau_idx_ = -1, gen_mu1_idx_ = -1, gen_mu2_idx_ = -1, gen_mu3_idx_ = -1;
+   UInt_t gen_W_idx_ = -1, gen_Z_idx_ = -1;
    ROOT::Math::PtEtaPhiMVector GenW_P4, GenZ_P4;
    ROOT::Math::PtEtaPhiMVector GenTau_P4, GenNu_P4;
    ROOT::Math::PtEtaPhiMVector GenMu1_P4, GenMu2_P4, GenMu3_P4;

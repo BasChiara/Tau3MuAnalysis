@@ -5,7 +5,7 @@ import numpy as np
 
 import sys
 sys.path.append('..')
-from mva.config import mc_samples, mc_bdt_samples
+from mva.config import mc_samples, mc_bdt_samples, base_selection
 
 import argparse
 
@@ -27,25 +27,31 @@ year_id_dict = {
     '2023preBPix': '230',
     '2023BPix'   : '231',
 }
-
+bdt_cut = 0.995
 # -- read inputs
 if not args.input_root:
-    signals = mc_samples[args.process]
-    tree_rdf = ROOT.RDataFrame(args.tree, signals)
+    signals = mc_bdt_samples[args.process]
+    print(f'[i] input files: {signals}')
+    tree_rdf = ROOT.RDataFrame(args.tree, signals).Filter(base_selection)
 else:
     try:
         infile = ROOT.TFile.Open(args.input_root)
     except:
         print(f' [+] error cannot open {args.input_root}')
+        exit(-1)
     else:
-        tree_rdf = ROOT.RDataFrame(args.tree, args.input_root)
-        print(f' [+] get tree from {args.input_root} with {tree_rdf.Count()} events')
+        tree_rdf = ROOT.RDataFrame(args.tree, args.input_root).Filter(base_selection)
+if not tree_rdf:
+    print(f' [+] error reading tree {args.tree} from {args.input_root}')
+    exit(-1)
+
+print(f' [+] get tree from {args.input_root} with {tree_rdf.Count().GetValue()} events')
 
 N_tot = tree_rdf.Count().GetValue()
 print(f'[+] Nevents (2022+2023) {N_tot}')
-N_2022 = tree_rdf.Filter('year_id == 220').Count().GetValue()
+N_2022 = tree_rdf.Filter('(year_id>219) &  (year_id<230)').Count().GetValue()
 print(f'[+] Nevents (2022) {N_2022}')
-N_2023 = tree_rdf.Filter('year_id == 230').Count().GetValue()
+N_2023 = tree_rdf.Filter('(year_id>229) & (year_id<240)').Count().GetValue()
 print(f'[+] Nevents (2023) {N_2023}')
 
 eff_by_year_T3m = ROOT.TH1F("eff_by_year_T3m", "eff_by_year_T3m", len(year_id_dict.keys()), -2, 2)
@@ -74,9 +80,8 @@ eff_by_year_Dm.SetTitle("N(HLT_Tau3Mu* & HLT_DoubleMu4_3_LowMass)/N(HLT_DoubleMu
 
 # yields per year
 for i, year in enumerate(year_id_dict.keys()) :
-    print(f'[i] process year {year}')
     sub_rdf = tree_rdf.Filter(f'year_id == {year_id_dict[year]}')
-    print(f'  {sub_rdf.Count().GetValue()}')
+    print(f'[i] process year {year} : {sub_rdf.Count().GetValue()} events')
     N_HLT_DoubleMu = sub_rdf.Filter("HLT_isfired_DoubleMu").Count().GetValue() 
     N_HLT_Tau3Mu   = sub_rdf.Filter("HLT_isfired_Tau3Mu").Count().GetValue() 
     N_HLT_overlap  = sub_rdf.Filter("HLT_isfired_DoubleMu & HLT_isfired_Tau3Mu").Count().GetValue() 
@@ -106,13 +111,13 @@ c.SaveAs(f'{args.outdir}/HLT_eff_DoubleMu_over_Tau3Mu_on{args.process}.pdf')
 c = ROOT.TCanvas("c", "", 800, 800)
 margin = 0.12
 ROOT.gPad.SetMargin(margin, margin, margin, margin)
-ROOT.gStyle.SetPaintTextFormat("3.2f %")
-legend = ROOT.TLegend(0.60, 0.75, 0.90, 0.90)
-legend.SetBorderSize(0)
-legend.SetTextSize(0.035)
+ROOT.gStyle.SetPaintTextFormat("3.1f %")
 
+bdt_cut = 0.995
+if bdt_cut > 0. : tag += '_'+'bdt' + str(bdt_cut).replace('.', 'p')
 for i, year in enumerate(year_id_dict.keys()) :
-    h_overlap = tree_rdf.Filter(f'year_id == {year_id_dict[year]}').Histo2D((f'HLT_overlap_{year}', '', 2, -0.5, 1.5, 2, -0.5, 1.5), "HLT_isfired_Tau3Mu", "HLT_isfired_DoubleMu").GetPtr()
+    this_selection = f'(year_id == {year_id_dict[year]}) & (bdt_score > {bdt_cut})'
+    h_overlap = tree_rdf.Filter(this_selection).Histo2D((f'HLT_overlap_{year}', '', 2, -0.5, 1.5, 2, -0.5, 1.5), "HLT_isfired_Tau3Mu", "HLT_isfired_DoubleMu").GetPtr()
     #h_overlap = ROOT.gPad.GetPrimitive('h_overlap')
     h_overlap.SetMarkerSize(3)
     h_overlap.SetTitle(f'HLT overlap {year}')

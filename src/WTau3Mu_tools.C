@@ -424,12 +424,16 @@ void  WTau3Mu_tools::GenPartFillP4(){
    Mu2_idx = Muons_idxs[1]; 
    Mu3_idx = Muons_idxs[2]; 
    
-   GenW_P4.SetPt(GenPart_pt[W_idx]); GenW_P4.SetEta(GenPart_eta[W_idx]); GenW_P4.SetPhi(GenPart_phi[W_idx]); GenW_P4.SetM(W_MASS);
+   GenW_P4.SetPt(GenPart_pt[W_idx]); GenW_P4.SetEta(GenPart_eta[W_idx]); GenW_P4.SetPhi(GenPart_phi[W_idx]); GenW_P4.SetM(GenPart_mass[W_idx]);
    GenTau_P4.SetPt(GenPart_pt[Tau_idx]); GenTau_P4.SetEta(GenPart_eta[Tau_idx]); GenTau_P4.SetPhi(GenPart_phi[Tau_idx]); GenTau_P4.SetM(Tau_MASS);
    GenNu_P4.SetPt(GenPart_pt[Nu_idx]); GenNu_P4.SetEta(GenPart_eta[Nu_idx]); GenNu_P4.SetPhi(GenPart_phi[Nu_idx]); GenNu_P4.SetM(NuTau_MASS);
    GenMu1_P4.SetPt(GenPart_pt[Mu1_idx]); GenMu1_P4.SetEta(GenPart_eta[Mu1_idx]); GenMu1_P4.SetPhi(GenPart_phi[Mu1_idx]); GenMu1_P4.SetM(Muon_MASS);
    GenMu2_P4.SetPt(GenPart_pt[Mu2_idx]); GenMu2_P4.SetEta(GenPart_eta[Mu2_idx]); GenMu2_P4.SetPhi(GenPart_phi[Mu2_idx]); GenMu2_P4.SetM(Muon_MASS);
    GenMu3_P4.SetPt(GenPart_pt[Mu3_idx]); GenMu3_P4.SetEta(GenPart_eta[Mu3_idx]); GenMu3_P4.SetPhi(GenPart_phi[Mu3_idx]); GenMu3_P4.SetM(Muon_MASS);
+
+   gen_W_idx_ = W_idx;
+   gen_tau_idx_ = Tau_idx;
+   gen_mu1_idx_ = Mu1_idx; gen_mu2_idx_ = Mu2_idx; gen_mu3_idx_ = Mu3_idx;
 
    if(debug){
       std::cout << " W found @ "    << W_idx << std::endl;

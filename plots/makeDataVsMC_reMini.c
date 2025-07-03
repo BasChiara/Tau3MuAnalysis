@@ -6,13 +6,17 @@
    gStyle->SetPadTickY(1);
   
    //SetInputFile( {"/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv4_HLT_overlap.root", "../outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onTau3Mu.root "});
-   SetInputFile( {"/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/XGBout_data_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root", "/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/XGBout_signal_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root"});
-   SetInputTree({"tree_w_BDT", "tree_w_BDT"});
+   //SetInputFile( {"/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/XGBout_data_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root", "/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/XGBout_signal_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root"});
+   SetInputFile( {"/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv1_HLT_overlap.root", "../outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onTau3Mu.root"});
+
+   //SetInputTree({"tree_w_BDT", "tree_w_BDT"});
+   SetInputTree({"WTau3Mu_tree", "WTau3Mu_tree"});
    SetSelection({"(tau_fit_mass > 1.4 && tau_fit_mass < 1.72) || (tau_fit_mass > 1.84 && tau_fit_mass < 2.05) && (year_id < 230)", "(year_id < 230)"});
-   SetOutputFile("/eos/user/c/cbasile/www/Tau3Mu_Run3/DataVsMC/2022/");
-   
+   //SetOutputFile("/eos/user/c/cbasile/www/Tau3Mu_Run3/DataVsMC/2022/");
+   SetOutputFile("."); 
 
    // Muons
+   draw_branches({"n_tau","n_tau"},                {"data", "mc"}, "number #mu /event", 10, 0., 10., "DataVsMC_reMini_Nmuon", true);
    draw_branches({"tau_mu1_TightID_PV","tau_mu1_TightID_PV"}, {"data", "mc"}, "#mu_1 Tight ID (PV)", 2, -0.5, 1.5, "DataVsMC_reMini_Mu_TightID");
    draw_branches({"tau_mu12_fitM","tau_mu12_fitM"},  {"data", "mc"}, "M(#mu_{1},#mu_{2}) (GeV)", 100, 0.5, 1.5, "DataVsMC_reMini_Mu12mass");
    draw_branches({"tau_mu13_fitM","tau_mu13_fitM"},  {"data", "mc"}, "M(#mu_{1},#mu_{3}) (GeV)", 100, 0.5, 1.5, "DataVsMC_reMini_Mu13mass");

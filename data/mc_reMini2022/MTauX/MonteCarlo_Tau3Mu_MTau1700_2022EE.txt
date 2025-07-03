@@ -1,0 +1,2 @@
+# June 2025 - tau -> 3 mu MC samples @ different tau masses
+/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano_2025Jun23/WtoTauNu_Tauto3Mu_MTau1700_TuneCP5_13p6TeV_pythia8_Run3Summer22GS_v1/crab_WnuTau3Mu_MTau1700_2022-v1/250623_094355/0000/

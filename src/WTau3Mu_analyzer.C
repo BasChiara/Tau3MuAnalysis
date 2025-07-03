@@ -43,6 +43,12 @@ void WTau3Mu_analyzer::Loop(){
       Event = event;
       nGoodPV = PV_npvsGood;
       Rho_Fj  = Rho_fixedGridRhoFastjetAll;
+      
+      n_tau = nTauTo3Mu;
+      n_muon = nMuon;
+
+      // PV and BS
+      BS_x = 0.0; BS_y = 0.0; BS_z = BeamSpot_z;
 
       opposite_side_tag_ = -1;
       pTV_weight = 1.0, pTV_weight_up = 1.0, pTV_weight_down = 1.0;
@@ -56,6 +62,8 @@ void WTau3Mu_analyzer::Loop(){
          tau_mu1_gen_pt  = GenMu1_P4.Pt();  tau_mu2_gen_pt  = GenMu2_P4.Pt();  tau_mu3_gen_pt  = GenMu3_P4.Pt();
          tau_mu1_gen_eta = GenMu1_P4.Eta(); tau_mu2_gen_eta = GenMu2_P4.Eta(); tau_mu3_gen_eta = GenMu3_P4.Eta();
          tau_gen_mass = GenTau_P4.M(); tau_gen_pt = GenTau_P4.Pt(); tau_gen_eta = GenTau_P4.Eta(); tau_gen_phi = GenTau_P4.Phi();    
+         tau_gen_vx = GenPart_vx[gen_tau_idx_]; tau_gen_vy = GenPart_vy[gen_tau_idx_]; tau_gen_vz = GenPart_vz[gen_tau_idx_];
+         
          W_gen_pt = GenW_P4.Pt(); W_gen_eta = GenW_P4.Eta(); W_gen_phi = GenW_P4.Phi();
          Nu_gen_pt = GenNu_P4.Pt(); Nu_gen_eta = GenNu_P4.Eta(); Nu_gen_phi = GenNu_P4.Phi();
          gen_met_pt = GenMET_pt; gen_met_phi = GenMET_phi;
@@ -107,10 +115,6 @@ void WTau3Mu_analyzer::Loop(){
          nTauFired3Mu++;
          HLT_isfired_DoubleMu = (int)flag_HLT_DoubleMu; HLT_isfired_Tau3Mu = (int)flag_HLT_Tau3mu; 
          
-
-
-         n_tau = nTauTo3Mu;
-
          // blind tau mass if needed
          if(isBlind_ && RecoTau_P4.M() > blindTauMass_low && RecoTau_P4.M() < blindTauMass_high ) continue;
 
@@ -147,6 +151,7 @@ void WTau3Mu_analyzer::Loop(){
          // muons kinematics
          tau_mu1_pt  = TauTo3Mu_mu1_pt[t];   tau_mu2_pt  = TauTo3Mu_mu2_pt[t];   tau_mu3_pt  = TauTo3Mu_mu3_pt[t];
          tau_mu1_eta = TauTo3Mu_mu1_eta[t];  tau_mu2_eta = TauTo3Mu_mu2_eta[t];  tau_mu3_eta = TauTo3Mu_mu3_eta[t];
+         tau_mu1_idx = TauTo3Mu_mu1_idx[t]; tau_mu2_idx = TauTo3Mu_mu2_idx[t]; tau_mu3_idx = TauTo3Mu_mu3_idx[t];
          tau_mu1_z   = Muon_z[TauTo3Mu_mu1_idx[t]]; tau_mu2_z   = Muon_z[TauTo3Mu_mu2_idx[t]]; tau_mu3_z   = Muon_z[TauTo3Mu_mu3_idx[t]];
          tau_mu12_dZ = TauTo3Mu_dZmu12[t];   tau_mu23_dZ = TauTo3Mu_dZmu23[t];   tau_mu13_dZ = TauTo3Mu_dZmu13[t];
          tau_mu12_dR = ROOT::Math::VectorUtil::DeltaR(RecoMu1_P4, RecoMu2_P4); tau_mu23_dR = ROOT::Math::VectorUtil::DeltaR(RecoMu2_P4, RecoMu3_P4); tau_mu13_dR = ROOT::Math::VectorUtil::DeltaR(RecoMu1_P4, RecoMu3_P4);
@@ -379,6 +384,13 @@ void WTau3Mu_analyzer::outTreeSetUp(){
    outTree_->Branch("pTV_weight_sysUP",         &pTV_weight_up,            "pTV_weight_sysUP/F");
    outTree_->Branch("pTV_weight_sysDOWN",       &pTV_weight_down,          "pTV_weight_sysDOWN/F");
    outTree_->Branch("isMCmatching",             &isMCmatching,             "isMCmatching/I");
+   // PV and BS
+   outTree_->Branch("PV_x", &PV_x, "PV_x/F");
+   outTree_->Branch("PV_y", &PV_y, "PV_y/F");
+   outTree_->Branch("PV_z", &PV_z, "PV_z/F");
+   outTree_->Branch("BS_x", &BS_x, "BS_x/F");
+   outTree_->Branch("BS_y", &BS_y, "BS_y/F");
+   outTree_->Branch("BS_z", &BS_z, "BS_z/F");
    // * HLT
    outTree_->Branch("HLT_isfired_Tau3Mu",     &HLT_isfired_Tau3Mu,   "HLT_isfired_Tau3Mu/I");
    outTree_->Branch("HLT_isfired_DoubleMu",   &HLT_isfired_DoubleMu, "HLT_isfired_DoubleMu/I");
@@ -415,6 +427,9 @@ void WTau3Mu_analyzer::outTreeSetUp(){
    outTree_->Branch("tau_mu1_eta",     &tau_mu1_eta,  "tau_mu1_eta/F");
    outTree_->Branch("tau_mu2_eta",     &tau_mu2_eta,  "tau_mu2_eta/F");
    outTree_->Branch("tau_mu3_eta",     &tau_mu3_eta,  "tau_mu3_eta/F");
+   outTree_->Branch("tau_mu1_idx",     &tau_mu1_idx,  "tau_mu1_idx/I");
+   outTree_->Branch("tau_mu2_idx",     &tau_mu2_idx,  "tau_mu2_idx/I");
+   outTree_->Branch("tau_mu3_idx",     &tau_mu3_idx,  "tau_mu3_idx/I");
    outTree_->Branch("tau_mu1_z",       &tau_mu1_z,    "tau_mu1_z/F");
    outTree_->Branch("tau_mu2_z",       &tau_mu2_z,    "tau_mu2_z/F");
    outTree_->Branch("tau_mu3_z",       &tau_mu3_z,    "tau_mu3_z/F");
@@ -432,10 +447,14 @@ void WTau3Mu_analyzer::outTreeSetUp(){
    outTree_->Branch("tau_mu23_fitM",   &tau_mu23_fitM,"tau_mu23_fitM/F");
    // * tau canditates
    outTree_->Branch("n_tau",            &n_tau,            "n_tau/I");
+   outTree_->Branch("n_muon",            &n_muon,            "n_muon/I");
    outTree_->Branch("tau_gen_mass",     &tau_gen_mass,     "tau_gen_mass/F");
    outTree_->Branch("tau_gen_pt",       &tau_gen_pt,      "tau_gen_pt/F");
    outTree_->Branch("tau_gen_eta",      &tau_gen_eta,     "tau_gen_eta/F");
    outTree_->Branch("tau_gen_phi",      &tau_gen_phi,     "tau_gen_phi/F");
+   outTree_->Branch("tau_gen_vx",       &tau_gen_vx,      "tau_gen_vx/F");
+   outTree_->Branch("tau_gen_vy",       &tau_gen_vy,      "tau_gen_vy/F");
+   outTree_->Branch("tau_gen_vz",       &tau_gen_vz,      "tau_gen_vz/F");
    outTree_->Branch("tau_raw_mass",     &tau_raw_mass,     "tau_raw_mass/F");
    outTree_->Branch("tau_fit_mass",     &tau_fit_mass,     "tau_fit_mass/F");
    outTree_->Branch("tau_fit_mass_err", &tau_fit_mass_err,"tau_fit_mass_err/F");

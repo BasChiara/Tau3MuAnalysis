@@ -194,6 +194,9 @@ for cut in set_bdt_cut:
     # pre-BDT
     SB_eff, N_data   = fitu.breakdown_efficiency(data_tree, base_selection, base_selection + f' & {config.sidebands_selection}' , True ) # events in the full mass range pre-BDT
     N_data_SB        = N_data * SB_eff
+    # post-BDT
+    BDT_eff, N_data  = fitu.breakdown_efficiency(data_tree, base_selection, '&'.join([base_selection,bdt_selection]), True )
+    N_data_BDT       = N_data * BDT_eff
 
     data_selection = ' & '.join([
         base_selection, 
@@ -396,12 +399,14 @@ for cut in set_bdt_cut:
     print(f'\n\n{ct.BOLD}---------- SUMMARY ----------{ct.END}')
     print(f'{ct.GREEN}SELECTION{ct.END} :')
     print(base_selection)
-    print(f' Nb in SR : {B:.3f} +/- {Berr:.3f}')
-    print(f' Nb in FR : {nbkg.getValV():.3f} +/- {nbkg.getError():.3f}')
-    print(f' Nw       : {nsig_W.getValV():.3f} +/- {nsig_W.getError():.3f}')
-    print(f' Nz       : {nsig_Z.getValV():.3f} +/- {nsig_Z.getError():.3f}')
-    print(f' Nw/Nz fit: {nsig_W.getValV()/nsig_Z.getValV():.2f}')
-    print(f' Nw/Nz raw: {mc_W_dataset.sumEntries()/mc_Z_dataset.sumEntries():.2f}')
+    print(f' Nb in SR (fit)     : {B:.3f} +/- {Berr:.3f}')
+    print(f' Nb in FR (fit)     : {nbkg.getValV():.3f} +/- {nbkg.getError():.3f}')
+    print(f' Nb in SB (raw)     : {bkg_dataset.numEntries()}')
+    print(f' Nb in FR (raw)     : {N_data_BDT}')
+    print(f' Nw       (fit): {nsig_W.getValV():.3f} +/- {nsig_W.getError():.3f}')
+    print(f' Nz       (fit): {nsig_Z.getValV():.3f} +/- {nsig_Z.getError():.3f}')
+    print(f' Nw/Nz    (fit): {nsig_W.getValV()/nsig_Z.getValV():.2f}')
+    print(f' Nw/Nz    (raw): {mc_W_dataset.sumEntries()/mc_Z_dataset.sumEntries():.2f}')
     print(f'{ct.BOLD}---------------------------------{ct.END}\n\n')
 
     if args.optim_bdt :
@@ -489,7 +494,7 @@ for cut in set_bdt_cut:
         write_sys    = args.sys_unc,
     )
 
-file_ws.Close()
+if args.save_ws : file_ws.Close()
 if not args.optim_bdt: exit()
 tree_dict = dict(zip(df_columns, np.array([bdt_cut, sig_Nexp, sig_eff, bkg_Nexp, bkg_Nexp_Sregion, bkg_eff, PunziS_val, PunziS_err, AMS_val])))
 #if (ROOT.gROOT.GetVersion() == '6.22/09' ):

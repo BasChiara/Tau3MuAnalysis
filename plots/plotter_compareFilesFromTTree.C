@@ -140,11 +140,14 @@ int draw_branches(std::vector<TString> branches, std::vector<TString> categories
 
   TString y_name = Form("Events / %.2f", histos[0]->GetXaxis()->GetBinWidth(1));
   THStack* stk = new THStack("hStack",";" + x_name + ";" + y_name);
+  stk->GetXaxis()->SetTitleOffset(2.0);
+  stk->GetYaxis()->SetTitleOffset(1.5);
+  stk->GetXaxis()->SetTitleSize(0.045);
+  stk->GetYaxis()->SetTitleSize(0.040);
+  
   histoSetUp(histos[0], categories[0], x_name, fill, norm);
   legend->AddEntry(histos[0], CategoryLegend(categories[0]),"f");
-  stk->GetXaxis()->SetTitleOffset(2.0);stk->GetYaxis()->SetTitleOffset(1.5);
-  stk->GetXaxis()->SetTitleSize(0.045); stk->GetYaxis()->SetTitleSize(0.040);
-  gPad->Modified(); gPad->Update();
+  
   stk->Add(histos[0]);
   float maxY = histos[0]->GetBinContent(histos[0]->GetMaximumBin());
   for (int i = 1; i < Nfiles; i++){  
@@ -164,6 +167,7 @@ int draw_branches(std::vector<TString> branches, std::vector<TString> categories
    } else c->SetLogy(0);
 
   // save
+  gPad->Modified(); gPad->Update();
   CMS_lumi( c, 0 );
   c->Update();
   gPad->Update();
@@ -221,10 +225,10 @@ int draw_2D_branches(std::vector<TString> branches_xy, std::vector<TString> cate
    legend->AddEntry(histos[0], CategoryLegend(categories[0]),"f");
    histos[0]->GetYaxis()->SetTitle(y_name);
    
-   stk->GetXaxis()->SetTitleOffset(2.0);stk->GetYaxis()->SetTitleOffset(1.5);
-   stk->GetXaxis()->SetTitleSize(0.045); stk->GetYaxis()->SetTitleSize(0.040);
+   //stk->GetXaxis()->SetTitleOffset(2.0);stk->GetYaxis()->SetTitleOffset(1.5);
+   //stk->GetXaxis()->SetTitleSize(0.045); stk->GetYaxis()->SetTitleSize(0.040);
    gPad->Modified(); gPad->Update();
-   stk->Add(histos[0]);
+   //stk->Add(histos[0]);
    
    float maxY = histos[0]->GetBinContent(histos[0]->GetMaximumBin());
    histos[0]->Draw("box");

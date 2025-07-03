@@ -115,6 +115,11 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       // total weight : lumi and scale facors(in tools)
       float weight;
       float lumi_factor;
+      
+      // PV and BS
+      //float PV_x, PV_y, PV_z;
+      float BS_x, BS_y, BS_z;
+      
       // HLT_bit
       int HLT_isfired_Tau3Mu, HLT_isfired_DoubleMu;
       // * muons
@@ -126,6 +131,8 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       int   tau_mu1_TightID_BS,tau_mu2_TightID_BS,tau_mu3_TightID_BS;
       float tau_mu1_pt, tau_mu2_pt, tau_mu3_pt;
       float tau_mu1_eta, tau_mu2_eta, tau_mu3_eta;
+      float tau_mu1_phi, tau_mu2_phi, tau_mu3_phi;
+      int   tau_mu1_idx, tau_mu2_idx, tau_mu3_idx;
       float tau_mu1_z, tau_mu2_z, tau_mu3_z;
       
       float tau_mu12_dZ, tau_mu23_dZ, tau_mu13_dZ;
@@ -135,9 +142,10 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       float tau_mu1_gen_pt, tau_mu2_gen_pt, tau_mu3_gen_pt;
       float tau_mu1_gen_eta, tau_mu2_gen_eta, tau_mu3_gen_eta;
       // * tau candidates
-      int n_tau;
+      int n_tau, n_muon;
       float tau_gen_mass;
       float tau_gen_pt, tau_gen_eta, tau_gen_phi;
+      float tau_gen_vx, tau_gen_vy, tau_gen_vz;
       float tau_raw_mass;
       float tau_fit_mass, tau_fit_mass_err, tau_fit_mass_resol;
       float tau_fit_pt, tau_fit_eta, tau_fit_phi, tau_fit_charge;
