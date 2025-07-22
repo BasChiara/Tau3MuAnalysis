@@ -362,7 +362,7 @@ int efficiencyVsPU( std::vector<TString> selections, std::vector<TString> descri
          float Nsel = (float)inTree->GetEntries(selections[i] + " && " + sel_PUbin);
          float Ntot = (float) inTree->GetEntries(sel_PUbin);
          float eff = Nsel/Ntot;//(float)inTree->GetEntries(selections[i] + " && " + sel_PUbin)/inTree->GetEntries(sel_PUbin);
-         std::cout << " [...] PU bin " << sel_PUbin << " --> eff = " << eff << std::endl; 
+         std::cout << " [...] PU bin " << sel_PUbin << " --> eff = " << eff <<  "(" << Nsel << "/" << Ntot << ")"<< std::endl; 
          h_eff->SetBinContent(b, eff);
          h_eff->SetBinError(b, sqrt(Nsel)/Ntot);
       } 

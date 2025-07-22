@@ -7,8 +7,8 @@ cd /afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnal
 RUNTIME_H=8
 FILES_PER_JOB=50
 HLT_CONF='HLT_overlap'
-EOS_PATH='/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/'
-#EOS_PATH='/eos/user/c/cbasile/Tau3MuRun3/data/bkg_samples/reMini2022/'
+#EOS_PATH='/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/'
+EOS_PATH='/eos/user/c/cbasile/Tau3MuRun3/data/bkg_samples/reMini2022/'
 DATA_PATH='data/data_reMini2022/'
 
 ## 2022 era C ##

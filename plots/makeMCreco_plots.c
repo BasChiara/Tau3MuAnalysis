@@ -4,16 +4,15 @@
    gStyle->SetPadTickY(1);
    gStyle->SetLineWidth(2);
 
-   //SetIO("../outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap_onTau3Mu.root", "WTau3Mu_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2022preEE/");
+   SetIO("../outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap_onTau3Mu.root", "WTau3Mu_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2022preEE/");
    //SetIO("../outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_onTau3Mu.root", "WTau3Mu_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2022EE/");
    //SetIO("../outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap_onTau3Mu.root", "WTau3Mu_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2023preBPix/");
    //SetIO("../outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onTau3Mu.root", "WTau3Mu_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2023BPix/");
-   SetIO("../outRoot/WTau3Mu_MCanalyzer_2024_HLT_overlap_onTau3Mu.root", "WTau3Mu_tree", "/eos/user/c/cbasile/www/Tau3Mu_Run3/MCstudies/2024/");
 
    // muons ID
-   draw_many_histos({"tau_mu1_MediumID", "tau_mu2_MediumID", "tau_mu3_MediumID"}, {"mu1", "mu2", "mu3"},"#mu medium ID", 2, -0.5,1.5, "Muons_MediumID", true);
-   draw_many_histos({"tau_mu1_SoftID_PV", "tau_mu2_SoftID_PV", "tau_mu3_SoftID_PV"}, {"mu1", "mu2", "mu3"},"#mu soft ID", 2, -0.5,1.5, "Muons_SoftID_PV", true);
-   draw_many_histos({"tau_mu1_TightID_PV", "tau_mu2_TightID_PV", "tau_mu3_TightID_PV"}, {"mu1", "mu2", "mu3"},"#mu tight ID", 2, -0.5,1.5, "Muons_TightID_PV", true);
+   draw_many_histos({"tau_mu1_MediumID", "tau_mu2_MediumID", "tau_mu3_MediumID"}, {"mu1", "mu2", "mu3"},"#mu_1 medium ID", 2, -0.5,1.5, "Muons_MediumID", true);
+   draw_many_histos({"tau_mu1_SoftID_PV", "tau_mu2_SoftID_PV", "tau_mu3_SoftID_PV"}, {"mu1", "mu2", "mu3"},"#mu_1 soft ID", 2, -0.5,1.5, "Muons_SoftID_PV", true);
+   draw_many_histos({"tau_mu1_TightID_PV", "tau_mu2_TightID_PV", "tau_mu3_TightID_PV"}, {"mu1", "mu2", "mu3"},"#mu_1 tight ID", 2, -0.5,1.5, "Muons_TightID_PV", true);
    draw_many_histos({"tau_mu1_MediumID", "tau_mu1_SoftID_PV", "tau_mu1_TightID_PV" }, {"mu1", "mu2", "mu3"},"#mu_{1} ID", 2, -0.5,1.5, "Muon1_IDs", true);
    // muons kinematics
    draw_many_histos({"tau_mu1_pt", "tau_mu2_pt", "tau_mu3_pt"}, {"mu1", "mu2", "mu3"},"p_{T}(#mu) (GeV)", 50, 0.,50., "Muons_pT");
@@ -23,7 +22,8 @@
    draw_one_histo("tau_mu13_dZ", "mu","#Delta z(#mu_{1}, #mu_{3}) (cm)", 40, 0., 2., "tau_mu13_dZ", true);
 
    // Tau
-   draw_one_histo("n_tau", "tau_fit", "#(#tau -> 3 #mu) candidates", 10, 0., 10., "Ntau_cand", true);
+   draw_one_histo("n_tau", "tau_fit", "number #tau #rightarrow 3#mu /event", 10, 0., 10., "Ntau_cand", true);
+   draw_one_histo("n_muon", "tau_fit", "number #mu /event", 10, 0., 10., "Nmuon_", true);
    draw_one_histo("tau_fit_mass", "tau_fit", "M(3 #mu) (GeV)", 50, 1.6, 2.0, "Tau_fit_M");
    draw_one_histo("tau_fit_mass_resol", "tau_fit", "#sigma/M(3 #mu)", 50, 0.0, 0.025, "Tau_fit_resolM");
    draw_many_histos({"tau_fit_mass","tau_raw_mass"}, {"tau_fit","tau_raw"}, "M(3 #mu) (GeV)", 50, 1.6, 2.0, "Tau_prepostfit_M");
@@ -48,10 +48,15 @@
    draw_one_histo("W_pt", "W", "p_{T}(W) (GeV)", 100, 0., 200., "W_pt");
    
    // versus PU
-   ProfileVsPU({"tau_relIso*tau_fit_pt","tau_Iso_chargedDR04", "tau_Iso_photonDR04", "tau_Iso_puDR08"}, {"Isolation", "#sum pT^{ch}(dz<0.2 cm)", "#sum pT^{#gamma}", "#sum pT^{ch}(dz>0.2 cm)"}, "# good PV","", 28, 0, 70, 0, 150, "TauIsoVsPUwPUcomponent");
-   ProfileVsPU({"tau_relIso*tau_fit_pt","tau_Iso_chargedDR04", "tau_Iso_photonDR04", "tau_Iso_puDR08"}, {"Isolation", "#sum pT^{ch}(dz<0.2 cm)", "#sum pT^{#gamma}", "#sum pT^{ch}(dz>0.2 cm)"}, "# good PV","", 28, 0, 70, 0, 10, "TauIsoVsPU");
-   ProfileVsPU({"tau_met_pt"},{"PuppiMET"}, "# good PV", "", 35, 0, 70, 0, 100, "PuppiMETvsPU");
-   efficiencyVsPU({"tau_relIso < 0.2", "tau_relIso_pT05 < 0.2"}, {"I_{rel}", "I_{rel}(pT>0.5 GeV)"},"# PV", "efficiency", 7, 0, 70, "effTauIso02_VS_PU");
+   ProfileVsPU({"tau_relIso*tau_fit_pt","tau_Iso_chargedDR04", "tau_Iso_photonDR04", "tau_Iso_puDR08"}, {"Isolation", "#sum pT^{ch}(dz<0.2 cm)", "#sum pT^{#gamma}", "#sum pT^{ch}(dz>0.2 cm)"}, "# good PV","", 25, 10, 50, 0, 150, "TauIsoVsPUwPUcomponent");
+   ProfileVsPU({"tau_relIso*tau_fit_pt","tau_Iso_chargedDR04", "tau_Iso_photonDR04", "tau_Iso_puDR08"}, {"Isolation", "#sum pT^{ch}(dz<0.2 cm)", "#sum pT^{#gamma}", "#sum pT^{ch}(dz>0.2 cm)"}, "# good PV","", 25, 10, 60, 0, 10, "TauIsoVsPU");
+   ProfileVsPU({"tau_met_pt"},{"PuppiMET"}, "# good PV", "", 25, 10, 60, 0, 100, "PuppiMETvsPU");
+   
+   ProfileVsPU({"tau_relIso"}, {"Iso/p_{T}(3#mu)"}, "PV", "Iso/p_{T}(3#mu)", 30, 0, 60, 0, 0.1, "TauRelIsoVsPU");
+
+   efficiencyVsPU({"(!isMCmatching)", "(!isMCmatching && tau_relIso < 0.1)"}, {"fakes", "fakes Iso/p_{T}<0.1"}, "PV", "efficiency", 25, 10, 60, "effTauFakeVsPU");
+   
+   efficiencyVsPU({"tau_relIso < 0.2", "tau_relIso_pT05 < 0.2"}, {"I_{rel}", "I_{rel}(pT>0.5 GeV)"},"# PV", "efficiency", 10, 10, 60, "effTauIso02_VS_PU");
    // check on Dbeta isolation
    drawProfile2D({"tau_Iso_photonDR04", "tau_Iso_photonDR04_pT05"}, {"no pT th.", "pT > 0.5 GeV"}, {"tau_Iso_puDR08", "tau_Iso_puDR08_pT05"}, "","PU iso component", "#gamma iso component", 25, 0, 50, 0, 5, "ProfilePhotonVsPU_iso")
 

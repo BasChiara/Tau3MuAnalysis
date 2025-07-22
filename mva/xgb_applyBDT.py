@@ -57,6 +57,13 @@ elif (args.process == 'peakingBkg'):
         config.base_selection,
         config.displacement_selection,
     ])
+elif (args.process == 'invMedID'):
+    base_selection = '&'.join([
+        config.base_selection,
+        config.displacement_selection,
+        #'(tau_mu1_MediumID & tau_mu2_MediumID & !tau_mu3_MediumID)'
+        '(tau_mu1_MediumID & (tau_mu2_MediumID|tau_mu3_MediumID))'
+    ])
 else:
     base_selection = ' & '.join([
         config.base_selection,

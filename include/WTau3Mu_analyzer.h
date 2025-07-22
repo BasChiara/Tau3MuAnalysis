@@ -4,13 +4,17 @@
 #include "WTau3Mu_tools.h"
 #include <cmath>
 #include <vector>
+#include <cstdlib>
+#include <iostream>
 
-//#define BKG_SAMPLE_
+#define BKG_SAMPLE_
 
 class WTau3Mu_analyzer : public WTau3Mu_tools{
 
    public:
       WTau3Mu_analyzer(TTree *tree=0, const TString & outdir = "./outRoot", const TString& year = "2022preEE", const TString process = "Tau3Mu", const TString & tag="", const bool isMC = false) : WTau3Mu_tools(tree, isMC){
+         srand(123456);
+         
          // running on DATA or MC ?
          isMC_ = isMC;
          TString DATA_MC_tag = "DATA";
@@ -142,7 +146,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       float tau_mu1_gen_pt, tau_mu2_gen_pt, tau_mu3_gen_pt;
       float tau_mu1_gen_eta, tau_mu2_gen_eta, tau_mu3_gen_eta;
       // * tau candidates
-      int n_tau, n_muon;
+      int   n_tau, n_muon;
       float tau_gen_mass;
       float tau_gen_pt, tau_gen_eta, tau_gen_phi;
       float tau_gen_vx, tau_gen_vy, tau_gen_vz;
@@ -154,7 +158,8 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       float tau_Iso_chargedDR04_pT05, tau_Iso_photonDR04_pT05, tau_Iso_puDR08_pT05; 
       float tau_dimuon_mass;
       float tau_Lxy_val_BS, tau_Lxy_err_BS, tau_Lxy_sign_BS;
-      float tau_fit_mt, tau_fit_vprob, tau_cosAlpha_BS;
+      float tau_fit_mt,  tau_cosAlpha_BS;
+      float tau_fit_vprob, tau_fit_vChi2ndof;
       // * tau + MET
       float gen_met_pt, gen_met_phi;
       float Nu_gen_pt, Nu_gen_eta, Nu_gen_phi;

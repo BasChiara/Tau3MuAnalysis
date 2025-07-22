@@ -42,11 +42,11 @@ Ds_sv_selection     = f'(Ds_Lxy_sign_BS > 0.0 & Ds_fit_vprob > {Ds_minSVprob} )'
 Tau_sv_selection    = f'(tau_Lxy_sign_BS > {LxySign_cut} & tau_fit_vprob > {Ds_minSVprob} )'
 
 # peaking background
-peakB_mass_lo = 1.7
+peakB_mass_lo = 1.70
 peakB_mass_hi = 2.02
 peakB_base_selection = f'(tau_MuMuPi_mass > {peakB_mass_lo} & tau_MuMuPi_mass < {peakB_mass_hi})'
-peakB_phi_selection  = f'(tau_phiMuMu_mass > {Ds_phi_mass_lo} & tau_phiMuMu_mass < {Ds_phi_mass_hi} )'
-peakB_phi_veto       = f'fabs(tau_phiMuMu_mass - {Phi_mass_}) > {Phi_window_}'
+peakB_phi_selection  = f'(tau_phiMuMu_mass > {Ds_phi_mass_lo} & tau_phiMuMu_mass < {Ds_phi_mass_hi} )'#f'fabs(tau_phiMuMu_mass - {Phi_mass_}) < {Phi_window_/2.0}'
+peakB_phi_veto       = f'fabs(tau_phiMuMu_mass - {Phi_mass_}) > {Phi_window_/2.0}'
 peakB_sv_selection   = f'(tau_Lxy_sign_BS > {5.0} & tau_fit_vprob > {0.10} )'
 
 ###              ###
@@ -140,7 +140,7 @@ LumiVal_plots = {
     '2024G'         : "40.08",
     '2024H'         : "5.79",
     '2024I'         : "12.07",
-    'Run3'          : "170.6",#"62.2",
+    'Run3'          : "62.2",
 }
 ###             ###
 #   SYSTEMATICS   #
@@ -151,7 +151,7 @@ Lumi_systematics = {
     '2024'          : 1.000, # fixme : put the correct value
 }
 # W channel normalization
-xsec_ppW_sys  = 1.0160
+xsec_ppW_sys  = 1.0166
 Br_Wmunu_sys  = 1.0141
 Br_Wtaunu_sys = 1.0185
 # Z channel normalization
@@ -250,7 +250,7 @@ legend_process = {
     'DsPhiPi': 'D_{s}#rightarrow#phi#pi',
     'DataSB' : 'data SB',
     'ZTau3Mu': 'Z#rightarrow #tau (3#mu)#tau',
-    'invMedID': 'inverted muonID',
+    'invMedID': 'inv-#mu ID',
 }
 bdt_label_process ={
    'WTau3Mu' : 0,
@@ -424,9 +424,9 @@ labels['tau_met_ratio_pt'   ] = '$\\tau$ $p_{T}$/MET $p_{T}$' # only for >= v2
 labels['W_pt'               ] = 'W $p_{T}$'
 labels['miss_pz_min'        ] = '$min(ME_z^i)$'
 labels['miss_pz_max'        ] = '$max(ME_z^i)$'
-labels['tau_mu12_dZ'        ] = '$\Delta z (\mu_1, \mu_2)$'
-labels['tau_mu13_dZ'        ] = '$\Delta z (\mu_1, \mu_3)$'
-labels['tau_mu23_dZ'        ] = '$\Delta z (\mu_2, \mu_3)$'
+labels['tau_mu12_dZ'        ] = '$\Delta z (\mu_{1}, \mu_{2})$'
+labels['tau_mu13_dZ'        ] = '$\Delta z (\mu_{1}, \mu_{3})$'
+labels['tau_mu23_dZ'        ] = '$\Delta z (\mu_{1}, \mu_{3})$'
 labels['tau_Lxy_sign_BS'    ] = 'SV L/$\sigma$'
 labels['tau_fit_vprob'      ] = 'SV prob'
 labels['tau_cosAlpha_BS'    ] = 'SV cos($\\theta_{IP}$)'
@@ -524,10 +524,15 @@ features_NbinsXloXhiLabelLog = {
     'tau_fit_mass'      : [ 40,1.6, 2.0,    'M(3 #mu)',                0],
     'bdt_score'         : [ 25, 0, 1,       'BDT score',               1],
     'bdt_score_t3m'     : [ 50, 0, 1,       'BDT_{#tau 3 #mu} score',  1],
-    'tau_mu12_fitM'     : [ 40, 0.2, 2.0,   'M(#mu_{1}#mu_{2})',       0],
-    'tau_mu13_fitM'     : [ 40, 0.2, 2.0,   'M(#mu_{1}#mu_{3})',       0],
-    'tau_mu23_fitM'     : [ 40, 0.2, 2.0,   'M(#mu_{2}#mu_{3})',       0],
-    'tau_mu3_pt'        : [ 25, 0, 50,      'p_{T}(#mu_{3}) (GeV)',    0],
+    'tau_mu12_fitM'     : [ 160, 0.2, 1.8,   'M(#mu_{1}#mu_{2})',       0],
+    'tau_mu13_fitM'     : [ 160, 0.2, 1.8,   'M(#mu_{1}#mu_{3})',       0],
+    'tau_mu23_fitM'     : [ 160, 0.2, 1.8,   'M(#mu_{2}#mu_{3})',       0],
+    'tau_mu1_pt'        : [ 100, 0, 50,      'p_{T}(#mu_{1}) (GeV)',    0],
+    'tau_mu2_pt'        : [ 100, 0, 50,      'p_{T}(#mu_{2}) (GeV)',    0],
+    'tau_mu3_pt'        : [ 100, 0, 50,      'p_{T}(#mu_{3}) (GeV)',    0],
+    'tau_mu1_eta'       : [ 50, -2.5, 2.5,  '#eta(#mu_{1})',           0],
+    'tau_mu2_eta'       : [ 50, -2.5, 2.5,  '#eta(#mu_{2})',           0],
+    'tau_mu3_eta'       : [ 50, -2.5, 2.5,  '#eta(#mu_{3})',           0],
 }
 
 

@@ -1,4 +1,5 @@
 import ROOT
+ROOT.EnableImplicitMT()
 import cmsstyle as CMS
 import argparse
 import pickle
@@ -65,7 +66,7 @@ base_selection = ' & '.join([
 ])
 sig_selection  = base_selection 
 if (args.process == 'invMedID') : 
-    sig_selection = base_selection
+    sig_selection = base_selection + f' & (tau_mu1_MediumID & tau_mu2_MediumID & !tau_mu3_MediumID)'
 bkg_selection  = base_selection + f'& {cfg.sidebands_selection}'
 if (args.process == 'W3MuNu') : 
     sig_selection = bkg_selection
@@ -110,17 +111,17 @@ ROOT.gStyle.SetLineWidth(2)
 ROOT.gStyle.SetPadTickX(1)
 ROOT.gStyle.SetPadTickY(1)
 ROOT.gStyle.SetLegendBorderSize(0)
-ROOT.gStyle.SetLegendTextSize(0.035)
+ROOT.gStyle.SetLegendTextSize(0.1)
 CMS.SetExtraText("Preliminary")
 CMS.SetLumi(f'{args.year}, {cfg.LumiVal_plots[args.year]}')
 CMS.SetEnergy(13.6)
 
 observables = cfg.features + ['tau_fit_eta', 'tauEta', bdt_score, 'tau_fit_mass', 'tau_mu12_fitM', 'tau_mu23_fitM', 'tau_mu13_fitM']
-
-#c = ROOT.TCanvas('c', '', 800,800)
-#c_cut = ROOT.TCanvas('c_cut', '', 800,800)
-legend = ROOT.TLegend(0.55, 0.70, 0.85, 0.85)
-legend_cut = ROOT.TLegend(0.40, 0.75, 0.85, 0.85)
+observables = observables + ['tau_mu1_pt', 'tau_mu2_pt', 'tau_mu3_pt', 'tau_mu1_eta', 'tau_mu2_eta', 'tau_mu3_eta']
+legend = ROOT.TLegend(0.55, 0.70, 0.90, 0.90)
+legend.SetTextSize(0.04)
+legend_cut = ROOT.TLegend(0.40, 0.75, 0.90, 0.90)
+legend_cut.SetTextSize(0.03)
 for i,obs in enumerate(observables):
     ### signal MC
     h_sig     = sig_rdf.Histo1D(('h_sig_%s'%obs, '', cfg.features_NbinsXloXhiLabelLog[obs][0], cfg.features_NbinsXloXhiLabelLog[obs][1], cfg.features_NbinsXloXhiLabelLog[obs][2]), obs).GetPtr()
@@ -137,36 +138,13 @@ for i,obs in enumerate(observables):
     h_bkg.Scale(1./h_bkg.Integral())
     #   after BDT cut
     h_bkg_cut = bkg_rdf.Filter('%s>%f'%( bdt_score, args.bdt_cut)).Histo1D(('h_bkg_%s'%obs, '', cfg.features_NbinsXloXhiLabelLog[obs][0], cfg.features_NbinsXloXhiLabelLog[obs][1], cfg.features_NbinsXloXhiLabelLog[obs][2]), obs).GetPtr()
-    #h_bkg_cut.Scale(1./h_bkg.Integral())
-    
-    # inputs 
-    h_bkg.GetXaxis().SetTitle(cfg.features_NbinsXloXhiLabelLog[obs][3]) 
-    h_bkg.SetLineColor(ROOT.kBlue)
-    h_bkg.SetLineWidth(3)
-    h_bkg.SetFillColor(ROOT.kBlue)
-    h_bkg.SetFillStyle(3004)
-    h_bkg.SetMaximum(1.4*max(h_bkg.GetMaximum(),h_sig.GetMaximum()))
-    h_sig.SetLineColor(cfg.color_process[args.process])
-    h_sig.SetLineWidth(3)
-    h_sig.SetMarkerStyle(0)
-    h_sig.SetFillColor(cfg.color_process[args.process])
-    h_sig.SetFillStyle(3004)
-    # after BDT cut
-    h_sig_cut.GetXaxis().SetTitle(cfg.features_NbinsXloXhiLabelLog[obs][3]) 
-    h_bkg_cut.SetLineColor(ROOT.kBlack)
-    h_bkg_cut.SetLineWidth(3)
-    h_bkg_cut.SetMarkerStyle(20)
-    h_sig_cut.SetMaximum(2.0*max(h_bkg_cut.GetMaximum(),h_sig_cut.GetMaximum()))
-    h_sig_cut.SetLineColor(cfg.color_process[args.process])
-    h_sig_cut.SetLineWidth(3)
-    h_sig_cut.SetFillColor(cfg.color_process[args.process])
-    h_sig_cut.SetFillStyle(3004)
+
 
     if(i == 0):
-        legend.AddEntry(h_bkg, 'data sidebands', 'f')
-        legend_cut.AddEntry(h_bkg_cut, 'data sidebands (BDT>%.4f)'%args.bdt_cut, 'p')
-        legend.AddEntry(h_sig, f'{cfg.legend_process[args.process]} MC', 'f')
-        legend_cut.AddEntry(h_sig_cut, f'{cfg.legend_process[args.process]} MC' + (f' #times {sig_amplify:.1f} ' if sig_amplify else '') +  f'(BDT>{args.bdt_cut:.3f})', 'f')
+        legend.AddEntry(h_bkg, 'data sidebands', 'pe')
+        legend_cut.AddEntry(h_bkg_cut, f'data sidebands (BDT>{args.bdt_cut:.3f})', 'p')
+        legend.AddEntry(h_sig, f'{cfg.legend_process[args.process]}' + ('MC' if args.process != 'invMedID' else ''), 'f')
+        legend_cut.AddEntry(h_sig_cut, f'{cfg.legend_process[args.process]}' + ('MC' if args.process != 'invMedID' else '') + (f' #times {sig_amplify:.1f} ' if sig_amplify else '') +  f'(BDT>{args.bdt_cut:.3f})', 'f')
 
     c = CMS.cmsCanvas(f'c_{obs}', 
         cfg.features_NbinsXloXhiLabelLog[obs][1], 
@@ -181,33 +159,32 @@ for i,obs in enumerate(observables):
     ) 
     c.cd()
     c.SetLogy(cfg.features_NbinsXloXhiLabelLog[obs][4])
-    CMS.cmsDraw(h_bkg, 
+    CMS.cmsDraw(h_sig, 
         'hist',
         lwidth = 2,
-        marker = h_bkg.GetMarkerStyle(),
-        mcolor = h_bkg.GetLineColor(), 
-        fcolor = h_bkg.GetFillColor(),
-        fstyle = h_bkg.GetFillStyle(), 
+        marker = 0,
+        mcolor = 0,
+        fcolor = cfg.color_process[args.process],
     )
-    CMS.cmsDraw(h_sig, 
-        'hist same',
+    CMS.cmsDraw(h_bkg, 
+        'PE same',
         lwidth = 2,
-        marker = h_sig.GetMarkerStyle(),
-        mcolor = h_sig.GetLineColor(), 
-        fcolor = h_sig.GetFillColor(),
-        fstyle = h_sig.GetFillStyle(), 
+        marker = 20, 
+        mcolor = ROOT.kBlack,
+        fcolor = 0,
+        fstyle = 0,
     )
     legend.Draw()
-    #ROOT.gPad.RedrawAxis()
-    plot_name = '%s/BDTinput_%s'%(args.plot_outdir,obs)
-    c.SaveAs(plot_name+'.png')
-    c.SaveAs(plot_name+'.pdf')
+    ROOT.gPad.RedrawAxis()
+    plot_name = os.path.join(args.plot_outdir, f'BDTinput_{obs}')
+    CMS.SaveCanvas(c, plot_name+'.png', False)
+    CMS.SaveCanvas(c, plot_name+'.pdf', False)
 
     c_cut = CMS.cmsCanvas(f'c_cut_{obs}', 
         cfg.features_NbinsXloXhiLabelLog[obs][1], 
         cfg.features_NbinsXloXhiLabelLog[obs][2], 
         max(min(h_bkg.GetMinimum(),h_sig.GetMinimum()), 1e-4) if cfg.features_NbinsXloXhiLabelLog[obs][4] else 0.0,
-        h_sig_cut.GetMaximum(), 
+        1.4*max(h_bkg_cut.GetMaximum(),h_sig_cut.GetMaximum()), 
         cfg.features_NbinsXloXhiLabelLog[obs][3], 
         'Events', 
         square = CMS.kSquare, 
@@ -219,25 +196,22 @@ for i,obs in enumerate(observables):
     CMS.cmsDraw(h_sig_cut, 
         'hist',
         lwidth = 2,
-        marker = h_sig_cut.GetMarkerStyle(),
-        mcolor = h_sig_cut.GetLineColor(), 
-        fcolor = h_sig_cut.GetFillColor(),
-        fstyle = h_sig_cut.GetFillStyle(), 
+        marker = 0,
+        mcolor = 0,
+        fcolor = cfg.color_process[args.process],
     )
     CMS.cmsDraw(h_bkg_cut, 
-        'pe same',
+        'PE same',
         lwidth = 2,
-        marker = h_bkg_cut.GetMarkerStyle(),
-        mcolor = h_bkg_cut.GetLineColor(), 
-        fcolor = h_bkg_cut.GetFillColor(),
-        fstyle = h_bkg_cut.GetFillStyle(), 
+        marker = 20, 
+        mcolor = ROOT.kBlack,
+        fcolor = 0,
+        fstyle = 0,
     )
     c_cut.SetLogy(cfg.features_NbinsXloXhiLabelLog[obs][4])
-    #h_sig_cut.Draw('hist')
-    #h_bkg_cut.Draw('pe same')
     legend_cut.Draw()
     ROOT.gPad.RedrawAxis()
-    plot_name = '%s/BDTcut0p%d_%s'%(args.plot_outdir, args.bdt_cut*10000,obs)
-    c_cut.SaveAs(plot_name+'.png')
-    c_cut.SaveAs(plot_name+'.pdf')
+    plot_name = plot_name.replace('input', 'cut'+str(args.bdt_cut).replace('.', 'p'))
+    CMS.SaveCanvas(c_cut, plot_name+'.png', False)
+    CMS.SaveCanvas(c_cut, plot_name+'.pdf', False)
 

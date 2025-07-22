@@ -203,7 +203,7 @@ else :
     )
     print('signal chi2 %.2f'%(frame.chiSquare(4)))
     
-if (args.peak_bkg): exit()
+#if (args.peak_bkg): exit()
 
 # save workspace
 f_out.cd()
@@ -322,8 +322,8 @@ full_model.plotOn(
     ROOT.RooFit.LineColor(ROOT.kBlue),
     ROOT.RooFit.LineStyle(ROOT.kDashed),
     )
-text_NDs = ROOT.TText(fit_range_lo + 0.02, 0.90*frame_b.GetMaximum(), "N_Ds = %.0f +/- %.0f"%(nDs.getValV(), nDs.getError()))
-text_NDp = ROOT.TText(fit_range_lo + 0.02, 0.85*frame_b.GetMaximum(), "N_D+ = %.0f +/- %.0f"%(nDp.getValV(), nDp.getError()))
+text_NDs = ROOT.TText(fit_range_lo + 0.02, 0.90*frame_b.GetMaximum(), "N_{Ds} = %.0f +/- %.0f"%(nDs.getValV(), nDs.getError()))
+text_NDp = ROOT.TText(fit_range_lo + 0.02, 0.85*frame_b.GetMaximum(), "N_{D+} = %.0f +/- %.0f"%(nDp.getValV(), nDp.getError()))
 text_Nb  = ROOT.TText(fit_range_lo + 0.02, 0.80*frame_b.GetMaximum(), "Nb   = %.0f +/- %.0f"%(nB.getValV(), nB.getError()))
 text_NDs.SetTextSize(0.035)
 text_NDp.SetTextSize(0.035)

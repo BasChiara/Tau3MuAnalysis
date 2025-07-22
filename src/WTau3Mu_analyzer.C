@@ -90,8 +90,7 @@ void WTau3Mu_analyzer::Loop(){
       // sort candidates by transverse mass
       std::vector<unsigned int> tau_idxs = sorted_cand_mT(); 
       //for(unsigned int t = 0; t < nTauTo3Mu; t++){
-      for(unsigned int t: tau_idxs){ 
-
+      for(unsigned int t: tau_idxs){
          if(debug && nTauTo3Mu > 1) std::cout << " + tau cand with mT " << TauPlusMET_Tau_Puppi_mT[t] << std::endl; 
          // ------- muons MediumID ------
       #ifdef BKG_SAMPLE_
@@ -136,7 +135,13 @@ void WTau3Mu_analyzer::Loop(){
          tau_mu1_LooseID    = Muon_isLoose[TauTo3Mu_mu1_idx[t]];    tau_mu2_LooseID    = Muon_isLoose[TauTo3Mu_mu2_idx[t]];    tau_mu3_LooseID    = Muon_isLoose[TauTo3Mu_mu3_idx[t]];
          tau_mu1_SoftID_PV  = Muon_isSoft[TauTo3Mu_mu1_idx[t]];     tau_mu2_SoftID_PV  = Muon_isSoft[TauTo3Mu_mu2_idx[t]];     tau_mu3_SoftID_PV  = Muon_isSoft[TauTo3Mu_mu3_idx[t]];
          tau_mu1_SoftID_BS  = Muon_isSoft_BS[TauTo3Mu_mu1_idx[t]];  tau_mu2_SoftID_BS  = Muon_isSoft_BS[TauTo3Mu_mu2_idx[t]];  tau_mu3_SoftID_BS  = Muon_isSoft_BS[TauTo3Mu_mu3_idx[t]];
-         tau_mu1_TightID_PV = Muon_isTight[TauTo3Mu_mu1_idx[t]];    tau_mu2_TightID_PV = Muon_isTight[TauTo3Mu_mu2_idx[t]];    tau_mu3_TightID_PV = Muon_isTight[TauTo3Mu_mu3_idx[t]];
+      #ifdef BKG_SAMPLE_
+            tau_mu1_TightID_PV = ( (double)std::rand()/RAND_MAX > 0.20 ? 1 : 0);
+            tau_mu2_TightID_PV = ( (double)std::rand()/RAND_MAX > 0.33 ? 1 : 0);
+            tau_mu3_TightID_PV = ( (double)std::rand()/RAND_MAX > 0.55 ? 1 : 0);
+      #else
+            tau_mu1_TightID_PV = Muon_isTight[TauTo3Mu_mu1_idx[t]];    tau_mu2_TightID_PV = Muon_isTight[TauTo3Mu_mu2_idx[t]];    tau_mu3_TightID_PV = Muon_isTight[TauTo3Mu_mu3_idx[t]];
+      #endif
          tau_mu1_TightID_BS = Muon_isTight_BS[TauTo3Mu_mu1_idx[t]]; tau_mu2_TightID_BS = Muon_isTight_BS[TauTo3Mu_mu2_idx[t]]; tau_mu3_TightID_BS = Muon_isTight_BS[TauTo3Mu_mu3_idx[t]];
          // muonID SF in MC
          tau_mu1_IDrecoSF=1.; tau_mu2_IDrecoSF=1.; tau_mu3_IDrecoSF=1.;
@@ -183,6 +188,7 @@ void WTau3Mu_analyzer::Loop(){
          tau_Lxy_sign_BS = TauTo3Mu_sigLxy_3muVtxBS[t];
          tau_fit_mt = TauPlusMET_Tau_Puppi_mT[t];
          tau_fit_vprob = TauTo3Mu_vtx_prob[t];
+         tau_fit_vChi2ndof = TauTo3Mu_vtx_chi2[t]/TauTo3Mu_vtx_Ndof[t];
          tau_cosAlpha_BS = TauTo3Mu_CosAlpha2D_LxyP3mu[t];
          // tau + MET (Puppi)
          float Dphi_MET = fabs(RecoTau_P4.Phi()- DeepMETResolutionTune_phi);
@@ -477,6 +483,7 @@ void WTau3Mu_analyzer::outTreeSetUp(){
    outTree_->Branch("tau_Lxy_val_BS",   &tau_Lxy_val_BS, "tau_Lxy_val_BS/F");
    outTree_->Branch("tau_fit_mt",       &tau_fit_mt,      "tau_fit_mt/F");
    outTree_->Branch("tau_fit_vprob",    &tau_fit_vprob,   "tau_fit_vprob/F");
+   outTree_->Branch("tau_fit_vChi2ndof", &tau_fit_vChi2ndof, "tau_fit_vChi2ndof/F");
    outTree_->Branch("tau_cosAlpha_BS",  &tau_cosAlpha_BS, "tau_cosAlpha_BS/F");
    // * tau + MET
    outTree_->Branch("gen_met_pt",       &gen_met_pt,       "gen_met_pt/F");
