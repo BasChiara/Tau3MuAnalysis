@@ -97,7 +97,6 @@ print('---------------------------------------------')
 
 ## ETA BINS
 bdt_inputs = config.features + ['tauEta']
-#if (args.LxySign_cut > 1.0): bdt_inputs.remove('tau_Lxy_sign_BS')
 if(args.process == 'DsPhiMuMuPi'): 
     if(args.debug): print(config.features_DsPhiPi_to_Tau3Mu)
     # rename Ds branches to match BDT structure 

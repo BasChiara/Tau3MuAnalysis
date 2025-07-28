@@ -98,6 +98,7 @@ removeNaN = False
 
 # ------------ DEFINE SELECTIONS ------------ # 
 base_selection = config.base_selection +  f'& (tau_Lxy_sign_BS > {args.LxySign_cut} )'
+# '&(((tau_Lxy_sign_BS > 2.0) & (year_id > 219 & year_id< 230))|| ((tau_Lxy_sign_BS > 1.7) & (year_id > 229 & year_id< 240)))'#
 sig_selection  = base_selection
 bkg_selection  = base_selection
 print('\n---------------------------------------------')
@@ -110,7 +111,6 @@ print('---------------------------------------------')
 kfold = 5
 bdt_inputs = config.features + ['tauEta']
 # remove displacement significance if cut Lxy/sigma
-#if (args.LxySign_cut > 0 ) : bdt_inputs.remove('tau_Lxy_sign_BS')
 print('[i] BDT inputs')
 [print(f'  - {f}') for f in bdt_inputs]
 

@@ -281,9 +281,8 @@ for cut in set_bdt_cut:
     # number of background events
     nbkg = ROOT.RooRealVar('model_bkg_%s_norm'%process_name, 'model_bkg_%s_norm'%process_name, bkg_dataset.sumEntries(), 0., 3*bkg_dataset.sumEntries())
     print(f'[debug] entries in data {bkg_dataset.numEntries()}')
-    #ext_bkg_model = ROOT.RooAddPdf("toy_add_model_bkg_WTau3Mu", "add background pdf", ROOT.RooArgList(b_model),  nbkg)
-    #ext_bkg_model = ROOT.RooAddPdf("toy_add_model_bkg_WTau3Mu", "add background pdf", [b_model],  [nbkg])
     ext_bkg_model = ROOT.RooExtendPdf(f'ext_model_bkg{process_name}', f'ext_model_bkg{process_name}', b_model, nbkg, "full_range")
+    #ext_bkg_model = ROOT.RooAddPdf(f'ext_model_bkg{process_name}', f'ext_model_bkg{process_name}', ROOT.RooArgSet(b_model), ROOT.RooArgSet(nbkg))
 
     # **** TIME TO FIT ****
     # signal fit
@@ -324,7 +323,7 @@ for cut in set_bdt_cut:
         ROOT.RooFit.NormRange('full_range'),
         ROOT.RooFit.MoveToBack()
     )
-    if not (args.optim_bdt or args.goff) : fitu.draw_fit_pull(frame_W, fitvar=mass, out_name=f'{args.plot_outdir}/Wtau3mu_signal_{point_tag}')
+    if not (args.optim_bdt or args.goff) : fitu.draw_fit_pull(frame_W, fitvar=mass, out_name=f'{args.plot_outdir}/massfit_S_Wt3m_{point_tag}')
     
     frame_Z = mass.frame()
     frame_Z.SetTitle('#tau -> 3#mu signal - CAT %s BDTscore > %.4f'%(args.category, cut))
@@ -343,7 +342,7 @@ for cut in set_bdt_cut:
         ROOT.RooFit.NormRange('full_range'),
         ROOT.RooFit.MoveToBack()
     )    
-    if not (args.optim_bdt or args.goff) : fitu.draw_fit_pull(frame_Z, fitvar=mass, out_name=f'{args.plot_outdir}/Ztau3mu_signal_{point_tag}')
+    if not (args.optim_bdt or args.goff) : fitu.draw_fit_pull(frame_Z, fitvar=mass, out_name=f'{args.plot_outdir}/massfit_S_Zt3m_{point_tag}')
     
     # fit background
     results_expo = ext_bkg_model.fitTo(
@@ -365,10 +364,11 @@ for cut in set_bdt_cut:
     if USE_CMS_STYLE:
         frame_b.SetTitle('')
         fitu.apply_cms_style(frame_b, 
-                             outfile='%s/SigBkg_mass_%s'%(args.plot_outdir, point_tag), 
+                             outfile='%s/massfit_SB_%s'%(args.plot_outdir, point_tag), 
                              cat=args.category, 
                              year='20'+args.year, 
                              Preliminary=True,
+                             ymax=np.round(1.2*frame_b.GetMaximum()) if args.bdt_cut < 0.990 else 10,
                              )
     else:
         # print N signal and N background on plot
@@ -379,17 +379,22 @@ for cut in set_bdt_cut:
         ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
         frame_b.SetMinimum(1e-5)
         frame_b.Draw()
-        c2.SaveAs('%s/SigBkg_mass_%s.png'%(args.plot_outdir, point_tag)) 
-        c2.SaveAs('%s/SigBkg_mass_%s.pdf'%(args.plot_outdir, point_tag))
+        c2.SaveAs('%s/massfit_SB_%s.png'%(args.plot_outdir, point_tag)) 
+        c2.SaveAs('%s/massfit_SB_%s.pdf'%(args.plot_outdir, point_tag))
         if not args.goff :
             c2.SetLogy(1)
-            c2.SaveAs('%s/SigBkg_mass_Log_%s.png'%(args.plot_outdir, point_tag)) 
-            c2.SaveAs('%s/SigBkg_mass_Log_%s.pdf'%(args.plot_outdir, point_tag))
+            c2.SaveAs('%s/massfit_SB_Log_%s.png'%(args.plot_outdir, point_tag)) 
+            c2.SaveAs('%s/massfit_SB_Log_%s.pdf'%(args.plot_outdir, point_tag))
     
     
 
     # S/B in SR
     B = (nbkg.getValV())*(ext_bkg_model.createIntegral(ROOT.RooArgSet(mass), ROOT.RooArgSet(mass), 'sig_range').getValV())
+    # debug
+    print(f'\n\n{ct.BOLD}------ DEBUG ------{ct.END}')
+    print(f'  B normalization (fit) : {nbkg.getValV():.1f} ({ext_bkg_model.createIntegral(ROOT.RooArgSet(mass), ROOT.RooArgSet(mass), "full_range").getValV():.3f})')
+    print(f'  B in SR (fit)         : {B:.1f} ({ext_bkg_model.createIntegral(ROOT.RooArgSet(mass), ROOT.RooArgSet(mass), "sig_range").getValV():.3f})')
+    print(f'  B in SB (fit)         : {nbkg.getValV()*ext_bkg_model.createIntegral(ROOT.RooArgSet(mass), ROOT.RooArgSet(mass), "left_SB").getValV():.1f} ({ext_bkg_model.createIntegral(ROOT.RooArgSet(mass), ROOT.RooArgSet(mass), "left_SB").getValV():.3f}) || {nbkg.getValV()*ext_bkg_model.createIntegral(ROOT.RooArgSet(mass), ROOT.RooArgSet(mass), "right_SB").getValV():.1f} ({ext_bkg_model.createIntegral(ROOT.RooArgSet(mass), ROOT.RooArgSet(mass), "right_SB").getValV():.3f})')
     Berr = np.sqrt(B) if B > 0.5 else 3.0
     Sw = nsig_W.getValV() 
     Punzi_S = W_eff/(0.5 + sqrt(B))
@@ -440,7 +445,7 @@ for cut in set_bdt_cut:
 
     # save observed data // bkg-only Asimov with name 'dat_obs'
     fulldata = ROOT.RooDataSet('full_data', 'full_data', data_tree, thevars, sgn_selection) # fixme : this is useless
-    mass.setBins(2*nbins)
+    mass.setBins(nbins)
     if runblind:
         # GenerateAsimovData() generates binned data following the binning of the observables
         print(f'{ct.RED}[i]{ct.END} running BLIND -- asimov dataset into workspace')

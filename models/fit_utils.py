@@ -190,7 +190,7 @@ def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title 
 
     return frame
 
-def apply_cms_style(frame, outfile, cat, year, Preliminary = True, margin = 0.12):
+def apply_cms_style(frame, outfile, cat, year, Preliminary = True, margin = 0.12, ymax = 10):
     CMS.setTDRStyle()
     x_txt = 0.50
     # LaTeX for text
@@ -214,7 +214,7 @@ def apply_cms_style(frame, outfile, cat, year, Preliminary = True, margin = 0.12
     legend.AddEntry(frame.findObject('sig_func_1'), 'Z#rightarrow #tau(3#mu)#tau (Br=10^{-7})', 'l')
 
     # frame settings
-    frame.SetMaximum(10)
+    frame.SetMaximum(ymax)
     frame.SetMinimum(1e-5)
     #frame.GetYaxis().SetTitleOffset(1.4)
     frame.GetYaxis().SetTitleSize(0.05)

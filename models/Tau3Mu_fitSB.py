@@ -63,7 +63,7 @@ if not os.path.exists(data_file):
     exit()
 
 # **** OUTPUT settings **** 
-process_name = 'WTau3Mu_%s%s'%(args.category, args.year)
+process_name = f'wt3m_{args.category}_20{args.year}' 
 tag = (f'bdt{args.bdt_cut:,.4f}_{process_name}' if not args.optim_bdt else f'bdt_scan_{process_name}') + ('_' + args.tag ) if not (args.tag is None) else ''
 set_bdt_cut = [args.bdt_cut] if not args.optim_bdt else np.arange(args.BDTmin, args.BDTmax, args.BDTstep) 
 print('\n')
@@ -146,6 +146,8 @@ base_selection      = ' & '.join([
 if args.save_ws : file_ws = ROOT.TFile(wspace_filename, "RECREATE")
 # loop on BDT cuts
 for cut in set_bdt_cut:
+
+    catYY = f'{args.category}_20{args.year}'
     # output tag
     point_tag           = f'{args.category}{args.year}' + (('_' + args.tag ) if args.tag else '') + f'_bdt{cut:,.4f}'
     # BDT selection
@@ -206,7 +208,7 @@ for cut in set_bdt_cut:
     Mtau.setConstant(True)
     dMtau  = ROOT.RooRealVar('dM', 'dM', 0, -0.04, 0.04)
     mean   = ROOT.RooFormulaVar('mean','mean', '(@0+@1)', ROOT.RooArgList(Mtau,dMtau) )
-    width  = ROOT.RooRealVar(f'width_{args.category}{args.year}',  f'width_{args.category}{args.year}',  0.01,    0.005, 0.05)
+    width  = ROOT.RooRealVar(f'width_{catYY}',  f'width_{catYY}',  0.01,    0.005, 0.05)
 
     nsig   = ROOT.RooRealVar('model_sig_%s_norm'%process_name, 'model_sig_%s_norm'%process_name, fullmc.sumEntries(), 0.0, 3*fullmc.sumEntries())
     gaus   = ROOT.RooGaussian('model_sig_%s'%process_name, 'gaus1_%s'%process_name, mass, mean, width)
@@ -214,15 +216,15 @@ for cut in set_bdt_cut:
     
 
     # **** BACKGROUND MODEL ****
-    bkg_model_name = f'model_bkg_{process_name}' 
+    bkg_model_name = f'model_bkg_{process_name}'
     # exponential
-    slope = ROOT.RooRealVar(f'slope_{args.category}{args.year}', f'slope_{args.category}{args.year}', -1.0, -10.0, 10.0)
+    slope = ROOT.RooRealVar(f'background_slope_{catYY}', f'slope_{catYY}', -1.0, -10.0, 10.0)
     expo  = ROOT.RooExponential(bkg_model_name, bkg_model_name, mass, slope)
     # constant
     const = ROOT.RooPolynomial(bkg_model_name,bkg_model_name, mass)
     # polynomial
-    p0 = ROOT.RooRealVar(f'p0_{args.category}{args.year}', f'p0_{args.category}{args.year}', 0.0, -1.0, 1.0)
-    p1 = ROOT.RooRealVar(f'p1_{args.category}{args.year}', f'p1_{args.category}{args.year}', 0.0, -1.0, 1.0)
+    p0 = ROOT.RooRealVar(f'p0_{catYY}', f'p0_{catYY}', 0.0, -1.0, 1.0)
+    p1 = ROOT.RooRealVar(f'p1_{catYY}', f'p1_{catYY}', 0.0, -1.0, 1.0)
     poly1 = ROOT.RooChebychev(bkg_model_name,bkg_model_name, mass, ROOT.RooArgList(p1))
 
     b_model = expo
@@ -238,7 +240,7 @@ for cut in set_bdt_cut:
     print(f'[debug] entries in data {datatofit.numEntries()}')
     #ext_bkg_model = ROOT.RooAddPdf("toy_add_model_bkg_WTau3Mu", "add background pdf", ROOT.RooArgList(b_model),  nbkg)
     #ext_bkg_model = ROOT.RooAddPdf("toy_add_model_bkg_WTau3Mu", "add background pdf", [b_model],  [nbkg])
-    ext_bkg_model = ROOT.RooExtendPdf(f'ext_model_bkg{process_name}', f'ext_model_bkg{process_name}', b_model, nbkg, "full_range")
+    ext_bkg_model = ROOT.RooAddPdf(f'ext_model_bkg{process_name}', f'ext_model_bkg{process_name}', b_model, nbkg)
 
     # **** TIME TO FIT ****
     # signal fit
@@ -382,12 +384,12 @@ for cut in set_bdt_cut:
     ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
     frame_b.Draw()
     
-    c2.SaveAs('%s/SigBkg_mass_%s.png'%(args.plot_outdir, point_tag)) 
-    c2.SaveAs('%s/SigBkg_mass_%s.pdf'%(args.plot_outdir, point_tag))
+    c2.SaveAs('%s/massfit_SB_%s.png'%(args.plot_outdir, point_tag)) 
+    c2.SaveAs('%s/massfit_SB_%s.pdf'%(args.plot_outdir, point_tag))
     if not args.goff :
         c2.SetLogy(1)
-        c2.SaveAs('%s/SigBkg_mass_Log_%s.png'%(args.plot_outdir, point_tag)) 
-        c2.SaveAs('%s/SigBkg_mass_Log_%s.pdf'%(args.plot_outdir, point_tag))
+        c2.SaveAs('%s/massfit_SB_Log_%s.png'%(args.plot_outdir, point_tag)) 
+        c2.SaveAs('%s/massfit_SB_Log_%s.pdf'%(args.plot_outdir, point_tag))
 
     # S/B in SR
     B = (nbkg.getValV())*(ext_bkg_model.createIntegral(ROOT.RooArgSet(mass), ROOT.RooArgSet(mass), 'sig_range').getValV())
@@ -433,7 +435,7 @@ for cut in set_bdt_cut:
 
     # save observed data // bkg-only Asimov with name 'dat_obs'
     fulldata = ROOT.RooDataSet('full_data', 'full_data', data_tree, thevars, sgn_selection) # fixme : this is useless
-    mass.setBins(2*nbins)
+    mass.setBins(nbins)
     if runblind:
         # GenerateAsimovData() generates binned data following the binning of the observables
         print(f'{ct.RED}[i]{ct.END} running BLIND -- asimov dataset into workspace')
@@ -460,6 +462,7 @@ for cut in set_bdt_cut:
     print(f'{ct.BOLD}[i]{ct.END} writing datacard')
     datacard_name = f'{args.combine_dir}/datacard_{wspace_tag}.txt'
     du.combineDatacard_writer(
+        process_name = process_name,
         input_mc     = mc_file,
         selection    = sgn_selection,
         ws_filename  = wspace_filename,
