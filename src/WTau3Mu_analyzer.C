@@ -53,7 +53,7 @@ void WTau3Mu_analyzer::Loop(){
       opposite_side_tag_ = -1;
       pTV_weight = 1.0, pTV_weight_up = 1.0, pTV_weight_down = 1.0;
       NLO_weight = 1.0; NLO_weight_up = 1.0; NLO_weight_down = 1.0;
-      if(isMC_){
+      if(isMC_ && process_ != "W3MuNu") {
          // --- MC truth & matching
          if (process_ == "ZTau3Mu") opposite_side_tag_ = GenPartFillP4_Z();
          else GenPartFillP4();
@@ -62,7 +62,11 @@ void WTau3Mu_analyzer::Loop(){
          tau_mu1_gen_pt  = GenMu1_P4.Pt();  tau_mu2_gen_pt  = GenMu2_P4.Pt();  tau_mu3_gen_pt  = GenMu3_P4.Pt();
          tau_mu1_gen_eta = GenMu1_P4.Eta(); tau_mu2_gen_eta = GenMu2_P4.Eta(); tau_mu3_gen_eta = GenMu3_P4.Eta();
          tau_gen_mass = GenTau_P4.M(); tau_gen_pt = GenTau_P4.Pt(); tau_gen_eta = GenTau_P4.Eta(); tau_gen_phi = GenTau_P4.Phi();    
-         tau_gen_vx = GenPart_vx[gen_tau_idx_]; tau_gen_vy = GenPart_vy[gen_tau_idx_]; tau_gen_vz = GenPart_vz[gen_tau_idx_];
+         if (gen_tau_idx_ >= 0) {
+            tau_gen_vx = GenPart_vx[gen_tau_idx_]; tau_gen_vy = GenPart_vy[gen_tau_idx_]; tau_gen_vz = GenPart_vz[gen_tau_idx_];
+         } else {
+            tau_gen_vx = -9999; tau_gen_vy = -9999; tau_gen_vz = -9999;
+         }
          
          W_gen_pt = GenW_P4.Pt(); W_gen_eta = GenW_P4.Eta(); W_gen_phi = GenW_P4.Phi();
          Nu_gen_pt = GenNu_P4.Pt(); Nu_gen_eta = GenNu_P4.Eta(); Nu_gen_phi = GenNu_P4.Phi();

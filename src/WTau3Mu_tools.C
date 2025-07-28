@@ -529,6 +529,10 @@ int WTau3Mu_tools::GenPartFillP4_Z(){
       std::cout << " tau opposite found @ " << tau_opposite_idx << " radiative deacy from "<< tau_opposite_origin_idx  <<" --> decay mode "<< oppositeTau_mode << std::endl;
       std::cout << " Z found @ " << Z_idx << std::endl;
    }
+   gen_Z_idx_   = Z_idx;
+   gen_tau_idx_ = tau3mu_idx;
+   gen_mu1_idx_ = Mu1_idx; gen_mu2_idx_ = Mu2_idx; gen_mu3_idx_ = Mu3_idx;
+
    return oppositeTau_mode;
 }//GenPartFillP4_Z()
 

@@ -261,19 +261,21 @@ namespace LumiRun3
     inline float xsec_ppWxMuNu_SMP_Run3 = 20928000;
     inline float Br_WtoMuNu  = 0.1063;
     inline float Br_WtoTauNu = 0.1138;
-    inline float xsec_ppWxTauNu = xsec_ppWxMuNu_SMP_Run3 * Br_WtoTauNu / Br_WtoMuNu;
+    inline float Br_WTauNu_MuNu_ratio = 1.002;
+    inline float xsec_ppWxTauNu = xsec_ppWxMuNu_SMP_Run3 * Br_WTauNu_MuNu_ratio;
 
     // xsec Z -> Tau Tau [fb]
     inline float eff_filterZ = 0.2444; // 60 GeV < Mtautau < 120 GeV
     inline float xsec_ppZxMuMu_SMP_Run3 = 2026000;
     inline float Br_ZtoTauTau = 0.0337;
     inline float Br_ZtoMuMu  = 0.0337;
-    inline float xsec_ppZxTauTau = xsec_ppZxMuMu_SMP_Run3 * Br_ZtoTauTau / Br_ZtoMuMu;
+    inline float Br_ZTauTau_MuMu_ratio = 1.0010;
+    inline float xsec_ppZxTauTau = xsec_ppZxMuMu_SMP_Run3 * Br_ZTauTau_MuMu_ratio;
     // processed luminosity [/fb]
     inline std::map<TString, float> Lumi{
         {"2022preEE"      , 4.990+2.961+5.684}, 
         {"2022EE"         , 17.755+3.078}, 
-        {"2023preBPix"    , 0.601+17.516}, 
+        {"2023preBPix"    , 0.601+17.440}, 
         {"2023BPix"       , 9.690}, 
         {"2024"           , 0.12+7.14+7.88+11.22+27.72+37.57+5.43+11.28},
     };
@@ -299,7 +301,7 @@ namespace LumiRun3
     inline std::map<TString, float> LumiFactor_W3MuNu{
         {"DEFAULT"        , 1.0}, 
         {"2022preEE"      , 0.001791}, 
-        {"2022EE"         , 0.086435}, 
+        {"2022EE"         , 0.002733}, 
         {"2023preBPix"    , 0.002380}, 
         {"2023BPix"       , 0.001286}, 
     };

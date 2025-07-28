@@ -51,16 +51,18 @@ BR_wtn              lnN           {Br_Wtaunu}               -
         card.write(
 '''lumi_13p6TeV_{yyyy}             lnN           {Lsys}               -
 xsec_13p6TeV_ppvx             lnN           {xsec_ppWx:.4f}               -
-BR_vmn             lnN           {Br_Wmunu:.4f}               -
-BR_vtn             lnN            {Br_Wtaunu:.4f}               -
+BR_taunu_ratio         lnN           {Br_taunu_ratio:.4f}               -
 '''.format(
             Lsys     = config.Lumi_systematics['20'+year],          # luminosity uncertainty
             yyyy     = '20'+year,
             xsec_ppWx= weight_systematics(config.xsec_ppW_sys,  config.xsec_ppZ_sys,   W_f),         # pp->Wx cross section uncertainty
             Br_Wmunu = weight_systematics(config.Br_Wmunu_sys,  config.Br_Zmumu_sys,   W_f),         # W->munu branching ratio uncertainty
-            Br_Wtaunu= weight_systematics(config.Br_Wtaunu_sys, config.Br_Ztautau_sys, W_f),        # W->taunu branching ratio uncertainty
+            Br_Wtaunu= weight_systematics(config.Br_Wtaunu_sys, config.Br_Ztautau_sys, W_f),         # W->taunu branching ratio uncertainty
+            Br_taunu_ratio = weight_systematics(config.Br_Wtaunu_munu_sys, config.Br_Ztautau_mumu_sys, W_f)  # uncertainty on the Br ratio meas. V->tauX/V->muX
         )
         )
+        #BR_vmn             lnN           {Br_Wmunu:.4f}               -
+        #BR_vtn             lnN            {Br_Wtaunu:.4f}               -
 
 
 
@@ -205,7 +207,7 @@ rate                             {signal:.4f}              {bkg:.4f}
         card.write(
 '''
 bkg_scale_v_{c}_{yyyy}       rateParam     {proc}              bkg      1.      [{bkg_lo:.2f},{bkg_hi:.2f}]
-bkg_scale_v_{c}_{yyyy}       flatParam
+bkg_scale_v_{c}_{yyyy}       flatParam     1.    [{bkg_lo:.2f},{bkg_hi:.2f}]
 '''.format(
                 proc     = process_name,
                 c        = cat,

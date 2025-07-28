@@ -128,9 +128,10 @@ LumiVal_plots = {
     '2022preEE'     : "13.6",
     '2022EE'        : "20.8",
     '2022'          : "34.5", 
-    '2023preBPix'   : "18.0",
+    '2023preBPix'   : "18.1",
     '2023BPix'      : "9.7",
     '2023'          : "27.7",
+    'Run3'          : "62.2", # 2022 + 2023
     '2024'          : "108.4",
     '2024B'         : "0.13",
     '2024C'         : "7.24",
@@ -140,7 +141,6 @@ LumiVal_plots = {
     '2024G'         : "40.08",
     '2024H'         : "5.79",
     '2024I'         : "12.07",
-    'Run3'          : "62.2",
 }
 ###             ###
 #   SYSTEMATICS   #
@@ -154,11 +154,12 @@ Lumi_systematics = {
 xsec_ppW_sys  = 1.0166
 Br_Wmunu_sys  = 1.0141
 Br_Wtaunu_sys = 1.0185
+Br_Wtaunu_munu_sys = 1.0200
 # Z channel normalization
 xsec_ppZ_sys  = 1.0157
 Br_Zmumu_sys  = 1.0020
 Br_Ztautau_sys= 1.0025
-
+Br_Ztautau_mumu_sys = 1.0026
 # signal shape systematics
 shape_systematics = {
     '2022'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/signal_model/signal_shape_comparison_2022_reviewANv3.json'),
@@ -191,6 +192,7 @@ eta_thAB = 0.9
 eta_thBC = 1.8
 
 cat_eta_selection_dict = {
+    'ABC': f'(tau_fit_absEta > 0.)',
     'A' : f'(tau_fit_absEta < {eta_thAB})',
     'B' : f'(tau_fit_absEta > {eta_thAB} & tau_fit_absEta < {eta_thBC})', 
     'C' : f'(tau_fit_absEta > {eta_thBC})',
@@ -245,12 +247,13 @@ color_process = {
     'invMedID': ROOT.kOrange+ 2,
 }
 legend_process = {
-    'WTau3Mu' : '#tau#rightarrow 3#mu',
-    'W3MuNu' : 'W#rightarrow #mu #nu',
-    'DsPhiPi': 'D_{s}#rightarrow#phi#pi',
-    'DataSB' : 'data SB',
-    'ZTau3Mu': 'Z#rightarrow #tau (3#mu)#tau',
+    'WTau3Mu' : 'W#rightarrow #tau (3#mu)#nu',
+    'W3MuNu'  : 'W#rightarrow 3#mu#nu',
+    'DsPhiPi' : 'D_{s}#rightarrow#phi#pi',
+    'DataSB'  : 'data SB',
+    'ZTau3Mu' : 'Z#rightarrow #tau (3#mu)#tau',
     'invMedID': 'inv-#mu ID',
+    'MTauX'   : 'W#rightarrow #tau (3#mu) #nu',
 }
 bdt_label_process ={
    'WTau3Mu' : 0,
@@ -397,11 +400,11 @@ data_samples = {
 # samples processed with BDT
 bdt_output_path = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/'
 mc_bdt_samples = {
-    'WTau3Mu'       : bdt_output_path+'XGBout_signal_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2025May22.root', 
+    'WTau3Mu'       : bdt_output_path+'XGBout_signal_kFold_ANv8_2025Jul28.root', 
     'DsPhiMuMuPi'   : bdt_output_path+'XGBout_DsPhiMuMuPi_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
     'W3MuNu'        : bdt_output_path+'XGBout_W3MuNu_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
     'peakingBkg'    : bdt_output_path+'XGBout_peakingBkg_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
-    'ZTau3Mu'       : bdt_output_path+'XGBout_ZTau3Mu_MC_kFold_Optuna_HLT_overlap_LxyS2.0_2025May22.root', 
+    'ZTau3Mu'       : bdt_output_path+'XGBout_ZTau3Mu_MC_ANv8_2025Jul28.root', 
 }
 data_bdt_samples = {
     'WTau3Mu'       : bdt_output_path+'XGBout_data_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root',
@@ -426,7 +429,7 @@ labels['miss_pz_min'        ] = '$min(ME_z^i)$'
 labels['miss_pz_max'        ] = '$max(ME_z^i)$'
 labels['tau_mu12_dZ'        ] = '$\Delta z (\mu_{1}, \mu_{2})$'
 labels['tau_mu13_dZ'        ] = '$\Delta z (\mu_{1}, \mu_{3})$'
-labels['tau_mu23_dZ'        ] = '$\Delta z (\mu_{1}, \mu_{3})$'
+labels['tau_mu23_dZ'        ] = '$\Delta z (\mu_{2}, \mu_{3})$'
 labels['tau_Lxy_sign_BS'    ] = 'SV L/$\sigma$'
 labels['tau_fit_vprob'      ] = 'SV prob'
 labels['tau_cosAlpha_BS'    ] = 'SV cos($\\theta_{IP}$)'
