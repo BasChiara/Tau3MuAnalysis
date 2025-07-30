@@ -40,29 +40,52 @@ else:
 data_wspace = 'DsPhiPi_data_wspace'
 mc_wspace   = 'DsPhiPi_mc_wspace'
 data_width, data_mean = [], []
+data_width_error, data_mean_error = [], []
 mc_width, mc_mean     = [], []
+mc_width_error, mc_mean_error = [], []
 for cat in wspace_byCat:
     print(f' ---- category: {cat} ----')
     f = ROOT.TFile.Open(wspace_byCat[cat])
     # mc
     w_mc  = f.Get(mc_wspace)
-    mean  = getattr(w_mc['mean_mc'], 'evaluate')()
+    #mean  = getattr(w_mc['mean_mc'], 'evaluate')()
+    mean  = getattr(w_mc['Ds_Mmc'], 'getVal')() + getattr(w_mc['dM_mc'], 'getVal')()
+    mean_err = getattr(w_mc['Ds_Mmc'], 'getError')() + getattr(w_mc['dM_mc'], 'getError')()
     width = getattr(w_mc['width_mc'], 'getVal')() *1000
-    print(f'[MC] mean: {mean:.3f} width: {width:.6f}')
+    width_err = getattr(w_mc['width_mc'], 'getError')() * 1000
+    print(f'[MC] mean: {mean:.3f} +/- {mean_err:.3f} width: {width:.3f} +/- {width_err:.3f}')
     mc_mean.append(mean)
+    mc_mean_error.append(mean_err)
     mc_width.append(width)
+    mc_width_error.append(width_err)
     # data
     w_data = f.Get(data_wspace)
-    mean   = getattr(w_data['mean_mc'], 'evaluate')()
+    #mean   = getattr(w_data['mean_mc'], 'evaluate')()
+    mean  = getattr(w_data['Ds_Mmc'], 'getVal')() + getattr(w_data['dM'], 'getVal')()
+    mean_err = getattr(w_data['Ds_Mmc'], 'getError')() + getattr(w_data['dM'], 'getError')()
     width  = getattr(w_data['width'], 'getVal')() * 1000
-    print(f'[Data] mean: {mean:.3f} width: {width:.6f}')
+    width_err = getattr(w_data['width'], 'getError')() * 1000
+    print(f'[DATA] mean: {mean:.3f} +/- {mean_err:.3f} width: {width:.3f} +/- {width_err:.3f}') 
     data_mean.append(mean)
+    data_mean_error.append(mean_err)
     data_width.append(width)
+    data_width_error.append(width_err)
     f.Close()
     print('\n')
 # save the systematic uncertainty in json file
+data_mean = np.array(data_mean)
+data_mean_error = np.array(data_mean_error)
+data_width = np.array(data_width)
+data_width_error = np.array(data_width_error)
+mc_mean = np.array(mc_mean)
+mc_mean_error = np.array(mc_mean_error)
+mc_width = np.array(mc_width)
+mc_width_error = np.array(mc_width_error)
+
 mean_ratio = np.divide(data_mean, mc_mean)
+mean_ratio_error = np.sqrt((data_mean_error/data_mean)**2 + (mc_mean_error/mc_mean)**2) * mean_ratio
 width_ratio = np.divide(data_width, mc_width)
+width_ratio_error = np.sqrt((data_width_error/data_width)**2 + (mc_width_error/mc_width)**2) * width_ratio
 sys_dict = {}
 for i, cat in enumerate(wspace_byCat.keys()):
     sys_dict[cat] = {
@@ -72,7 +95,6 @@ for i, cat in enumerate(wspace_byCat.keys()):
 with open(f'signal_shape_comparison_{args.year}_{tag}.json', 'w') as f:
     json.dump(sys_dict, f)
 print(f'[o] json file with systematic uncertainty saved as signal_shape_comparison_{args.year}.json')
-
 
 # comparison plot data/mc with ratio plot
 import matplotlib.pyplot as plt
@@ -93,15 +115,19 @@ width_ratio = np.abs(width_ratio - 1 ) * 100
 
 # plot the data and mc mean/ width
 ax[0,0].grid(zorder = 1, linestyle='--')
-ax[0,0].scatter(wspace_byCat.keys(), data_mean, c='b', label='Data', zorder=2)
-ax[0,0].scatter(wspace_byCat.keys(), mc_mean, c='r', label='MC', zorder = 3)
+#ax[0,0].scatter(wspace_byCat.keys(), data_mean, c='b', label='Data', zorder=2)
+#ax[0,0].scatter(wspace_byCat.keys(), mc_mean, c='r', label='MC', zorder = 3)
+ax[0,0].errorbar(wspace_byCat.keys(), data_mean, yerr=data_mean_error, fmt='o', c='b', label='Data', zorder=2)
+ax[0,0].errorbar(wspace_byCat.keys(), mc_mean, yerr=mc_mean_error, fmt='o', c='r', label='MC', zorder=3)
 ax[0,0].set_ylabel('Mean (GeV)', fontsize=label_fontsize)
 ax[0,0].set_ylim(cfg.Ds_mass - 0.005, cfg.Ds_mass + 0.005)
 ax[0,0].tick_params(axis='both', labelsize=ticks_fontsize)
 
 ax[0,1].grid(zorder = 1, linestyle='--')
-ax[0,1].scatter(wspace_byCat.keys(), data_width, c='b', label='Data', zorder = 2)
-ax[0,1].scatter(wspace_byCat.keys(), mc_width, c='r', label='MC', zorder = 3)
+#ax[0,1].scatter(wspace_byCat.keys(), data_width, c='b', label='Data', zorder = 2)
+#ax[0,1].scatter(wspace_byCat.keys(), mc_width, c='r', label='MC', zorder = 3)
+ax[0,1].errorbar(wspace_byCat.keys(), data_width, yerr=data_width_error, fmt='o', c='b', label='Data', zorder=2)
+ax[0,1].errorbar(wspace_byCat.keys(), mc_width, yerr=mc_width_error, fmt='o', c='r', label='MC', zorder=3)
 ax[0,1].set_ylabel('Width (MeV)', fontsize=label_fontsize)
 ax[0,1].set_ylim(5.0, 30.0)
 ax[0,1].tick_params(axis='both', labelsize=ticks_fontsize)
@@ -109,13 +135,15 @@ ax[0,1].tick_params(axis='both', labelsize=ticks_fontsize)
 
 # plot the ratio of data to mc mean/width
 ax[1,0].grid(zorder = 0, linestyle='--')
-ax[1,0].scatter(wspace_byCat.keys(), mean_ratio, c='k', zorder=2)
+#ax[1,0].scatter(wspace_byCat.keys(), mean_ratio, c='k', zorder=2)
+ax[1,0].errorbar(wspace_byCat.keys(), mean_ratio, yerr=mean_ratio_error, fmt='o', c='k', zorder=2)
 ax[1,0].set_ylabel('|Data/MC - 1| (%)', fontsize=label_fontsize, labelpad=15)
 ax[1,0].set_ylim(0.0, 1.6*np.max(mean_ratio))
 ax[1,0].tick_params(axis='both', labelsize=ticks_fontsize)
 
 ax[1,1].grid(zorder = 0, linestyle='--')
-ax[1,1].scatter(wspace_byCat.keys(), width_ratio, c='k', zorder=2)
+#ax[1,1].scatter(wspace_byCat.keys(), width_ratio, c='k', zorder=2)
+ax[1,1].errorbar(wspace_byCat.keys(), width_ratio, yerr=width_ratio_error, fmt='o', c='k', zorder=2)
 ax[1,1].set_ylabel('|Data/MC - 1| (%)', fontsize=label_fontsize, labelpad=25)
 ax[1,1].set_ylim(0.0, 1.6*np.max(width_ratio))
 ax[1,1].tick_params(axis='both', labelsize=ticks_fontsize)

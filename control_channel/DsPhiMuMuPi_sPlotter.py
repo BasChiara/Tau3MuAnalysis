@@ -10,6 +10,27 @@ print(f'[i] sys.path = {sys.path[0]}')
 import mva.config as cfg
 import plots.plotting_tools as pt
 
+def add_overunderflow(histo):
+    """
+    Add overflow and underflow bins to the histogram.
+    """
+    nbins = histo.GetNbinsX()
+    xlow  = histo.GetXaxis().GetXmin()
+    xhigh = histo.GetXaxis().GetXmax()
+    bin_width = (xhigh - xlow) / nbins
+
+    # new histogram with N+2 bins to include underflow and overflow
+    h_with_extra = ROOT.TH1F(histo.GetName()+"_extra", histo.GetTitle(), nbins + 2, xlow - bin_width, xhigh + bin_width)
+
+    # Fill bin contents: shift everything by 1 to make room for underflow at bin 1
+    for i in range(nbins + 2):  # bins 0 to nbins+1 in original
+        content = histo.GetBinContent(i)
+        error = histo.GetBinError(i)
+        h_with_extra.SetBinContent(i + 1, content)
+        h_with_extra.SetBinError(i + 1, error)
+    
+    return h_with_extra
+
 def make_sPlot(
         observable, 
         mc_norm = 'norm_factor' ,
@@ -19,11 +40,14 @@ def make_sPlot(
         x_axis_title = '', y_axis_title = '',
         color = ROOT.kRed, 
         to_ploton = None, 
-        add_tag = ''
+        add_tag = '',
+        underoverflow = False
     ):
     # MC matched
     mc_tree.Draw(f'{observable}>>h_{observable}_mc({nbins}, {lo}, {hi})', f'({selection}) * (weight * {mc_norm})', 'goff')
     h_mc = ROOT.gDirectory.Get(f"h_{observable}_mc")
+    if underoverflow: h_mc = add_overunderflow(h_mc)
+
     h_mc.SetFillColor(color)
     h_mc.SetFillStyle(3004)
     h_mc.SetLineColor(color)
@@ -32,15 +56,18 @@ def make_sPlot(
     # DATA sWeighted
     sData_tree.Draw(f'{observable}>>h_{observable}_data({nbins}, {lo}, {hi})', f'{selection} * nDs_sw', 'goff')
     h_sData = ROOT.gDirectory.Get(f"h_{observable}_data")
+    if underoverflow: h_sData = add_overunderflow(h_sData)
+
     h_sData.SetMarkerColor(ROOT.kBlack)
     h_sData.SetMarkerStyle(20)
     h_sData.SetLineColor(ROOT.kBlack)
     h_sData.SetLineWidth(2)
     h_sData.Sumw2()
+    
     # build legend
-    leg = ROOT.TLegend(0.40, 0.70, 0.75, 0.90)
-    leg.AddEntry(h_mc, "MC (norm. to D_{s}#rightarrow#phi(#mu#mu)#pi in data)", "F")
-    leg.AddEntry(h_sData, "data (bkg subtracted)")
+    leg = ROOT.TLegend(0.40, 0.75, 0.90, 0.89)
+    leg.AddEntry(h_mc, f"{cfg.legend_process['DsPhiPi']} MC", "F")
+    leg.AddEntry(h_sData, "data (bkg subtracted)", "pe")
     leg.SetBorderSize(0)
     leg.SetTextSize(0.04)
     leg.SetFillStyle(0)
@@ -50,6 +77,7 @@ def make_sPlot(
     #h_mc.SetMaximum(1.3 * np.max([h_mc.GetMaximum(), h_sData.GetMaximum()]))
     to_ploton.append(leg)
 
+    lo, hi = h_mc.GetXaxis().GetXmin(), h_mc.GetXaxis().GetXmax()
     tag = f'_{args.year}' + (f'_{args.tag}' if args.tag else '') + (f'_{add_tag}' if add_tag else '')
     pt.ratio_plot_CMSstyle(
         [h_sData],
@@ -89,7 +117,7 @@ def reweight_by_observable(observable = 'Ds_fit_eta'):
     
     return h_ratio_eta
 
-def apply_reweighting(observable, h_weights, weight_by = 'Ds_fit_eta', nbins = 30, lo = -3, hi = 3, selection = '1', to_ploton = [], add_tag = '', cat = 'ABC'):
+def apply_reweighting(observable, h_weights, weight_by = 'Ds_fit_eta', nbins = 30, lo = -3, hi = 3, selection = '1', to_ploton = [], add_tag = '', cat = 'ABC', underoverflow = False):
     # create reweighted histogram
     h_reweighted = ROOT.TH1F(f'h_{observable}_reweighted', f'{observable} reweighted by #eta', nbins, lo, hi)
     for i in range(mc_tree.GetEntries()):
@@ -104,10 +132,11 @@ def apply_reweighting(observable, h_weights, weight_by = 'Ds_fit_eta', nbins = 3
             getattr(mc_tree, observable), 
             this_weight * mc_tree.weight * mc_tree.norm_factor
         )
-    
+    if underoverflow: h_reweighted = add_overunderflow(h_reweighted)
     # crate sData histogram
     sData_tree.Draw(f'{observable}>>h_{observable}_data({nbins}, {lo}, {hi})', f'{selection} * nDs_sw', 'goff')
     h_sData = ROOT.gDirectory.Get(f"h_{observable}_data")
+    if underoverflow: h_sData = add_overunderflow(h_sData)
     h_sData.SetMarkerColor(ROOT.kBlack)
     h_sData.SetMarkerStyle(20)
     h_sData.SetLineColor(ROOT.kBlack)
@@ -131,18 +160,19 @@ def apply_reweighting(observable, h_weights, weight_by = 'Ds_fit_eta', nbins = 3
     #h_reweighted.SetMaximum(1.3 * h_reweighted.GetMaximum())
 
     # create legend
-    leg = ROOT.TLegend(0.40, 0.70, 0.75, 0.85)
-    leg.AddEntry(h_reweighted, f'{observable} reweighted by#eta', 'F')
+    leg = ROOT.TLegend(0.40, 0.75, 0.90, 0.89)
+    leg.AddEntry(h_reweighted, f"{cfg.legend_process['DsPhiPi']} MC", 'F')
     leg.AddEntry(h_sData, 'data (bkg subtracted)')
     leg.SetBorderSize(0)
     leg.SetTextSize(0.04)
     to_ploton.append(leg)
 
     # draw ratio plot
+    lo, hi = h_reweighted.GetXaxis().GetXmin(), h_reweighted.GetXaxis().GetXmax()
     pt.ratio_plot_CMSstyle(
         [h_sData],
         h_reweighted,
-        #to_ploton = to_ploton,
+        to_ploton = to_ploton,
         file_name = f'{args.plot_outdir}/DsPhiPi_reweighted_{observable}{add_tag}',
         draw_opt_num = 'pe',
         draw_opt_den = 'histe2',
@@ -194,25 +224,28 @@ base_selection = '(' + ' & '.join([
 ]) + ')'
 print('[i] base_selection = %s'%base_selection)
 # BDT input features
-#observable_list = cfg.features + ['bdt_score']
-observable_list  = ['bdt_score', 'Ds_Lxy_val_BS', 'Ds_Lxy_err_BS', 'tau_Lxy_sign_BS', 'Ds_fit_eta']
+observable_list = cfg.features + ['Ds_fit_eta', 'bdt_score']
+#observable_list  = ['bdt_score', 'Ds_Lxy_val_BS', 'Ds_Lxy_err_BS', 'tau_Lxy_sign_BS', 'Ds_fit_eta']
+
+no_overunderflow = ['tauEta', 'tau_mu1_TightID_PV', 'tau_mu2_TightID_PV', 'tau_mu3_TightID_PV', 'tau_fit_vprob', 'bdt_score']
 for obs in observable_list:
 
     print(f'\n[+] plotting {obs}')
-
+    nbins, xlo, xhi, xlabel, logscale = cfg.features_NbinsXloXhiLabelLog[obs]
     make_sPlot(
         observable = obs,
         mc_norm = 'norm_factor',
         selection = base_selection,
-        nbins   = cfg.features_NbinsXloXhiLabelLog[obs][0],
-        lo      = cfg.features_NbinsXloXhiLabelLog[obs][1],
-        hi      = cfg.features_NbinsXloXhiLabelLog[obs][2],
-        x_axis_title = cfg.features_NbinsXloXhiLabelLog[obs][3],
+        nbins   = nbins,
+        lo      = xlo,
+        hi      = xhi,
+        x_axis_title = xlabel,
         y_axis_title= 'Events',
-        log_scale   = cfg.features_NbinsXloXhiLabelLog[obs][4],
+        log_scale   = logscale,
         color   = ROOT.kAzure if not 'bdt' in obs else ROOT.kRed,
         to_ploton = [],
         add_tag = '',
+        underoverflow = obs not in no_overunderflow
     )
 # Ds eta
 make_sPlot(
@@ -225,7 +258,7 @@ make_sPlot(
     x_axis_title = '#eta(#mu#mu#pi)',
     y_axis_title= 'Events',
     log_scale   = False,
-    color   = ROOT.kOrange,
+    color   = ROOT.kBlue,
     to_ploton = [],
     add_tag = '',
 )
@@ -273,6 +306,7 @@ for obs in observable_list:
                       selection = base_selection,
                       to_ploton = [],
                       add_tag = tag +'_byEta',
+                      underoverflow= obs not in no_overunderflow,
     )
 
 # --- close input file

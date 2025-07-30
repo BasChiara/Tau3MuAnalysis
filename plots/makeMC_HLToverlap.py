@@ -27,7 +27,7 @@ year_id_dict = {
     '2023preBPix': '230',
     '2023BPix'   : '231',
 }
-bdt_cut = 0.995
+bdt_cut = 0
 # -- read inputs
 if not args.input_root:
     signals = mc_bdt_samples[args.process]
@@ -113,7 +113,7 @@ margin = 0.12
 ROOT.gPad.SetMargin(margin, margin, margin, margin)
 ROOT.gStyle.SetPaintTextFormat("3.1f %")
 
-bdt_cut = 0.995
+bdt_cut = 0
 if bdt_cut > 0. : tag += '_'+'bdt' + str(bdt_cut).replace('.', 'p')
 for i, year in enumerate(year_id_dict.keys()) :
     this_selection = f'(year_id == {year_id_dict[year]}) & (bdt_score > {bdt_cut})'
