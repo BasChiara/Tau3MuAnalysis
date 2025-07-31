@@ -9,9 +9,9 @@ from style.color_text import color_text as ct
 import models.CMSStyle as CMS
 
  # *** RooFit Variables ***
-def get_RooVariables(mass_window_lo, mass_window_hi, blind_region_lo, blind_region_hi, fit_range_lo, fit_range_hi):
+def load_data(mass_window_lo, mass_window_hi, blind_region_lo, blind_region_hi, fit_range_lo, fit_range_hi):
     # tau mass
-    mass = ROOT.RooRealVar('tau_fit_mass', '3-#mu mass'  , mass_window_lo,  mass_window_hi, 'GeV' )
+    mass = ROOT.RooRealVar('tau_fit_mass', 'm_{3#mu}'  , mass_window_lo,  mass_window_hi, 'GeV' )
     mass.setRange('left_SB', mass_window_lo, blind_region_lo)
     mass.setRange('right_SB', blind_region_hi, mass_window_hi)
     mass.setRange('fit_range', fit_range_lo,fit_range_hi)
@@ -33,18 +33,7 @@ def get_RooVariables(mass_window_lo, mass_window_hi, blind_region_lo, blind_regi
     # year/era tag
     year_id = ROOT.RooRealVar('year_id', 'year_id', 0, 500, '')
 
-    thevars = ROOT.RooArgSet()
-    thevars.add(mass)
-    thevars.add(eta)
-    thevars.add(bdt)
-    thevars.add(weight)
-    thevars.add(mu12_mass)
-    thevars.add(mu13_mass)
-    thevars.add(mu23_mass)
-    thevars.add(Lsign)
-    thevars.add(year_id)
-
-    return thevars
+    return [mass, eta, bdt, weight, mu12_mass, mu23_mass, mu13_mass, Lsign, year_id], mass
 
 
 def breakdown_efficiency(data, base_cut, full_cut, isTree = False):

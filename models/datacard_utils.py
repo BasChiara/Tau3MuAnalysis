@@ -83,7 +83,8 @@ def combineDatacard_writer(**kwargs):
     Ndata           = kwargs['Ndata'] if 'Ndata' in kwargs else 0
     write_sys       = kwargs['write_sys']  if 'write_sys' in kwargs else False
 
-    cat_yyyy = f'{cat}_20{year}'
+    #catYY = f'{cat}_20{year}'
+    catYY = f'{cat}{year}'
 
     # get S and B model from workspace
     if not workspace:
@@ -100,11 +101,11 @@ def combineDatacard_writer(**kwargs):
     width_list = []
     WZ_ratio = 1.0
     if 'W' in process_name or 'w' in process_name:
-        width_list.append( signal_model.getVariables().find(f'signal_width_{cat_yyyy}') )
+        width_list.append( signal_model.getVariables().find(f'signal_width_{catYY}') )
     elif 'V' in process_name or 'v' in process_name:
-        width_list.append( signal_model.getVariables().find(f'signal_width_W_{cat_yyyy}') )
-        width_list.append( signal_model.getVariables().find(f'signal_width_Z_{cat_yyyy}') )
-        WZ_ratio = signal_model.getVariables().find(f'r_wz_{cat_yyyy}').getVal()
+        width_list.append( signal_model.getVariables().find(f'signal_width_W_{catYY}') )
+        width_list.append( signal_model.getVariables().find(f'signal_width_Z_{catYY}') )
+        WZ_ratio = signal_model.getVariables().find(f'r_wz_{catYY}').getVal()
     
     # -- background -- #
     b_model = workspace.pdf(f'model_bkg_{process_name}')
@@ -112,12 +113,12 @@ def combineDatacard_writer(**kwargs):
     if not b_model:
         print(f'{ct.RED}[ERROR]{ct.END} NO background model found in the workspace')
         return 1
-    if bkg_func == 'expo' : 
-        slope = b_model.getVariables().find(f'background_slope_{cat_yyyy}')
-        if not slope:  print(f'{ct.RED}[ERROR]{ct.END} NO background slope found in the workspace')
-    elif bkg_func == 'poly1': slope = b_model.getVariables().find(f'p1_{cat_yyyy}')
-    else :  slope = None
-    print(slope)
+    #if bkg_func == 'expo' : 
+    #    slope = b_model.getVariables().find(f'background_slope_{catYY}')
+    #    if not slope:  print(f'{ct.RED}[ERROR]{ct.END} NO background slope found in the workspace')
+    #elif bkg_func == 'poly1': slope = b_model.getVariables().find(f'p1_{catYY}')
+    #else :  slope = None
+    #print(slope)
     
     # uncorrelated systematics dictionary
     sys_dict = {}
@@ -216,7 +217,7 @@ bkg_scale_v_{c}_{yyyy}       flatParam     1.    [{bkg_lo:.2f},{bkg_hi:.2f}]
                 bkg_hi   = bkg_norm_hi, 
             )
         )
-        if slope:
+        if False: # make this True to write the background slope as a nuisance parameter -> DEPRECATED
             card.write(
 '{slope_name}         param  {slopeval:.4f} {slopeerr:.4f}'.format(
                 slope_name = slope.GetName(),

@@ -1,0 +1,1 @@
+python3 t3m_massFitter.py --plot_outdir fit-ANv8/plots/ --goff --combine_dir fit-ANv8/datacards/ --tag ANv8 -b multipdf --multipdf_ws multipdf-ANv8/multiPDF_workspaces/multipdfs_vt3m_A22.root -y 22 --bdt_cut 0.9970
