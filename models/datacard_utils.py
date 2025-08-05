@@ -108,7 +108,7 @@ def combineDatacard_writer(**kwargs):
         WZ_ratio = signal_model.getVariables().find(f'r_wz_{catYY}').getVal()
     
     # -- background -- #
-    b_model = workspace.pdf(f'model_bkg_{process_name}')
+    b_model = workspace.pdf(f'multipdf_bkg_{process_name}' if bkg_func == 'multipdf' else f'model_bkg_{process_name}')
     print(f'[B] B function : {bkg_func}')
     if not b_model:
         print(f'{ct.RED}[ERROR]{ct.END} NO background model found in the workspace')
@@ -175,8 +175,7 @@ rate                             {signal:.4f}              {bkg:.4f}
             obs      = Nobs, # number of observed events
             signal   = Nsig, # number of EXPECTED signal events, INCLUDES the a priori normalisation. Combine fit results will be in terms of signal strength relative to this inistial normalisation
             bkg      = Nbkg, # number of expected background events **over the full mass range** using the exponential funciton fitted in the sidebands 
-        )
-        )
+        ))
 
     # ------- SYSTEMATICS -------
         #fully correlated
@@ -190,8 +189,7 @@ rate                             {signal:.4f}              {bkg:.4f}
                 systematic_name = sys,
                 corr_deg = '_' + sys_dict[sys]['corregree'] if sys_dict[sys]['corregree'] else '',
                 sys_tot = sys_dict[sys]['total']
-                )
-            )
+                ))
         # **SIGNAL**
         if write_sys:
             for width in width_list:
@@ -201,11 +199,18 @@ rate                             {signal:.4f}              {bkg:.4f}
                     width_name  = width.GetName(),
                     val         = width.getVal(),
                     err         = np.max([1e-4, width_error])
-                )
-                )
+                ))
                 print(f' width = {width.getVal():.5f} +/- {width.getError():.5f}(fit) +/- {width_error:.5f}(sys+fit)')
         # **BACKGROUND**
-        card.write(
+        if bkg_func == 'multipdf':
+            card.write(
+'''
+multipdf_bkg_cat_{cyy}      discrete
+'''.format(
+                cyy = catYY
+            ))
+        else:
+            card.write(
 '''
 bkg_scale_v_{c}_{yyyy}       rateParam     {proc}              bkg      1.      [{bkg_lo:.2f},{bkg_hi:.2f}]
 bkg_scale_v_{c}_{yyyy}       flatParam     1.    [{bkg_lo:.2f},{bkg_hi:.2f}]
@@ -215,8 +220,8 @@ bkg_scale_v_{c}_{yyyy}       flatParam     1.    [{bkg_lo:.2f},{bkg_hi:.2f}]
                 yyyy     = '20' + year if not year.startswith('20') else year,
                 bkg_lo   = bkg_norm_lo,
                 bkg_hi   = bkg_norm_hi, 
-            )
-        )
+            ))
+    
         if False: # make this True to write the background slope as a nuisance parameter -> DEPRECATED
             card.write(
 '{slope_name}         param  {slopeval:.4f} {slopeerr:.4f}'.format(
@@ -224,6 +229,8 @@ bkg_scale_v_{c}_{yyyy}       flatParam     1.    [{bkg_lo:.2f},{bkg_hi:.2f}]
                 slopeval   = slope.getVal(),
                 slopeerr   = slope.getError()
                 )
-            )
+            )    
+    
+    card.close()
     print(f'Written datacard: {datacard_name}')
     return 0

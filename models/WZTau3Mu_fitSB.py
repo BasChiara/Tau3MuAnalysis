@@ -34,7 +34,7 @@ parser.add_argument('--fix_w',          action = 'store_true' ,                 
 parser.add_argument('--combine_dir',                                default= 'input_combine/',              help='output directory for combine datacards and ws')
 parser.add_argument('--tag',                                                                                help='tag to the training')
 parser.add_argument('-u','--unblind',   action = 'store_true' ,                                             help='set it to run UN-blind')
-parser.add_argument('-b','--bkg_func',  choices = ['expo', 'const', 'poly1', 'dynamic'], default = 'expo',  help='background model, \'dynamic\' : fit constant as Nb < --lowB_th')
+parser.add_argument('-b','--bkg_func',  choices = ['expo', 'const', 'powerlaw', 'dynamic'],  default = 'expo',  help='background model, \'dynamic\' : fit constant as Nb < --lowB_th')
 parser.add_argument('--lowB_th',        type= float,                default= 35.0,                          help='if --const_lowB is given specyfies the min bkg events to fit with expo')
 parser.add_argument('-c','--category',  choices = ['A', 'B', 'C'],  default = 'A',                          help='which categories to fit')
 parser.add_argument('-y','--year',      choices = config.year_list, default = '22',                         help='which CMS dataset to use')
@@ -76,7 +76,9 @@ print(f'{ct.BOLD}[+]{ct.END} added DATA file :\n {data_file}')
 if not os.path.exists(args.plot_outdir): os.makedirs(args.plot_outdir)
 if not os.path.exists(args.combine_dir): os.makedirs(args.combine_dir)
 
-process_name = f'vt3m_{args.category}_20{args.year}'#'VTau3Mu_%s%s'%(args.category, args.year)
+catYY = f'{args.category}{args.year}'
+catYYYY = f'{args.category}_20{args.year}'
+process_name = f'vt3m_{catYY}'
 tag = (f'bdt{args.bdt_cut:,.4f}_{process_name}' if not args.optim_bdt else f'bdt_scan_{process_name}') + ('_' + args.tag ) if not (args.tag is None) else ''
 set_bdt_cut = [args.bdt_cut] if not args.optim_bdt else np.arange(args.BDTmin, args.BDTmax, args.BDTstep) 
 print('\n')
@@ -156,9 +158,8 @@ if args.save_ws : file_ws = ROOT.TFile(wspace_filename, "RECREATE")
 # loop on BDT cuts
 for cut in set_bdt_cut:
 
-    catYY = f'{args.category}_20{args.year}'    
     # output tag
-    point_tag           = f'{args.category}{args.year}' + (('_' + args.tag ) if args.tag else '') + f'_bdt{cut:,.4f}'
+    point_tag           = catYY + (('_' + args.tag ) if args.tag else '') + f'_bdt{cut:,.3f}'
     point_tag.replace('.', 'p') # replace dot with p for the tag
     # BDT selection
     bdt_selection       = f'(bdt_score > {cut:,.4f})'
@@ -260,29 +261,33 @@ for cut in set_bdt_cut:
 
     # **** BACKGROUND MODEL ****
     bkg_model_name = f'model_bkg_{process_name}' 
+    
     # exponential
     slope = ROOT.RooRealVar(f'background_slope_{catYY}', f'background_slope_{catYY}', 0.0, -5.0, 5.0)
     expo  = ROOT.RooExponential(bkg_model_name, bkg_model_name, mass, slope)
     # constant
     const = ROOT.RooPolynomial(bkg_model_name,bkg_model_name, mass)
-    # polynomial
-    p0 = ROOT.RooRealVar(f'p0_{catYY}', f'p0_{catYY}', 0.0, -1.0, 1.0)
-    p1 = ROOT.RooRealVar(f'p1_{catYY}', f'p1_{catYY}', 0.0, -1.0, 1.0)
-    poly1 = ROOT.RooChebychev(bkg_model_name,bkg_model_name, mass, ROOT.RooArgList(p1))
+    # powerlaw
+    # - powerlaw PDF -
+    c_plaw    = ROOT.RooRealVar(f"c_PLaw_{catYY}", "", 1, -100, 100)
+    powerlaw  = ROOT.RooGenericPdf(f"PowerLaw_{catYY}", "TMath::Power(@0, @1)", ROOT.RooArgList(mass, c_plaw))
 
     b_model = expo
     if fit_with_const :
         b_model = const
         print(f'{ct.BOLD}[i]{ct.END} fit background with constant')
-    elif args.bkg_func == 'poly1' :
-        b_model = poly1
-        print(f'{ct.BOLD}[i]{ct.END} fit background with 1st order polynimial')
+    elif args.bkg_func == 'powerlaw' :
+        b_model = powerlaw
+        print(f'{ct.BOLD}[i]{ct.END} fit background with powerlaw')
     else : print(f'{ct.BOLD}[i]{ct.END} fit background with exponential')
+    b_model.SetName(bkg_model_name)
+    
+    
     # number of background events
-    nbkg = ROOT.RooRealVar('model_bkg_%s_norm'%process_name, 'model_bkg_%s_norm'%process_name, bkg_dataset.sumEntries(), 0., 3*bkg_dataset.sumEntries())
+    nbkg = ROOT.RooRealVar(f'{bkg_model_name}_norm', f'{bkg_model_name}_norm', bkg_dataset.sumEntries(), 0., 3*bkg_dataset.sumEntries())
     print(f'[debug] entries in data {bkg_dataset.numEntries()}')
-    ext_bkg_model = ROOT.RooExtendPdf(f'ext_model_bkg{process_name}', f'ext_model_bkg{process_name}', b_model, nbkg, "full_range")
-    #ext_bkg_model = ROOT.RooAddPdf(f'ext_model_bkg{process_name}', f'ext_model_bkg{process_name}', ROOT.RooArgSet(b_model), ROOT.RooArgSet(nbkg))
+    #ext_bkg_model = ROOT.RooExtendPdf(f'ext_model_bkg{process_name}', f'ext_model_bkg{process_name}', b_model, nbkg, "full_range")
+    ext_bkg_model = ROOT.RooAddPdf(f'ext_{bkg_model_name}', f'ext_{bkg_model_name}', ROOT.RooArgSet(b_model), ROOT.RooArgSet(nbkg))
 
     # **** TIME TO FIT ****
     # signal fit
@@ -348,6 +353,7 @@ for cut in set_bdt_cut:
     results_expo = ext_bkg_model.fitTo(
         bkg_dataset, 
         ROOT.RooFit.Range('left_SB,right_SB'), 
+        ROOT.RooFit.Extended(ROOT.kTRUE),
         ROOT.RooFit.Save(),
         ROOT.RooFit.PrintLevel(-1),
     )
@@ -491,7 +497,7 @@ for cut in set_bdt_cut:
         datacard_name= datacard_name,
         year         = args.year,
         cat          = args.category,
-        bkg_func     = 'const' if fit_with_const else 'expo',
+        bkg_func     = 'const' if fit_with_const else args.bkg_func,
         Nobs         = -1 if runblind else fulldata.numEntries(),
         Nsig         = nsig_W.getValV() + nsig_Z.getValV(),
         Nbkg         = nbkg.getVal(),

@@ -100,7 +100,7 @@ cat  = args.category
 year = args.year
 catYY = f'{args.category}{args.year}'
 catYYYY = f'{args.category}_20{args.year}'
-process_name = f'vt3m_{catYYYY}'
+process_name = f'vt3m_{catYY}'
 cut = args.bdt_cut if hasattr(args, 'bdt_cut') else 0.0
 
 point_tag   =  catYY + (('_' + args.tag ) if args.tag else '') + f'_bdt{cut:,.3f}'
@@ -248,7 +248,7 @@ if args.bkg_func == 'const':
     b_model = const
     print(f'{ct.BOLD}[i]{ct.END} fit background with constant')
 elif args.bkg_func == 'multipdf':
-    b_model, enevlope = get_multipdf(args.multipdf_ws, 'w', catYY)
+    b_model, enevlope = get_multipdf(args.multipdf_ws, 'w', process_name)
     if not b_model:
         print(f'{ct.RED}[ERROR]{ct.END} multipdf model not found in {args.multipdf_ws}')
         exit()
@@ -256,10 +256,9 @@ elif args.bkg_func == 'multipdf':
 else : print(f'{ct.BOLD}[i]{ct.END} fit background with exponential')
 
 # number of background events
-nbkg = ROOT.RooRealVar('model_bkg_%s_norm'%process_name, 'model_bkg_%s_norm'%process_name, bkg_dataset.sumEntries(), 0., 3*bkg_dataset.sumEntries())
-print(f'[debug] entries in data {bkg_dataset.numEntries()}')
+nbkg = ROOT.RooRealVar(f'{bkg_model_name}_norm', f'{bkg_model_name}_norm', bkg_dataset.sumEntries(), 0., 3*bkg_dataset.sumEntries())
 #ext_bkg_model = ROOT.RooExtendPdf(f'ext_model_bkg{process_name}', f'ext_model_bkg{process_name}', b_model, nbkg, "full_range")
-ext_bkg_model = ROOT.RooAddPdf(f'ext_model_bkg{process_name}', f'ext_model_bkg{process_name}', ROOT.RooArgSet(b_model), ROOT.RooArgSet(nbkg))
+ext_bkg_model = ROOT.RooAddPdf(f'ext_{bkg_model_name}', f'ext_{bkg_model_name}', ROOT.RooArgSet(b_model), ROOT.RooArgSet(nbkg))
 
 # **** TIME TO FIT ****
 # signal fit

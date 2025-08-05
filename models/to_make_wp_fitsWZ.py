@@ -8,7 +8,7 @@ import mva.config as config
 
 argparser = argparse.ArgumentParser()
 argparser.add_argument('-y','--year',   choices=['22', '23', '24'], default='22')
-argparser.add_argument('-b','--b_func', choices=['expo', 'const', 'poly1', 'dynamic'], default='expo')
+argparser.add_argument('-b','--b_func', choices=['expo', 'const', 'powerlaw', 'dynamic'], default='expo')
 argparser.add_argument('-t','--tag',    default='apply_LxyS2.0')
 argparser.add_argument('-o','--output',
                     default='$COMBINEv10/WTau3Mu_limits/bias_study_v3/input_combine/',
@@ -46,7 +46,7 @@ b_func       = args.b_func
 for cat in working_points:
     if cat == 'comb': continue
     print(f'\n\n------ CATEGORY {cat} ------\n\n')
-    cmd = f'python3 WZTau3Mu_fitSB.py --plot_outdir {plot_outdir} --save_ws --sys_unc --combine_dir {combine_dir} --tag {tag}_{b_func} -b {b_func} -c {cat} -y {year} --bdt_cut {working_points[cat]}'
+    cmd = f'python3 WZTau3Mu_fitSB.py --plot_outdir {plot_outdir} --goff --save_ws --sys_unc --combine_dir {combine_dir} --tag {tag}_{b_func} -b {b_func} -c {cat} -y {year} --bdt_cut {working_points[cat]}'
     if args.dry_run:
         print(cmd)
     else:

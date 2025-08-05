@@ -128,6 +128,7 @@ if __name__ == "__main__":
     year     = f'20{args.year}'
     cat      = args.category
     catYY    = f'{cat}{year_set}'
+    catYYYY  = f'{cat}_{year}'
     isblind  = not args.unblind
     mass_name = 'tau_fit_mass'
 
@@ -197,30 +198,30 @@ if __name__ == "__main__":
     getattr(pdfs, 'import')(mass)
 
     # - powerlaw PDF -
-    c_powerlaw = RooRealVar("c_PowerLaw_{}".format(cat), "", 1, -100, 100)
-    powerlaw = RooGenericPdf("PowerLaw_{}".format(cat), "TMath::Power(@0, @1)", RooArgList(mass, c_powerlaw))
+    c_powerlaw  = RooRealVar(f"c_PLaw_{catYY}", "", 1, -100, 100)
+    powerlaw    = RooGenericPdf(f"PowerLaw_{catYY}", "TMath::Power(@0, @1)", RooArgList(mass, c_powerlaw))
     getattr(pdfs, 'import')(powerlaw)
 
     # - exponential PDF -
-    pdfs.factory("Exponential::Exponential_{C}({M}, alpha_{C}[-0.9, -10, 10])".format(M=mass_name, C=cat))
+    pdfs.factory(f"Exponential::Exponential_{catYY}({mass_name}, alpha_{catYY}[-0.9, -10, 10])")
 
     # - Bernstein - oder n has n+1 coefficients (starts from constant)
     for i in range(max_order+1):
-        c_bernstein = '{'+f'c_Bernstein{i}0_{cat}[1]'+','+','.join(['c_Bernstein{}{}_{}[.1, 0.0, 1.0]'   .format(i, j, cat) for j in range(1, i+1)])+'}'
+        c_bernstein = '{'+f'c_Bernstein{i}0_{cat}[1]'+','+','.join(['c_Bernstein{}{}_{}[.1, 0.0, 1.0]'   .format(i, j, catYY) for j in range(1, i+1)])+'}'
         #c_bernstein = '{'+','.join(['c_Bernstein{}{}_{}[.1, 0.0, 1.0]'   .format(i, j, cat) for j in range(0, i+1)])+'}'
         #print(c_bernstein)
         #exit()
-        pdfs.factory('Bernstein::Bernstein{}_{}({}, {})'.format(i, cat, mass_name, c_bernstein))
+        pdfs.factory('Bernstein::Bernstein{}_{}({}, {})'.format(i, catYY, mass_name, c_bernstein))
 
     # - Chebychev - order n has n coefficients (starts from linear)
     for i in range(min(max_order, 1)): # limit to 1nd order Chebychev
-        c_chebychev = '{'+','.join(['c_Chebychev{}{}_{}[-10.0, 10.0]'.format(i+1, j, cat) for j in range(i+1)])+'}'
-        pdfs.factory('Chebychev::Chebychev{}_{}({}, {})'.format(i+1, cat, mass_name, c_chebychev)) 
+        c_chebychev = '{'+','.join(['c_Chebychev{}{}_{}[-10.0, 10.0]'.format(i+1, j, catYY) for j in range(i+1)])+'}'
+        pdfs.factory('Chebychev::Chebychev{}_{}({}, {})'.format(i+1, catYY, mass_name, c_chebychev)) 
 
     # - Polynomial - order n has n coefficients (starts from constant)
     for i in range(1, max_order):
         c_polynomial = '{'+','.join(['c_Polynomial{}{}_{}[-10, 10]'.format(i, j, cat) for j in range(i+1)])+'}'
-        pdfs.factory('Polynomial::Polynomial{}_{}({}, {})'.format(i, cat, mass_name, c_polynomial)) 
+        pdfs.factory('Polynomial::Polynomial{}_{}({}, {})'.format(i, catYY, mass_name, c_polynomial)) 
 
     frame = mass.frame()
     frame.SetTitle(catYY)
@@ -314,7 +315,7 @@ if __name__ == "__main__":
     can.SaveAs(os.path.join(path_out_plots, f'multipdf_{process_name}.pdf'))
 
     roocat   = RooCategory(f'multipdf_bkg_cat_{catYY}', "")
-    multipdf = RooMultiPdf(f'multipdf_bkg_{catYY}', "", roocat, envelope)
+    multipdf = RooMultiPdf(f'multipdf_bkg_{process_name}', "", roocat, envelope)
     #indexing Expo in the multipdf. Change line below to switch to "bestfit"
     #roocat.setIndex([envelope.at(i).GetName() for i in range(envelope.getSize())].index('Exponential_{}'.format(cat)))
     if bestfit is not None:
