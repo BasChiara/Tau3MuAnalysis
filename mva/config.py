@@ -81,11 +81,18 @@ Nmc_ZTau3Mu = {
     '2023BPix'  :  317554,
     '2024'      :  4103413,
 }
+Nmc_TTbar_WTau3Mu = {
+    '2022preEE'  :  47680,
+    '2022EE'     :  -1,
+    '2023preBPix':  -1,
+    '2023BPix'   :  -1,
+}
 Nmc_process = {
     'WTau3Mu'   : Nmc_WTau3Mu,
     'DsPhiMuMuPi': Nmc_DsPhiPi,
     'W3MuNu'    : Nmc_W3MuNu,
     'ZTau3Mu'   : Nmc_ZTau3Mu,
+    'TTbar_WTau3Mu': Nmc_TTbar_WTau3Mu,
 }
 
 # xsec W -> Tau Nu [fb]
@@ -386,6 +393,7 @@ mc_samples = {
     'W3MuNu'        : W3MuNu_background,
     'peakingBkg'    : Peaking_background,
     'ZTau3Mu'       : ZTau3Mu_signals,
+    'TTbar_WTau3Mu' : [mc_path+'outRoot/WTau3Mu_MCanalyzer_2022preEE_HLT_overlap_onTau3Mu_TTbar.root']
 }
 data_samples = {
     'WTau3Mu'       : data_background,
@@ -406,6 +414,7 @@ mc_bdt_samples = {
     'W3MuNu'        : bdt_output_path+'XGBout_W3MuNu_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
     'peakingBkg'    : bdt_output_path+'XGBout_peakingBkg_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
     'ZTau3Mu'       : bdt_output_path+'XGBout_ZTau3Mu_MC_ANv8_2025Jul28.root', 
+    'TTbar_WTau3Mu' : bdt_output_path+'XGBout_WTau3Mu_MC_TTbar-2022preEE.root',
 }
 data_bdt_samples = {
     'WTau3Mu'       : bdt_output_path+'XGBout_data_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root',

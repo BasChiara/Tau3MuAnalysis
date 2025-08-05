@@ -1,0 +1,2 @@
+# TTbar WTau3Mu w/ EvtGen
+/eos/cms/store/group/phys_bphys/cbasile/Tau3MuNano_2025Aug03/TTbarLNuLNu_Tau3Mu_TTbarLNuLNu_TuneCP5_13p6TeV_powheg-pythia8_Run3Summer22LHEGS_v3/crab_TTbarWTau3Mu_2022-v1/250803_184932/0000/

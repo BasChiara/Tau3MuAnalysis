@@ -85,13 +85,14 @@ def print_LateX_table(eras = ['2022preEE', '2022EE', '2023preBPix', '2023BPix'],
 
 
 argparser = argparse.ArgumentParser()
-argparser.add_argument('--process', choices=['WTau3Mu', 'W3MuNu', 'ZTau3Mu'], help='For which process to compute the efficiency breakdown')
+argparser.add_argument('--process', choices=['WTau3Mu', 'W3MuNu', 'ZTau3Mu', 'TTbar_WTau3Mu'], help='For which process to compute the efficiency breakdown')
 argparser.add_argument('--bdt',     action='store_true', help='Take the tree with BDT scores')
 argparser.add_argument('--compareWZ', action='store_true', help='Compare W and Z')
 argparser.add_argument('--LateX', action='store_true', help='Print LateX table')
 args = argparser.parse_args()
 
 years_list = ['2022preEE', '2022EE', '2023preBPix', '2023BPix']
+years_list = ['2022preEE'] if args.process == 'TTbar_WTau3Mu' else years_list
 preselection_step_list = ['nEvTau3Mu',
                           'nTriggerBit',
                           'nEvTauMediumID', 
@@ -117,7 +118,7 @@ if make_csv:
 
         # file with preselection efficiencies
         process = 'Tau3Mu' if args.process == 'WTau3Mu' else args.process
-        preselection_file = f'../outRoot/WTau3Mu_MCanalyzer_{year}_HLT_overlap_on{process}.root'
+        preselection_file = samples[i]#f'../outRoot/WTau3Mu_MCanalyzer_{year}_HLT_overlap_on{process}.root'
         if not os.path.isfile(preselection_file):
             print(f'{ct.color_text.RED}ERROR: file {preselection_file} does not exist{ct.color_text.END}')
             exit(-1)
