@@ -247,7 +247,7 @@ sensitivity_dict = dict(zip(year_list, [
 #########################
 process_name = ['WTau3Mu', 'W3MuNu', 'DsPhiPi', 'ZTau3Mu', 'invMedID', 'DataSB']
 color_process = {
-    'WTau3Mu' : ROOT.kRed + 1,
+    'WTau3Mu' : ROOT.kRed - 7,
     'W3MuNu' : ROOT.kGreen+2,
     'DsPhiPi': ROOT.kViolet,
     'DataSB' : ROOT.kBlue,
@@ -421,6 +421,7 @@ data_bdt_samples = {
     'DsPhiMuMuPi'   : bdt_output_path+'XGBout_DsPhiMuMuPi_DATA_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root',
     'W3MuNu'        : bdt_output_path+'XGBout_data_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root',
     'ZTau3Mu'       : bdt_output_path+'XGBout_data_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root',
+    'peakingBkg'    : bdt_output_path+'XGBout_data_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root',
 }
 
 
@@ -520,7 +521,8 @@ features_NbinsXloXhiLabelLog = {
     'tau_mu12_dZ'       : [ 20, 0, 0.2,     '#Delta z (#mu_{1}, #mu_{2})',  0],
     'tau_mu13_dZ'       : [ 20, 0, 0.2,     '#Delta z (#mu_{1}, #mu_{3})',  0],
     'tau_mu23_dZ'       : [ 20, 0, 0.2,     '#Delta z (#mu_{2}, #mu_{3})',  0],
-    'tau_Lxy_sign_BS'   : [ 50, 0, 50,      'SV L_{xy}/#sigma',         0],
+    #'tau_Lxy_sign_BS'   : [ 50, 0, 50,      'SV L_{xy}/#sigma',         0],
+    'tau_Lxy_sign_BS'   : [ 20, 0, 20,      'SV L_{xy}/#sigma',         0],
     'tau_Lxy_val_BS'    : [ 40, 0,1.2,      'SV L_{xy} (cm)',           0],
     'tau_Lxy_err_BS'    : [ 30, 0,0.03,     'SV #sigma_{L_{xy}} (cm)',  0],
     'Ds_Lxy_val_BS'     : [ 40, 0,1.0,      'SV L_{xy} (cm)',           0],

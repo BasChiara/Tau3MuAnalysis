@@ -57,14 +57,15 @@ ROOT.TH1.SetDefaultSumw2()
 fit_range_lo = config.Ds_mass_range_lo if not args.peak_bkg else config.peakB_mass_lo
 fit_range_hi = config.Ds_mass_range_hi if not args.peak_bkg else config.peakB_mass_hi
 binwidth = 0.01 
-nbins = int((fit_range_hi-fit_range_lo)/binwidth) + 1
+nbins = int((fit_range_hi-fit_range_lo)/binwidth)
 
 
 # *** INPUT DATA AND MONTE CARLO ***
 input_tree_name = 'tree_w_BDT'
-if not args.signal: mc_file   = [config.mc_bdt_samples['DsPhiMuMuPi']]
+process = 'peakingBkg' if args.peak_bkg else 'DsPhiMuMuPi'
+if not args.signal: mc_file   = [config.mc_bdt_samples[process]]
 else : mc_file     = [args.signal]
-if not args.data: data_file   = [config.data_bdt_samples['DsPhiMuMuPi']]
+if not args.data: data_file   = [config.data_bdt_samples[process]]
 else : data_file   = [args.data]
 # *** OUTPUT FILE *** #
 f_out_name = "workspaces/DsPhiPi_wspace_%s.root"%(tag)
@@ -72,9 +73,9 @@ f_out = ROOT.TFile(f_out_name, "RECREATE")
 
 # ** RooFit Variables
 # Ds mass
-mass = ROOT.RooRealVar('Ds_fit_mass', '#mu#mu #pi mass'  , config.Ds_mass_range_lo,  config.Ds_mass_range_hi, 'GeV' )
+mass = ROOT.RooRealVar('Ds_fit_mass', 'm_{#mu#mu#pi}'  , config.Ds_mass_range_lo,  config.Ds_mass_range_hi, 'GeV' )
 if args.peak_bkg:
-    mass = ROOT.RooRealVar('tau_MuMuPi_mass', '#mu#mu #pi mass'  , config.peakB_mass_lo,  config.peakB_mass_hi, 'GeV' )
+    mass = ROOT.RooRealVar('tau_MuMuPi_mass', 'm_{#mu#mu#pi}'  , config.peakB_mass_lo,  config.peakB_mass_hi, 'GeV' )
 mass.setRange('fit_range', fit_range_lo, fit_range_hi)
 #mass.setRange('full_range', config.Ds_mass_range_lo, config.Ds_mass_range_lo)
 
@@ -173,7 +174,7 @@ results_gaus = signal_model.fitTo(
 )
 
 # * draw & save
-frame = mass.frame(Title='D_{s} -> #phi(1020)#pi signal') 
+frame = mass.frame(Title=' ') 
 
 fullmc.plotOn(
     frame, 
@@ -199,7 +200,7 @@ else :
         frame, 
         fitvar = mass, 
         out_name = '%s/mcDsPhiPi_mass_%s'%(args.plot_outdir, tag), 
-        logy = True
+        logy = False
     )
     print('signal chi2 %.2f'%(frame.chiSquare(4)))
     
@@ -235,7 +236,7 @@ datatofit, bkg_efficiency, N_data = fitu.import_data_from_tree(
     dataset_name='data_fit',
     full_cut=base_selection,
     weight = 'weight',
-    verbose = True,
+    verbose = False,
 )
 
 # Ds -> phi pi signal 
@@ -340,7 +341,7 @@ fitu.draw_fit_pull(
     frame_b,
     fitvar = mass,
     out_name = '%s/DsPhiPi_mass_%s'%(args.plot_outdir, tag),
-    logy = True
+    logy = False
 )
 
 print(f'\n\n {ct.BOLD} ------------ SUMMARY ------------{ct.END}')

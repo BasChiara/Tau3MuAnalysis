@@ -143,7 +143,7 @@ int draw_many_histos(std::vector<TString> branches, std::vector<TString> categor
       stk->Add(h);
    }
    float max_f = 1.4;
-   if (logY) max_f = 5.0;
+   if (logY) max_f = 10.0;
    stk->SetMaximum(max_f*maxY);
    stk->Draw("nostack HIST");
    legend->Draw();
@@ -188,7 +188,7 @@ int ProfileVsPU( std::vector<TString> branches, std::vector<TString> description
    auto legend = new TLegend(legend_x1,legend_y1-branches.size()*leg_entry_dy,legend_x2,legend_y2);
    legend->SetBorderSize(0);
    legend->SetTextSize(0.03);
-
+   
    THStack* stk = new THStack("profStack",";" + x_name + ";" + y_name);
    const float expansion_factor = 10;
    const float yP_low  = (y_high+y_low)/2 - expansion_factor*(y_high-y_low)/2; 

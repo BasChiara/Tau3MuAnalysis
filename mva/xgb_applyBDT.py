@@ -67,7 +67,8 @@ elif (args.process == 'invMedID'):
 else:
     base_selection = ' & '.join([
         config.base_selection,
-        config.displacement_selection,
+        #config.displacement_selection,
+        "(1)"
     ]) 
 
 print(f'{ct.BOLD}[!] base-selection : %s'%base_selection)

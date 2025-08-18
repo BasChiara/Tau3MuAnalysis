@@ -21,14 +21,17 @@ Color_t PtlColorMap(const TString& particle){
   // final satte particles 
   PtlColor["mu"]    = kPink + 4;
   PtlColor["mu1"]   = kBlue + 2;
-  PtlColor["mu2"]  = kGreen + 2;
+  PtlColor["mu2"]   = kGreen + 2;
   PtlColor["mu3"]   = kOrange + 1;
-  PtlColor["pi"]   = kOrange + 1;
+  PtlColor["pi"]    = kOrange + 1;
   // intermediate resonances
+  PtlColor["tau_mu12"]   = kOrange + 1;
+  PtlColor["tau_mu13"]   = kGreen + 2;
+  PtlColor["tau_mu23"]   = kBlue + 2;
   PtlColor["tau_fit"]   = kRed - 7;
   PtlColor["phi_fit"]   = kViolet;
-  PtlColor["tau_gen"]  = kBlack;
-  PtlColor["tau_raw"] = kBlue;
+  PtlColor["tau_gen"]   = kBlack;
+  PtlColor["tau_raw"]   = kBlue;
   // initial state particle
   PtlColor["W"] = kOrange;
   PtlColor["W_gen"] = kBlack;
@@ -49,7 +52,7 @@ Color_t PtlColorMap(const TString& particle){
   PtlColor["2022preEE"]   = kAzure +1; 
   PtlColor["2022EE"]      = kAzure +1;
   PtlColor["Tau3Mu"]      = kRed;
-  PtlColor["W3MuNu"]      = kGreen+1; 
+  PtlColor["W3MuNu"]      = kGreen+2; 
   PtlColor["ZTau3Mu"]     = kCyan+2; 
   PtlColor["2023preBPix"] = kAzure +1; 
   PtlColor["2023BPix"]    = kOrange +1;
@@ -74,6 +77,9 @@ TString CategoryLegend(const TString& category){
   Leg_entry["mu3"] = "trailing #mu";
   Leg_entry["pi"] = "track";
   // intermediate resonances
+  Leg_entry["tau_mu12"]   = "#mu_{1} #mu_{2}";
+  Leg_entry["tau_mu13"]   = "#mu_{1} #mu_{3}";
+  Leg_entry["tau_mu23"]   = "#mu_{2} #mu_{3}";
   Leg_entry["tau_fit"] = "3 #mu refit";
   Leg_entry["tau_fit"] = "#phi #to #mu #mu refit";
   Leg_entry["tau_gen"] = "#tau gen-level";
@@ -97,9 +103,9 @@ TString CategoryLegend(const TString& category){
   Leg_entry["Run3_HLT_DoubleMu"]  = "HLT_DoubleMu";
   Leg_entry["2022preEE"]   = "2022preEE"; 
   Leg_entry["2022EE"]      = "2022EE";
-  Leg_entry["Tau3Mu"]      = "W#tau(3#mu)#nu MC"; 
-  Leg_entry["W3MuNu"]      = "W3#mu#nu MC";
-  Leg_entry["ZTau3Mu"]      = "Z#tau(3#mu)#tau MC"; 
+  Leg_entry["Tau3Mu"]      = "W#rightarrow #tau(3#mu)#nu (MC)"; 
+  Leg_entry["W3MuNu"]      = "W#rightarrow 3#mu#nu (MC)";
+  Leg_entry["ZTau3Mu"]      = "Z#rightarrow #tau(3#mu)#tau (MC)"; 
   Leg_entry["2023preBPix"] = "2023 pre-BPix";
   Leg_entry["2023BPix"] = "2023 post-BPix";
   Leg_entry["unbalanced"] = "original";
@@ -122,6 +128,10 @@ void histoSetUp(TH1* histo, const TString& category, const TString& x_name, bool
   histo->GetYaxis()->SetTitleOffset(1.6);
   histo->GetYaxis()->SetTitleSize(0.04);
   histo->GetYaxis()->SetLabelSize(0.035);
+
+  // under/overflow bin
+  histo->SetBinContent(1, histo->GetBinContent(0) + histo->GetBinContent(1));
+  histo->SetBinContent(histo->GetNbinsX(), histo->GetBinContent(histo->GetNbinsX()+1) + histo->GetBinContent(histo->GetNbinsX()));
 
   //WIDTH & COLOR
   histo->SetLineWidth(3);

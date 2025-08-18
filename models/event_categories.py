@@ -89,6 +89,7 @@ args = parser.parse_args()
 tag = f'{args.year}' + (f'{args.tag}' if args.tag else '') + ('_MC' if args.isMC else '')
 
 ROOT.gROOT.SetBatch(True)
+CMS.setCMSStyle()
 ROOT.gStyle.SetOptStat(0)
 ROOT.gStyle.SetLineWidth(2)
 ROOT.gStyle.SetPadTickX(1)
@@ -97,6 +98,7 @@ ROOT.gStyle.SetHistMinimumZero(False)
 ROOT.gStyle.SetLegendBorderSize(0)
 ROOT.gStyle.SetLegendTextSize(0.035)
 ROOT.TH1.SetDefaultSumw2()
+ROOT.gStyle.SetPalette(ROOT.kBird)
 CMS.SetExtraText("Preliminary") if not args.isMC else CMS.SetExtraText("Simulation Preliminary") 
 CMS.SetLumi(config.LumiVal_plots[args.year]) if not args.isMC else CMS.SetLumi('') 
 CMS.SetEnergy(13.6)
@@ -127,6 +129,37 @@ max_y = 0.12 if not args.isMC else 0.5
 min_y = 0.05 if not args.isMC else 0.0
 mass_bin_w     = 0.01 if args.isMC else 0.05
 mass_bins = int((mass_range_hi - mass_range_lo) / mass_bin_w)
+
+# resolution VS eta
+resol_min, resol_max = 0.0, 0.025
+
+h_resolMvsEta = data_rdf.Histo2D(('h_resolMvsEta', '', 48, 0, 2.4, 50, 0.0, 0.025), 'tau_fit_absEta', 'tau_fit_mass_resol').GetPtr()
+prof_resolMvsEta = data_rdf.Profile1D(('prof_resolMvsEta', '', 48, 0, 2.4), 'tau_fit_absEta', 'tau_fit_mass_resol').GetPtr()
+h_resolMvsEta.GetYaxis().SetTitle('#sigma_{M}/M(3#mu)')
+h_resolMvsEta.GetXaxis().SetTitle('|#eta_{3#mu}|')
+h_resolMvsEta.GetXaxis().SetTitleOffset(1.2)
+
+c = ROOT.TCanvas('c_resolMvsEta', 'c_resolMvsEta', 1200, 800)
+c.SetMargin(0.15, 0.15, 0.15, 0.05)
+prof_resolMvsEta.SetLineColor(ROOT.kBlack)
+prof_resolMvsEta.SetMarkerStyle(24)
+prof_resolMvsEta.SetMarkerColor(ROOT.kBlack)
+prof_resolMvsEta.SetLineWidth(2)
+lineAB = ROOT.TLine(0.9, resol_min, 0.9, resol_max)
+lineAB.SetLineColor(ROOT.kRed)
+lineAB.SetLineWidth(2)
+lineBC = ROOT.TLine(1.8, resol_min, 1.8, resol_max)
+lineBC.SetLineColor(ROOT.kRed)
+lineBC.SetLineWidth(2)
+h_resolMvsEta.Draw('colz')
+prof_resolMvsEta.Draw('same pe')
+lineAB.Draw('same')
+lineBC.Draw('same')
+c.Modified()
+c.Update()
+c.SaveAs('%s/ResolMassVsEta_%s.png'%(args.plot_outdir, tag))
+c.SaveAs('%s/ResolMassVsEta_%s.pdf'%(args.plot_outdir, tag))
+
 
 h_bShape = []
 h_eta    = []

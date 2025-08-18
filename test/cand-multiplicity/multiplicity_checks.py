@@ -10,7 +10,7 @@ cms.SetLumi("")
 cms.SetEnergy("13.6")
 # Write extra lines below the extra text (usuful to define regions/channels)
 cms.ResetAdditionalInfo()
-cms.AppendAdditionalInfo("W/Z channel")
+cms.AppendAdditionalInfo("W channel")
 
 def get_candidate_overlap(tree):
 
@@ -67,6 +67,9 @@ def get_candidate_multiplicity(tree):
     
 
 # Load the tree for MC
+data_dir = 'outRoot'
+plot_dir = 'test/cand-multiplicity'
+
 #era = "2023BPix"
 era = "2022EE"
 if era == "2022EE":
@@ -118,7 +121,7 @@ canv = cms.cmsCanvas(
         5.5,
         1e-4,
         3.0,
-        "tau#rightarrow 3#mu candidates",
+        "#tau#rightarrow 3#mu candidates",
         "Number of events",
         square=True,
         extraSpace=0.01,
@@ -128,23 +131,23 @@ canv.SetLogy()
 cms.cmsDraw(h_mul_data, "HIST SAME",
             lcolor=ROOT.kBlue,
             lstyle=ROOT.kSolid,
-            lwidth=2,
+            lwidth=3,
             fcolor=ROOT.kBlue,
-            fstyle=3004,
+            fstyle= 0,
             marker= 0,
             )
 cms.cmsDraw(h_mul_mc, "HIST", 
             lcolor=ROOT.kRed,
             lstyle=ROOT.kSolid,
-            lwidth=2,
+            lwidth=3,
             fcolor=ROOT.kRed,
-            fstyle=3004,
+            fstyle= 0,
             )
 mul_legend.AddEntry(h_mul_data, "data sidebands", "F")
 mul_legend.AddEntry(h_mul_mc, "W#rightarrow #tau(3#mu)#nu MC", "F")
 mul_legend.Draw()
-cms.SaveCanvas(canv, f'test/nTauCandidatesPerEvent_{tag}.png', False)
-cms.SaveCanvas(canv, f'test/nTauCandidatesPerEvent_{tag}.pdf', True)
+cms.SaveCanvas(canv, f'{plot_dir}/nTauCandidatesPerEvent_{tag}.png', False)
+cms.SaveCanvas(canv, f'{plot_dir}/nTauCandidatesPerEvent_{tag}.pdf', True)
 
 # plot overlap
 ovl_legend = ROOT.TLegend(0.2, 0.6, 0.7, 0.7)
@@ -152,7 +155,7 @@ ovl_legend.SetBorderSize(0)
 ovl_legend.SetFillStyle(0)
 ovl_legend.SetTextSize(0.04)
 
-
+# modify labels to match  binning
 canv2 = cms.cmsCanvas(
         'canv2',
         -0.5,
@@ -169,21 +172,23 @@ canv2.SetLogy()
 cms.cmsDraw(h_ovlp_data, "HIST SAME",
             lcolor=ROOT.kBlue,
             lstyle=ROOT.kSolid,
-            lwidth=2,
+            lwidth=3,
             fcolor=ROOT.kBlue,
-            fstyle=3004,
+            fstyle= 0,
             marker= 0,
             )
 cms.cmsDraw(h_ovlp_mc, "HIST", 
             lcolor=ROOT.kRed,
             lstyle=ROOT.kSolid,
-            lwidth=2,
+            lwidth=3,
             fcolor=ROOT.kRed,
-            fstyle=3004,
+            fstyle= 0,
             )
+h_ovlp_data.GetXaxis().SetNdivisions(310)
+h_ovlp_mc.GetXaxis().SetNdivisions(310)
 ovl_legend.AddEntry(h_ovlp_data, "data sidebands", "F")
 ovl_legend.AddEntry(h_ovlp_mc, "W #rightarrow #tau(3#mu)#nu MC", "F")
 ovl_legend.Draw()
-cms.SaveCanvas(canv2, f'test/candidateOverlap_{tag}.png', False)
-cms.SaveCanvas(canv2, f'test/candidateOverlap_{tag}.pdf', True)
+cms.SaveCanvas(canv2, f'{plot_dir}/candidateOverlap_{tag}.png', False)
+cms.SaveCanvas(canv2, f'{plot_dir}/candidateOverlap_{tag}.pdf', True)
 

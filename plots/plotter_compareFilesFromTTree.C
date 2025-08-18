@@ -133,10 +133,12 @@ int draw_branches(std::vector<TString> branches, std::vector<TString> categories
   gPad->SetBottomMargin(0.13);
   gStyle->SetOptStat(0);
   // TLegend
-  float leg_entry_dy = 0.04;
+  float leg_entry_dy = 0.06;
   auto legend = new TLegend(0.50,0.80-branches.size()*leg_entry_dy,0.90,0.80);
   legend->SetBorderSize(0);
-  legend->SetTextSize(0.035);
+  legend->SetTextSize(0.04);
+  legend->SetTextFont(42);
+  legend->SetFillStyle(0);
 
   TString y_name = Form("Events / %.2f", histos[0]->GetXaxis()->GetBinWidth(1));
   THStack* stk = new THStack("hStack",";" + x_name + ";" + y_name);
@@ -157,7 +159,7 @@ int draw_branches(std::vector<TString> branches, std::vector<TString> categories
      //histos[i]->Draw("hist same");
      stk->Add(histos[i]);
   }
-  stk->SetMaximum(1.4*maxY);
+  stk->SetMaximum(1.5*maxY);
   stk->Draw("nostack HIST");
   legend->Draw();
   // semi-log scale

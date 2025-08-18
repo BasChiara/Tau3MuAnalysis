@@ -33,22 +33,24 @@ def add_overunderflow(histo):
     """
     Add overflow and underflow bins to the histogram.
     """
-    nbins = histo.GetNbinsX()
-    xlow  = histo.GetXaxis().GetXmin()
-    xhigh = histo.GetXaxis().GetXmax()
-    bin_width = (xhigh - xlow) / nbins
+    histo.SetBinContent(1, histo.GetBinContent(0)+ histo.GetBinContent(1))  # underflow
+    histo.SetBinContent(histo.GetNbinsX(), histo.GetBinContent(histo.GetNbinsX())+histo.GetBinContent(histo.GetNbinsX()+1))  # overflow
+    #nbins = histo.GetNbinsX()
+    #xlow  = histo.GetXaxis().GetXmin()
+    #xhigh = histo.GetXaxis().GetXmax()
+    #bin_width = (xhigh - xlow) / nbins
 
-    # new histogram with N+2 bins to include underflow and overflow
-    h_with_extra = ROOT.TH1F(histo.GetName()+"_extra", histo.GetTitle(), nbins + 2, xlow - bin_width, xhigh + bin_width)
+    ## new histogram with N+2 bins to include underflow and overflow
+    #h_with_extra = ROOT.TH1F(histo.GetName()+"_extra", histo.GetTitle(), nbins + 2, xlow - bin_width, xhigh + bin_width)
 
-    # Fill bin contents: shift everything by 1 to make room for underflow at bin 1
-    for i in range(nbins + 2):  # bins 0 to nbins+1 in original
-        content = histo.GetBinContent(i)
-        error = histo.GetBinError(i)
-        h_with_extra.SetBinContent(i + 1, content)
-        h_with_extra.SetBinError(i + 1, error)
+    ## Fill bin contents: shift everything by 1 to make room for underflow at bin 1
+    #for i in range(nbins + 2):  # bins 0 to nbins+1 in original
+    #    content = histo.GetBinContent(i)
+    #    error = histo.GetBinError(i)
+    #    h_with_extra.SetBinContent(i + 1, content)
+    #    h_with_extra.SetBinError(i + 1, error)
     
-    return h_with_extra
+    return histo
 
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -127,6 +129,7 @@ if(args.debug):print(bkg)
 ##             ##
 #    PLOTTING   #
 ##             ##
+CMS.setCMSStyle()
 ROOT.gROOT.SetBatch(True)
 ROOT.gStyle.SetOptStat(0)
 ROOT.gStyle.SetLineWidth(2)
@@ -146,7 +149,7 @@ observables = cfg.features + ['tau_fit_eta', 'tauEta', bdt_score, 'tau_fit_mass'
 observables = observables + ['tau_mu1_pt', 'tau_mu2_pt', 'tau_mu3_pt', 'tau_mu1_eta', 'tau_mu2_eta', 'tau_mu3_eta']
 #observables = [cfg.features[0], cfg.features[1], cfg.features[2], cfg.features[3]]
 no_overunderflow = ['tauEta', 'tau_mu1_TightID_PV', 'tau_mu2_TightID_PV', 'tau_mu3_TightID_PV', 'tau_fit_vprob', 'bdt_score']
-
+observables = ['tau_Lxy_sign_BS']
 legend = ROOT.TLegend(0.55, 0.70, 0.90, 0.90)
 legend.SetTextSize(0.04)
 legend.SetBorderSize(0)
@@ -165,10 +168,12 @@ for i,obs in enumerate(observables):
     h_sig     = sig_rdf.Histo1D(('h_sig_%s'%obs, '', nbins, xlo, xhi), obs).GetPtr()
     if not (obs in no_overunderflow) : h_sig = add_overunderflow(h_sig)
     h_sig.Scale(1./h_sig.Integral())
+    h_sig.GetXaxis().SetMaxDigits(3)
     ### background
     h_bkg = bkg_rdf.Histo1D(('h_bkg_%s'%obs, '', nbins, xlo, xhi), obs).GetPtr()
     if not (obs in no_overunderflow) : h_bkg = add_overunderflow(h_bkg)
     h_bkg.Scale(1./h_bkg.Integral())
+    h_bkg.GetXaxis().SetMaxDigits(3)
 
 
     if(i == 0):

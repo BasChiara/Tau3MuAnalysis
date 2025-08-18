@@ -172,6 +172,8 @@ void WTau3Mu_analyzer::Loop(){
          tau_mu13_fitM = TauTo3Mu_mu13_fit_mass[t];
 
          // Tau -> 3mu
+         tau_mu1_dR = ROOT::Math::VectorUtil::DeltaR(RecoTau_P4, RecoMu1_P4); tau_mu2_dR = ROOT::Math::VectorUtil::DeltaR(RecoTau_P4, RecoMu2_P4); tau_mu3_dR = ROOT::Math::VectorUtil::DeltaR(RecoTau_P4, RecoMu3_P4);
+
          tau_fit_charge = TauTo3Mu_charge[t]; 
          tau_raw_mass = (RecoMu1_P4+RecoMu2_P4+RecoMu3_P4).M(); 
          tau_fit_mass = TauTo3Mu_fitted_mass[t];
@@ -455,6 +457,9 @@ void WTau3Mu_analyzer::outTreeSetUp(){
    outTree_->Branch("tau_mu13_fitM",   &tau_mu13_fitM,"tau_mu13_fitM/F");
    outTree_->Branch("tau_mu23_M",      &tau_mu23_M,   "tau_mu23_M/F");
    outTree_->Branch("tau_mu23_fitM",   &tau_mu23_fitM,"tau_mu23_fitM/F");
+   outTree_->Branch("tau_mu1_dR",      &tau_mu1_dR,   "tau_mu1_dR/F");
+   outTree_->Branch("tau_mu2_dR",      &tau_mu2_dR,   "tau_mu2_dR/F");
+   outTree_->Branch("tau_mu3_dR",      &tau_mu3_dR,   "tau_mu3_dR/F");
    // * tau canditates
    outTree_->Branch("n_tau",            &n_tau,            "n_tau/I");
    outTree_->Branch("n_muon",            &n_muon,            "n_muon/I");
