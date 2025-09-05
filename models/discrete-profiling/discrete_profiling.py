@@ -246,29 +246,36 @@ if __name__ == "__main__":
     allpdfs_list = [allpdfs_list.at(j) for j in range(allpdfs_list.getSize())]
 
     converged = 0
-    
+    # loop over families 
     for j, fam in enumerate(families):
         log.write("> I'm in %s \n" % fam)
 
         fam_gofmax = 0
         pdf_list = [p for p in allpdfs_list if p.GetName().startswith(fam)]
         mnlls    = []
+        # loop over PDFs in the family
         for i, pdf in enumerate(pdf_list):
             log.write(">> Pdf: %s \n" % pdf.GetName())
+            
+            # background model
             norm = RooRealVar("multipdf_nbkg_{}".format(cat), "", 10.0, 0.0, 5000.0)
             ext_pdf = RooAddPdf(pdf.GetName()+"_ext", "", RooArgList(pdf), RooArgList(norm))
-
             if isblind:
                 results = ext_pdf.fitTo(data,  RooFit.Save(True), RooFit.Range(fit_range), RooFit.Extended(True))
             else:
                 results = ext_pdf.fitTo(data,  RooFit.Save(True), RooFit.Extended(True))
-            chi2 = RooChi2Var("chi2"+pdf.GetName(), "", ext_pdf, hist, RooFit.DataError(RooAbsData.Expected))
+            
+            # -- GOF --
+            # calculate chi2 and minNLL + penalty for higher order
+            chi2 = RooChi2Var("chi2_"+pdf.GetName(), "", ext_pdf, hist, RooFit.DataError(RooAbsData.Expected))
+            N_DoF = int(hist.sumEntries())-pdf.getParameters(data).selectByAttrib("Constant", False).getSize()
             mnll = results.minNll()+0.5*(i)
 
-            gof_prob = TMath.Prob(chi2.getVal(), int(hist.sumEntries())-pdf.getParameters(data).selectByAttrib("Constant", False).getSize())
-            #if few entries, use toy-based GOF
+            # p-value from chi2 (= probability to have chi2 >= observed chi2)
+            gof_prob = TMath.Prob(chi2.getVal(), N_DoF) 
             if data.sumEntries()<100:
                 gof_prob = getGoodnessOfFit(mass, pdf, data, f'{catYY}_{fam}-{i}', 20, i)
+
             fis_prob = TMath.Prob(2.*(mnlls[-1]-mnll), i-converged) if len(mnlls) else 0
             if results.covQual()==3:
                 mnlls.append(mnll)
@@ -277,7 +284,7 @@ if __name__ == "__main__":
             log.write(">>> %s chi2 %f \n" % (pdf.GetName(), chi2.getVal()) )
             log.write(">>> results.covQual(): %f \n" % results.covQual())
             log.write(">>> fis_prob: %f \n" % fis_prob)
-            log.write(">>> gof_prob: %f \n" % gof_prob)
+            log.write(">>> p-value : %f \n" % gof_prob)
 
             if (gof_prob > 0.01 and fis_prob < 0.1 and results.covQual()==3) or ("Exponential" in pdf.GetName()):
             #if (fis_prob < 0.1) or ("Exponential" in pdf.GetName()):

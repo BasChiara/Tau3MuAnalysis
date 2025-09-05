@@ -9,7 +9,7 @@ from style.color_text import color_text as ct
 import models.CMSStyle as CMS
 
  # *** RooFit Variables ***
-def load_data(mass_window_lo, mass_window_hi, blind_region_lo, blind_region_hi, fit_range_lo, fit_range_hi):
+def load_data(mass_window_lo, mass_window_hi, blind_region_lo, blind_region_hi, fit_range_lo, fit_range_hi, reduced = False):
     # tau mass
     mass = ROOT.RooRealVar('tau_fit_mass', 'm_{3#mu}'  , mass_window_lo,  mass_window_hi, 'GeV' )
     mass.setRange('left_SB', mass_window_lo, blind_region_lo)
@@ -32,8 +32,11 @@ def load_data(mass_window_lo, mass_window_hi, blind_region_lo, blind_region_hi, 
     Lsign = ROOT.RooRealVar('tau_Lxy_sign_BS', 'tau_Lxy_sign_BS', 0, np.inf)
     # year/era tag
     year_id = ROOT.RooRealVar('year_id', 'year_id', 0, 500, '')
-
-    return [mass, eta, bdt, weight, mu12_mass, mu23_mass, mu13_mass, Lsign, year_id], mass
+    
+    if reduced:
+        return [mass, eta, bdt, weight, year_id], mass
+    else:
+        return [mass, eta, bdt, weight, mu12_mass, mu23_mass, mu13_mass, Lsign, year_id], mass
 
 
 def breakdown_efficiency(data, base_cut, full_cut, isTree = False):
