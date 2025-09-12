@@ -2,28 +2,8 @@ import ROOT
 ROOT.EnableImplicitMT()
 import cmsstyle as CMS
 import argparse
-import pickle
 import os
-import numpy  as np
 import pandas as pd
-import seaborn as sns
-from sklearn.metrics import accuracy_score
-import matplotlib.pyplot as plt
-sns.set(style="white")
-
-import xgboost
-from xgboost import XGBClassifier, plot_importance
-from sklearn.preprocessing import LabelEncoder
-
-from sklearn.metrics         import roc_curve, roc_auc_score
-from sklearn.model_selection import train_test_split, StratifiedKFold
-
-from scipy.stats import ks_2samp
-
-from collections import OrderedDict
-from itertools import product
-
-from pdb import set_trace
 
 # from my config
 import config as cfg
@@ -63,7 +43,7 @@ parser.add_argument('--bdt_cut',        default= 0.995, type= float,            
 parser.add_argument('--debug',          action = 'store_true' ,                                      help='set it to have useful printout')
 parser.add_argument('--isMulticlass',   action = 'store_true',                                       help='set to use teh multiclass setting')
 parser.add_argument('--LxySign_cut',    default=  0.0,  type = float,                                help='set random state for reproducible results')
-parser.add_argument('-p', '--process',  choices = ['WTau3Mu', 'W3MuNu', 'DsPhiPi', 'ZTau3Mu', 'invMedID'], default = 'Tau3Mu',help='which process in the simulation')
+parser.add_argument('-p', '--process',  choices = ['WTau3Mu', 'W3MuNu', 'DsPhiPi', 'ZTau3Mu', 'invMedID'], default = 'WTau3Mu',help='which process in the simulation')
 parser.add_argument('-s', '--signal',   action = 'append',                                           help='file with signal events with BDT applied')
 parser.add_argument('-d', '--data',     action = 'append',                                           help='file with data events with BDT applied')
 parser.add_argument('-y', '--year',     choices= ['2022', '2023', 'Run3'],   default= '2022',                 help='data-taking year to process')
@@ -89,8 +69,8 @@ base_selection = ' & '.join([
 
 ])
 sig_selection  = base_selection 
-if (args.process == 'invMedID') : 
-    sig_selection = base_selection + f' & (tau_mu1_MediumID & tau_mu2_MediumID & !tau_mu3_MediumID)'
+#if (args.process == 'invMedID') : 
+#    sig_selection = base_selection + f' & (tau_mu1_MediumID & tau_mu2_MediumID & !tau_mu3_MediumID)'
 bkg_selection  = base_selection + f'& {cfg.sidebands_selection}'
 if (args.process == 'W3MuNu') : 
     sig_selection = bkg_selection
@@ -148,8 +128,8 @@ CMS.SetEnergy(13.6)
 observables = cfg.features + ['tau_fit_eta', 'tauEta', bdt_score, 'tau_fit_mass', 'tau_mu12_fitM', 'tau_mu23_fitM', 'tau_mu13_fitM']
 observables = observables + ['tau_mu1_pt', 'tau_mu2_pt', 'tau_mu3_pt', 'tau_mu1_eta', 'tau_mu2_eta', 'tau_mu3_eta']
 #observables = [cfg.features[0], cfg.features[1], cfg.features[2], cfg.features[3]]
-no_overunderflow = ['tauEta', 'tau_mu1_TightID_PV', 'tau_mu2_TightID_PV', 'tau_mu3_TightID_PV', 'tau_fit_vprob', 'bdt_score']
-observables = ['tau_Lxy_sign_BS']
+no_overunderflow = ['tauEta', 'tau_mu1_TightID_PV', 'tau_mu2_TightID_PV', 'tau_mu3_TightID_PV', 'tau_mu1_MediumID', 'tau_mu2_MediumID', 'tau_mu3_MediumID', 'tau_fit_vprob', 'bdt_score']
+#observables = ['tau_Lxy_sign_BS']
 legend = ROOT.TLegend(0.55, 0.70, 0.90, 0.90)
 legend.SetTextSize(0.04)
 legend.SetBorderSize(0)

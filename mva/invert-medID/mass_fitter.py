@@ -13,7 +13,7 @@ from array import array
 import argparse
 # import custom configurations
 import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir)))
 import mva.config as config
 from style.color_text import color_text as ct
 import models.datacard_utils as du
@@ -54,7 +54,7 @@ input_tree_name = 'tree_w_BDT'
 mc_file     = config.mc_bdt_samples['WTau3Mu'] if not args.signal else args.signal
 print(f'{ct.BOLD}{ct.BOLD}[+]{ct.END}{ct.END} added MC file :\n {mc_file}')
 
-data_file   = config.data_bdt_samples['WTau3Mu'] if not args.data else args.data
+data_file   =  args.data if args.data else exit('please provide input DATA with -d option')
 print(f'{ct.BOLD}[+]{ct.END} added DATA file :\n {data_file}')
 
 if not os.path.exists(mc_file):
@@ -93,8 +93,7 @@ if (args.debug): print(f'{ct.BOLD}[INFO]{ct.END} binning {nbins} of type {type(n
 varlist, mass = fitu.load_data(mass_window_lo, mass_window_hi, blind_region_lo, blind_region_hi, fit_range_lo, fit_range_hi)
 thevars = ROOT.RooArgSet()
 [thevars.add(v) for v in varlist]
-reducedvars = ROOT.RooArgSet()
-[reducedvars.add(v) for v in varlist if not 'fitM' in v.GetName()]
+
 
 # *** Punzi Sensitivity and AMS ***
 if args.optim_bdt :
@@ -117,6 +116,7 @@ base_selection      = ' & '.join([
 ])
 
 if args.save_ws : file_ws = ROOT.TFile(wspace_filename, "RECREATE")
+data_hist_file = ROOT.TFile(data_file, "READ")
 # loop on BDT cuts
 for cut in set_bdt_cut:
 
@@ -147,37 +147,27 @@ for cut in set_bdt_cut:
     if fullmc.sumEntries() == 0: continue
     
     # **** IMPORT DATA ****
-    data_tree = ROOT.TChain(input_tree_name)
-    data_tree.AddFile(data_file)
-    N_data    = data_tree.GetEntries(base_selection) # events in the full mass range pre-BDT
-    N_data_SB = data_tree.GetEntries(base_selection + f' & {config.sidebands_selection}') # events in the sidebands pre-BDT
-
-    
-    if INVID_MUON : 
-        data_selection = ' & '.join([bdt_selection, config.year_selection['20'+args.year], config.cat_eta_selection_dict_fit[args.category]])
-        datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  reducedvars, data_selection, "weight")
-    else :
-        data_selection = ' & '.join([
-            base_selection, 
-            bdt_selection,
-            config.sidebands_selection if runblind else '(1)',
-        ])
-        datatofit = ROOT.RooDataSet('data_fit', 'data_fit', data_tree,  thevars, data_selection, "weight")
-        
+    #data_tree = ROOT.TChain(input_tree_name)
+    #data_tree.AddFile(data_file)
+    hist = data_hist_file.Get(f'h_mass_{args.category}_BDT{cut:,.3f}')
+    if not hist :
+        print(f'{ct.RED}[ERROR]{ct.END} histogram h_mass_{args.category}_BDT{cut:,.3f} not found in {data_file}')
+        continue
+    hist.SetDirectory(0) # detach from the file
+    datatofit = ROOT.RooDataHist('data_hist_%s'%process_name, 'data_hist_%s'%process_name, ROOT.RooArgSet(mass), hist)
+    N_data    = hist.GetEntries() # events in the full mass range pre-BDT
+    N_data_SB = hist.GetEntries() # events in the sidebands pre-BDT
     datatofit.Print()
-    bkg_efficiency = datatofit.sumEntries(config.sidebands_selection)/N_data_SB
+    
+    bkg_efficiency = -1.
 
     print(f'\n{ct.BLUE}------ DATA SIDEBANDS -------{ct.END}')
     print(f' entries (pre BDT)          : {N_data}')
     print(f' entries in SB (pre BDT)    : {N_data_SB}')
-    print(f' selection                  : {data_selection}')
     print(f' entries  (post BDT)        : %.2f'%datatofit.sumEntries() )
     print(f' BDT background efficiency  : %.4e'%bkg_efficiency)
     print(f'{ct.BLUE}------------------------{ct.END}\n\n')
-    # skip if no events in one of the 2 sidebands
-    print (f'entries in left SB {datatofit.sumEntries("", "left_SB")}')
-    print (f'entries in right SB {datatofit.sumEntries("", "right_SB")}')
-    if (datatofit.sumEntries("", "left_SB") == 0 or datatofit.sumEntries("", "right_SB") == 0): continue
+    
     
     fit_with_const = (args.bkg_func == 'const') or ((args.bkg_func == 'dynamic') and (datatofit.sumEntries() < args.lowB_th))
     # **** SIGNAL MODEL ****
@@ -216,8 +206,6 @@ for cut in set_bdt_cut:
     # number of background events
     nbkg = ROOT.RooRealVar('model_bkg_%s_norm'%process_name, 'model_bkg_%s_norm'%process_name, datatofit.sumEntries(), 0., 3*datatofit.sumEntries())
     print(f'[debug] entries in data {datatofit.numEntries()}')
-    #ext_bkg_model = ROOT.RooAddPdf("toy_add_model_bkg_WTau3Mu", "add background pdf", ROOT.RooArgList(b_model),  nbkg)
-    #ext_bkg_model = ROOT.RooAddPdf("toy_add_model_bkg_WTau3Mu", "add background pdf", [b_model],  [nbkg])
     ext_bkg_model = ROOT.RooAddPdf(f'ext_model_bkg{process_name}', f'ext_model_bkg{process_name}', b_model, nbkg)
 
     # **** TIME TO FIT ****
@@ -231,55 +219,6 @@ for cut in set_bdt_cut:
         ROOT.RooFit.PrintLevel(-1),
     )
     results_gaus.Print()
-    # * draw & save
-    frame = mass.frame()
-    frame.SetTitle('#tau -> 3#mu signal - CAT %s BDTscore > %.4f'%(args.category, cut))
-
-    fullmc.plotOn(
-        frame, 
-        ROOT.RooFit.Binning(nbins), 
-        ROOT.RooFit.XErrorSize(0), 
-        ROOT.RooFit.LineWidth(2),
-        ROOT.RooFit.FillColor(ROOT.kRed),
-        ROOT.RooFit.DataError(1),
-    )
-    signal_model.plotOn(
-        frame, 
-        ROOT.RooFit.LineColor(ROOT.kRed),
-        ROOT.RooFit.Range('fit_range'),
-        ROOT.RooFit.NormRange('fit_range'),
-        ROOT.RooFit.MoveToBack()
-    )
-    print('signal chi2 %.2f'%(frame.chiSquare()))
-    signal_model.paramOn(
-        frame,
-        ROOT.RooFit.Layout(0.6, 0.75, 0.9),
-        ROOT.RooFit.Format("NEU", ROOT.RooFit.AutoPrecision(1)),
-    )
-    frame.getAttText().SetTextSize(0.03)
-
-    c = ROOT.TCanvas("c", "c", 800, 800)
-    ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
-    frame.Draw()
-    if not (args.optim_bdt or args.goff) :
-        c.SaveAs('%s/signal_mass_%s.png'%(args.plot_outdir, point_tag)) 
-        c.SaveAs('%s/signal_mass_%s.pdf'%(args.plot_outdir, point_tag)) 
-        c.SetLogy(1)
-        c.SaveAs('%s/signal_mass_Log_%s.png'%(args.plot_outdir, point_tag)) 
-        c.SaveAs('%s/signal_mass_Log_%s.pdf'%(args.plot_outdir, point_tag)) 
-
-    # -- plot pulls
-    h_pullMC = frame.pullHist()
-    h_pullMC.setYAxisLimits(-5., 5.)
-    frame_pull = mass.frame(ROOT.RooFit.Title('[pull] #tau -> 3 #mu signal - CAT %s BDTscore > %.4f'%(args.category,cut)))
-    frame_pull.addPlotable(h_pullMC, 'P')
-    cp = ROOT.TCanvas("cp", "cp", 800, 800)
-    ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
-    frame_pull.Draw()
-    if not (args.optim_bdt or args.goff) :
-        cp.SaveAs('%s/pull_signal_mass_%s.png'%(args.plot_outdir, point_tag)) 
-        cp.SaveAs('%s/pull_signal_mass_%s.pdf'%(args.plot_outdir, point_tag))
-
     frame_b = mass.frame()
     frame_b.SetTitle('#tau -> 3 #mu signal+bkg - CAT %s BDTscore > %.3f'%(args.category, cut))
 
@@ -294,32 +233,13 @@ for cut in set_bdt_cut:
         datatofit, 
         ROOT.RooFit.Range('left_SB,right_SB'), 
         ROOT.RooFit.Save(),
-        #ROOT.RooFit.Extended(ROOT.kTRUE),
-        #ROOT.RooFit.SumW2Error(True),
+        ROOT.RooFit.Extended(ROOT.kTRUE),
+        ROOT.RooFit.SumW2Error(True),
         ROOT.RooFit.PrintLevel(-1),
     )
     results_expo.Print()
 
     # * draw & save
-    frame = mass.frame()
-    frame.SetTitle('#tau -> 3#mu signal - CAT %s BDTscore > %.4f'%(args.category, cut))
-
-    fullmc.plotOn(
-        frame, 
-        ROOT.RooFit.Binning(nbins), 
-        ROOT.RooFit.XErrorSize(0), 
-        ROOT.RooFit.LineWidth(2),
-        ROOT.RooFit.FillColor(ROOT.kRed),
-        ROOT.RooFit.DataError(1),
-    )
-    signal_model.plotOn(
-        frame, 
-        ROOT.RooFit.LineColor(ROOT.kRed),
-        ROOT.RooFit.Range('fit_range'),
-        ROOT.RooFit.NormRange('fit_range'),
-        ROOT.RooFit.MoveToBack(),
-        ROOT.RooFit.PrintLevel(-1),
-    )
     nbkg.Print()
     ext_bkg_model.plotOn(
         frame_b, 
@@ -412,17 +332,18 @@ for cut in set_bdt_cut:
     if (args.fix_w) : width.setConstant(True)
 
     # save observed data // bkg-only Asimov with name 'dat_obs'
-    fulldata = ROOT.RooDataSet('full_data', 'full_data', data_tree, thevars, sgn_selection) # fixme : this is useless
-    mass.setBins(nbins)
-    if runblind:
-        # GenerateAsimovData() generates binned data following the binning of the observables
-        print(f'{ct.RED}[i]{ct.END} running BLIND -- asimov dataset into workspace')
-        data = ROOT.RooStats.AsymptoticCalculator.GenerateAsimovData(ext_bkg_model, ROOT.RooArgSet(mass) )
-        data.SetName('data_obs') 
-    else :
-        print(f'{ct.GREEN}[i]{ct.END} running OPEN -- real data into workspace !!!!')
-        data     = ROOT.RooDataSet('data_obs','data_obs', fulldata, ROOT.RooArgSet(mass))
-        #data = ROOT.RooDataHist("data_obs", "data_obs", mass, fulldata)
+    #fulldata = ROOT.RooDataSet('full_data', 'full_data', data_tree, thevars, sgn_selection) # fixme : this is useless
+    #mass.setBins(nbins)
+    #if runblind:
+    #    # GenerateAsimovData() generates binned data following the binning of the observables
+    #    print(f'{ct.RED}[i]{ct.END} running BLIND -- asimov dataset into workspace')
+    #    data = ROOT.RooStats.AsymptoticCalculator.GenerateAsimovData(ext_bkg_model, ROOT.RooArgSet(mass) )
+    #    data.SetName('data_obs') 
+    #else :
+    #    print(f'{ct.GREEN}[i]{ct.END} running OPEN -- real data into workspace !!!!')
+    #    data     = ROOT.RooDataSet('data_obs','data_obs', fulldata, ROOT.RooArgSet(mass))
+    #    #data = ROOT.RooDataHist("data_obs", "data_obs", mass, fulldata)
+    data = datatofit.Clone("data_obs")
     data.Print()
 
     ws = ROOT.RooWorkspace(wspace_name, wspace_name)
@@ -449,12 +370,13 @@ for cut in set_bdt_cut:
         year         = args.year,
         cat          = args.category,
         bkg_func     = args.bkg_func,
-        Nobs         = -1 if runblind else fulldata.numEntries(),
+        Nobs         = -1,
         Nsig         = nsig.getVal(),
         Nbkg         = nbkg.getVal(),
         Ndata        = N_data,
         write_sys    = args.sys_unc,
     )
+data_hist_file.Close()
 
 if not args.optim_bdt: exit()
 tree_dict = dict(zip(df_columns, np.array([bdt_cut, sig_Nexp, sig_eff, bkg_Nexp, bkg_Nexp_Sregion, bkg_eff, PunziS_val, PunziS_err, AMS_val])))

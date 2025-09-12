@@ -24,7 +24,6 @@ from plots.color_text import color_text as ct
 
 ##########################################################################################
 # Define the gini metric - from https://www.kaggle.com/c/ClaimPredictionChallenge/discussion/703#5897
-
 ##########################################################################################
 
 parser = argparse.ArgumentParser()
@@ -37,7 +36,6 @@ parser.add_argument('--process',        choices= ['WTau3Mu', 'W3MuNu', 'data', '
 parser.add_argument('--isMC',           action = 'store_true' ,                                         help='set if running on MonteCarlo')
 parser.add_argument('--isMulticlass',   action = 'store_true' ,                                         help='set if applying a multiclass classifier')
 parser.add_argument('--LxySign_cut',    default=  0.0,  type = float,                                   help='cut over 3muons SV displacement significance')
-#parser.add_argument('-d', '--data',     action = 'append',                                              help='dataset to apply BDT weights')
 parser.add_argument('-d', '--data',     nargs='+',                                              help='dataset to apply BDT weights')
 
 args = parser.parse_args()
@@ -62,7 +60,7 @@ elif (args.process == 'invMedID'):
         config.base_selection,
         config.displacement_selection,
         #'(tau_mu1_MediumID & tau_mu2_MediumID & !tau_mu3_MediumID)'
-        '(tau_mu1_MediumID & (tau_mu2_MediumID|tau_mu3_MediumID))'
+        '(tau_mu1_MediumID & (tau_mu2_MediumID+tau_mu3_MediumID == 1))'
     ])
 else:
     base_selection = ' & '.join([

@@ -275,6 +275,7 @@ bdt_label_process ={
 
 mc_path     = '/afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnalysis/'
 data_path   = '/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/'
+invid_path  = '/eos/user/c/cbasile/Tau3MuRun3/data/bkg_samples/'
 
 WTau3Mu_signals  = [
     # 2022
@@ -305,8 +306,6 @@ ZTau3Mu_signals = [
     # 2023
     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023preBPix_HLT_overlap_onZTau3Mu.root',
     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onZTau3Mu.root',
-    # 2024
-    #mc_path + 'outRoot/WTau3Mu_MCanalyzer_2024_HLT_overlap_onZTau3Mu.root',
 ]
 
 DsPhiPi_data = [
@@ -325,17 +324,6 @@ DsPhiPi_data = [
     data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv4_HLT_overlap.root',
     data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv1_HLT_overlap.root',
     data_path + 'reMini2023/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv2_HLT_overlap.root',
-    ##2024
-    #data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Bv1_HLT_overlap.root',
-    #data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Cv1_HLT_overlap.root',
-    #data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Dv1_HLT_overlap.root',
-    #data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Ev1_HLT_overlap.root',
-    #data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Ev2_HLT_overlap.root',
-    #data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Fv1_HLT_overlap.root',
-    #data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Gv1_HLT_overlap.root',
-    #data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Hv1_HLT_overlap.root',
-    #data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Iv1_HLT_overlap.root',
-    #data_path + 'PromptReco2024/DsPhiMuMuPi_DATAanalyzer_ParkingDoubleMuonLowMass_2024Iv2_HLT_overlap.root',
 ]
 
 data_background  = [
@@ -354,20 +342,6 @@ data_background  = [
     data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv4_HLT_overlap.root',
     data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv1_HLT_overlap.root',
     data_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv2_HLT_overlap.root',
-    ##2024
-    #data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Bv1_HLT_overlap.root',
-    #data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Cv1_HLT_overlap.root',
-    #data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Dv1_HLT_overlap.root',
-    #data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Ev1_HLT_overlap.root',
-    #data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Ev2_HLT_overlap.root',
-    #data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Fv1_HLT_overlap.root',
-    #data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Gv1_HLT_overlap.root',
-    #data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Hv1_HLT_overlap.root',
-    #data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Iv1_HLT_overlap.root',
-    #data_path + 'PromptReco2024/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2024Iv2_HLT_overlap.root',
-
-
-
 ]
 W3MuNu_background = [
     #2022
@@ -387,6 +361,25 @@ Peaking_background = [
     mc_path + 'outRoot/WTau3Mu_MCanalyzer_2023BPix_HLT_overlap_onDsPhiPi.root',
 ]
 
+invID_background = [
+    #2022
+    #invid_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Cv1_HLT_overlap.root',
+    #invid_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv1_HLT_overlap.root',
+    #invid_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Dv2_HLT_overlap.root',
+    #invid_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Ev1_HLT_overlap.root',
+    #invid_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Fv1_HLT_overlap.root',
+    #invid_path + 'reMini2022/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Gv1_HLT_overlap.root',
+    #2023
+    invid_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Bv1_HLT_overlap.root',
+    invid_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv1_HLT_overlap.root',
+    invid_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv2_HLT_overlap.root',
+    invid_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv3_HLT_overlap.root',
+    invid_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Cv4_HLT_overlap.root',
+    invid_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv1_HLT_overlap.root',
+    invid_path + 'reMini2023/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2023Dv2_HLT_overlap.root',
+]
+
+
 mc_samples = {
     'WTau3Mu'       : WTau3Mu_signals,
     'DsPhiMuMuPi'   : DsPhiPi_signals,
@@ -400,6 +393,7 @@ data_samples = {
     'DsPhiMuMuPi'   : DsPhiPi_data,
     'W3MuNu'        : data_background,
     'ZTau3Mu'       : data_background,
+    'invMedID'      : invID_background,
 }
 
 ##############
@@ -427,17 +421,17 @@ data_bdt_samples = {
 
 # give labels human readable names
 # IMPORTANT : same order as features!!!
-labels = OrderedDict()
-
+#labels = OrderedDict()
+labels = {}
 labels['tau_fit_pt'         ] = '$\\tau$ $p_{T}$'
 labels['tau_fit_mt'         ] = '$m_{T}(\\tau, MET)$'
 labels['tau_relIso'         ] = '$\\tau$ iso'
-labels['tau_met_Dphi'       ] = '$\Delta\phi(\\tau MET)$'
+labels['tau_met_Dphi'       ] = '$\Delta\phi(\\tau, MET)$'
 labels['tau_met_pt'         ] = 'MET $p_{T}$'
 labels['tau_met_ratio_pt'   ] = '$\\tau$ $p_{T}$/MET $p_{T}$' # only for >= v2
 labels['W_pt'               ] = 'W $p_{T}$'
-labels['miss_pz_min'        ] = '$min(ME_z^i)$'
-labels['miss_pz_max'        ] = '$max(ME_z^i)$'
+labels['miss_pz_min'        ] = 'min $p_{z}^{\\nu}$'
+labels['miss_pz_max'        ] = 'max $p_{z}^{\\nu}$'
 labels['tau_mu12_dZ'        ] = '$\Delta z (\mu_{1}, \mu_{2})$'
 labels['tau_mu13_dZ'        ] = '$\Delta z (\mu_{1}, \mu_{3})$'
 labels['tau_mu23_dZ'        ] = '$\Delta z (\mu_{2}, \mu_{3})$'
@@ -447,14 +441,14 @@ labels['tau_cosAlpha_BS'    ] = 'SV cos($\\theta_{IP}$)'
 labels['tau_mu1_TightID_PV' ] = '$\mu_1$ ID'
 labels['tau_mu2_TightID_PV' ] = '$\mu_2$ ID'
 labels['tau_mu3_TightID_PV' ] = '$\mu_3$ ID'
-##labels['tau_fit_eta'        ] = '$\eta_{\\tau}$'
+labels['tau_fit_eta'        ] = '$\eta_{\\tau}$'
 labels['tauEta'             ] = '$|\eta_{\\tau}|$'
 ##labels['bdt'                ] = 'BDT score'
 labels['bdt_score'          ] = 'BDT score'
 #labels['bdt_score_t3m'      ] = 'BDT $\\tau 3\\mu$ '
 #labels['bdt_score_b'        ] = 'BDT bkg'
 #labels['bdt_score_w3m'      ] = 'BDT W3$\\mu$'
-labels['tau_fit_mass'       ] = '$\\tau$ mass'
+labels['tau_fit_mass'       ] = 'm_{3\mu}'
 
 features = [
     'tau_fit_pt',
@@ -521,8 +515,8 @@ features_NbinsXloXhiLabelLog = {
     'tau_mu12_dZ'       : [ 20, 0, 0.2,     '#Delta z (#mu_{1}, #mu_{2})',  0],
     'tau_mu13_dZ'       : [ 20, 0, 0.2,     '#Delta z (#mu_{1}, #mu_{3})',  0],
     'tau_mu23_dZ'       : [ 20, 0, 0.2,     '#Delta z (#mu_{2}, #mu_{3})',  0],
-    #'tau_Lxy_sign_BS'   : [ 50, 0, 50,      'SV L_{xy}/#sigma',         0],
-    'tau_Lxy_sign_BS'   : [ 20, 0, 20,      'SV L_{xy}/#sigma',         0],
+    'tau_Lxy_sign_BS'   : [ 60, 0, 30,      'SV L_{xy}/#sigma',         0],
+    #'tau_Lxy_sign_BS'   : [ 20, 0, 20,      'SV L_{xy}/#sigma',         0],
     'tau_Lxy_val_BS'    : [ 40, 0,1.2,      'SV L_{xy} (cm)',           0],
     'tau_Lxy_err_BS'    : [ 30, 0,0.03,     'SV #sigma_{L_{xy}} (cm)',  0],
     'Ds_Lxy_val_BS'     : [ 40, 0,1.0,      'SV L_{xy} (cm)',           0],
@@ -536,7 +530,7 @@ features_NbinsXloXhiLabelLog = {
     'tauEta'            : [  8,-0.5,7.5,    '3#mu #eta bins',          0],
     'tau_fit_eta'       : [ 25, -2.5, 2.5,  '#eta (3 #mu)',           0],
     'Ds_fit_eta'        : [ 25, -2.5, 2.5,  '#eta (3 #mu)',           0],
-    'tau_fit_mass'      : [ 40,1.6, 2.0,    'M(3 #mu)',                0],
+    'tau_fit_mass'      : [ 65, 1.40, 2.05, 'm_{3#mu}',                0],
     'bdt_score'         : [ 25, 0, 1,       'BDT score',               1],
     'bdt_score_t3m'     : [ 50, 0, 1,       'BDT_{#tau 3 #mu} score',  1],
     'tau_mu12_fitM'     : [ 160, 0.2, 1.8,   'M(#mu_{1}#mu_{2})',       0],
