@@ -137,7 +137,7 @@ def draw_fit_pull(frame_fit, frame_pull= None, fitvar = None, out_name = 'Pull D
     c.Close()
     return True
 
-def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title = 'fit', CMSstyle = False):
+def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title = 'fit', CMSstyle = False, toMeV = True):
     
     
     frame = fitvar.frame(ROOT.RooFit.Title(title))
@@ -149,6 +149,8 @@ def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title 
         ROOT.RooFit.LineWidth(2),
         ROOT.RooFit.Name("data")
     )
+    binwidth = (fitvar.getMax() - fitvar.getMin()) / nbins * 1000
+    if toMeV : frame.GetYaxis().SetTitle(f'Events / {binwidth:.0f} MeV')
     bkg_func.plotOn(
         frame,
         ROOT.RooFit.LineColor(ROOT.kBlue),
@@ -179,7 +181,7 @@ def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title 
             ROOT.RooFit.NormRange('full_range'),
             ROOT.RooFit.Name(f'sig_func_{i}'),
         )
-
+    
     return frame
 
 def apply_cms_style(frame, outfile, cat, year, Preliminary = True, margin = 0.12, ymax = 10):

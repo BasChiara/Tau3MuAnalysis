@@ -18,6 +18,11 @@ categories = []
 bdt_cuts = {}
 year_set = 2022 #updated from argparse
 
+min_deltaNLL_  = 1e-6 # small value to avoid 0
+min_Pval_chi2_ = 0.01
+max_Pval_2nll_ = 0.10
+good_Cov_      = 3
+min_nDoF_      = 2
 
 def getGoodnessOfFit(mass, mpdf, data, name, nBinsForFit=40, i=0):
     ntoys = 1000
@@ -144,24 +149,24 @@ if __name__ == "__main__":
     print('\n')
     
     # --- OUTPUT ---
-    log = open(f"discrete_profiling_{process_name}.log", "w")
+    log = open(os.path.join(args.outdir, f"discrete_profiling_{process_name}.log"), "w")
 
     if not os.path.exists(outputdir):
         os.makedirs(outputdir)
     print(f'{ct.BOLD}[+]{ct.END} output directory: {outputdir}')
-    log.write('[+] output directory {dir} '.format(dir=outputdir))
+    log.write('[+] output directory {dir}\n'.format(dir=outputdir))
 
-    out_workspace = os.path.join(outputdir, f'multiPDF_workspaces', f'multipdfs_{process_name}.root')
+    out_workspace      = os.path.join(outputdir, f'multiPDF_workspaces', f'multipdfs_{process_name}.root')
     path_out_workspace = os.path.dirname(out_workspace)
     path_out_plots     = os.path.join(outputdir, f'multiPDF_plots')
     
     if not os.path.exists(path_out_workspace):
         os.makedirs(path_out_workspace)
-    log.write('[+] output workspace {dir} '.format(dir=out_workspace))
+    log.write('[+] output workspace {dir}\n'.format(dir=out_workspace))
     if not os.path.exists(path_out_plots):
         os.makedirs(path_out_plots)
     save_at = path_out_plots
-    log.write('[+] output plots {dir} '.format(dir=path_out_plots))
+    log.write('[+] output plots {dir}\n'.format(dir=path_out_plots))
 
     
     # --- INPUT ---
@@ -190,7 +195,7 @@ if __name__ == "__main__":
     hist = data.binnedClone('histo_'+cat)
     max_order = 3
     max_order = min(max_order, int(hist.sumEntries())-2)
-    log.write("Max order: %d \n" % max_order)
+    log.write(" [INFO] MAX order : %d (hard-coded)\n" % max_order)
 
     # - workspace for PDFs - 
     pdfs = RooWorkspace('pdfs_'+cat)
@@ -207,7 +212,7 @@ if __name__ == "__main__":
 
     # - Bernstein - oder n has n+1 coefficients (starts from constant)
     for i in range(max_order+1):
-        c_bernstein = '{'+f'c_Bernstein{i}0_{cat}[1]'+','+','.join(['c_Bernstein{}{}_{}[.1, 0.0, 1.0]'   .format(i, j, catYY) for j in range(1, i+1)])+'}'
+        c_bernstein = '{'+f'c_Bernstein{i}0_{cat}[1]'+','+','.join(['c_Bernstein{}{}_{}[.1, 0.0, 1.0]'.format(i, j, catYY) for j in range(1, i+1)])+'}'
         #c_bernstein = '{'+','.join(['c_Bernstein{}{}_{}[.1, 0.0, 1.0]'   .format(i, j, cat) for j in range(0, i+1)])+'}'
         #print(c_bernstein)
         #exit()
@@ -248,14 +253,18 @@ if __name__ == "__main__":
     converged = 0
     # loop over families 
     for j, fam in enumerate(families):
-        log.write("> I'm in %s \n" % fam)
+        log.write("> FAMILY : %s \n" % fam)
 
-        fam_gofmax = 0
+        fam_gofmax, fam_gofmin = 0, 1000
         pdf_list = [p for p in allpdfs_list if p.GetName().startswith(fam)]
+        
+        fam_pdfbest = None
+        p_val_nll = 1000
         mnlls    = []
+        nDoFs    = []
         # loop over PDFs in the family
         for i, pdf in enumerate(pdf_list):
-            log.write(">> Pdf: %s \n" % pdf.GetName())
+            log.write(f">> pdf-({i}) {pdf.GetName()} \n")
             
             # background model
             norm = RooRealVar("multipdf_nbkg_{}".format(cat), "", 10.0, 0.0, 5000.0)
@@ -266,27 +275,35 @@ if __name__ == "__main__":
                 results = ext_pdf.fitTo(data,  RooFit.Save(True), RooFit.Extended(True))
             
             # -- GOF --
-            # calculate chi2 and minNLL + penalty for higher order
+            # calculate chi2 and minNLL + penalty for higher order (increase the likelihood)
             chi2 = RooChi2Var("chi2_"+pdf.GetName(), "", ext_pdf, hist, RooFit.DataError(RooAbsData.Expected))
-            N_DoF = int(hist.sumEntries())-pdf.getParameters(data).selectByAttrib("Constant", False).getSize()
-            mnll = results.minNll()+0.5*(i)
+            nDoF = int(hist.sumEntries())-pdf.getParameters(data).selectByAttrib("Constant", False).getSize()
+            mnll = results.minNll() + 0.5*i
 
             # p-value from chi2 (= probability to have chi2 >= observed chi2)
-            gof_prob = TMath.Prob(chi2.getVal(), N_DoF) 
+            gof_prob = TMath.Prob(chi2.getVal(), nDoF) 
             if data.sumEntries()<100:
                 gof_prob = getGoodnessOfFit(mass, pdf, data, f'{catYY}_{fam}-{i}', 20, i)
-
-            fis_prob = TMath.Prob(2.*(mnlls[-1]-mnll), i-converged) if len(mnlls) else 0
+            
+            # p-value from NLL(simpler)-NLL(more complex)
+            delta_NLL = 2.*(mnlls[-1]-mnll) if len(mnlls) else 2*min_deltaNLL_
+            delta_nDoF = i - converged  if len(nDoFs) else 0
+            fis_prob = TMath.Prob(delta_NLL, delta_nDoF) if len(mnlls) else -1
             if results.covQual()==3:
                 mnlls.append(mnll)
+                nDoFs.append(nDoF)
                 converged = i
 
-            log.write(">>> %s chi2 %f \n" % (pdf.GetName(), chi2.getVal()) )
-            log.write(">>> results.covQual(): %f \n" % results.covQual())
-            log.write(">>> fis_prob: %f \n" % fis_prob)
-            log.write(">>> p-value : %f \n" % gof_prob)
+            log.write("    cov-quality  : %d \n" % results.covQual())
+            log.write("    chi2/(nDoF)  : %.1f/%d \n" % (chi2.getVal(), nDoF) )
+            log.write("    p-value(chi2): %f \n" % gof_prob)
+            log.write("    delta-NNL    : %f \n" % delta_NLL)
+            log.write("    p-value(2NLL): %e \n" % fis_prob)
+            if delta_NLL<min_deltaNLL_: 
+                log.write(" xx  NLL did not improve, skipping the rest of the family \n")
+                break # if NLL does not improve, skip the rest of the family
 
-            if (gof_prob > 0.01 and fis_prob < 0.1 and results.covQual()==3) or ("Exponential" in pdf.GetName()):
+            if (gof_prob > min_Pval_chi2_ and fis_prob < max_Pval_2nll_ and results.covQual() == good_Cov_ and nDoF > min_nDoF_) or ("Exponential" in pdf.GetName()):
             #if (fis_prob < 0.1) or ("Exponential" in pdf.GetName()):
                 if gof_prob > gofmax:
                     gofmax = gof_prob
@@ -297,16 +314,16 @@ if __name__ == "__main__":
 
                 envelope.add(pdf)
 
-                log.write(">>> "+pdf.GetName()+" added to envelope \n")
-                print(">>>", pdf.GetName(), " added to envelope")
-                print("gof_prob:", gof_prob, " fis_prob:", fis_prob, " mnll: ",mnll)
+                log.write(" ++ "+pdf.GetName()+" added to envelope \n")
+               
                 ext_pdf.plotOn(frame, RooFit.LineColor(envelope.getSize()), RooFit.Name(pdf.GetName()),
                             RooFit.NormRange(fit_range if isblind else "full_range"),
                             RooFit.Range('full_range'),#(fit_range if isblind else "full_range"))
                 )
-            #elif fis_prob >= 0.1:
-            #    break
+            else :
+                log.write(" xx "+pdf.GetName()+" rejected \n")
             del chi2 
+    
     for pdf in [envelope.at(i) for i in range(envelope.getSize())]:
         #if worst_fit==True:
         #    leg.AddEntry(frame.findObject(pdf.GetName()), pdf.GetName()+" (worstfit)" if worstfit==pdf.GetName() else pdf.GetName(), "l")
@@ -327,6 +344,7 @@ if __name__ == "__main__":
     #roocat.setIndex([envelope.at(i).GetName() for i in range(envelope.getSize())].index('Exponential_{}'.format(cat)))
     if bestfit is not None:
         roocat.setIndex([envelope.at(i).GetName() for i in range(envelope.getSize())].index(bestfit))
+        log.write(f' [==] Best fit PDF : {bestfit}\n')
     else:
         print(len(envelope))
         exit()

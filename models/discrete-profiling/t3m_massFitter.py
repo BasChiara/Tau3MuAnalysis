@@ -19,7 +19,6 @@ import mva.config as config
 from style.color_text import color_text as ct
 import models.datacard_utils as du
 import models.fit_utils as fitu
-import models.CMSStyle as CMS
 
 
 def get_multipdf(file, workspace, name):
@@ -60,6 +59,7 @@ parser.add_argument('--tag',                                                    
 parser.add_argument('-u','--unblind',   action = 'store_true' ,                                             help='set it to run UN-blind')
 parser.add_argument('-b','--bkg_func',  choices = ['expo', 'const', 'multipdf'],    default = 'expo',       help='background model, expo or const or multipdf. If multipdf, specify the PDF workspace')
 parser.add_argument('--multipdf_ws',                                                                        help='workspace with the multipdf background model')
+parser.add_argument('--fixBestPdf',     action = 'store_true' ,                                             help='fix the multipdf to the best p.d.f. found')
 parser.add_argument('-c','--category',  choices = ['A', 'B', 'C'],  default = 'A',                          help='which categories to fit')
 parser.add_argument('-y','--year',      choices = config.year_list, default = '22',                         help='which CMS dataset to use')
 parser.add_argument('--bdt_cut',        type= float,                default = 0.9900,                       help='single value of the BDT threshold to fit')
@@ -131,10 +131,7 @@ base_selection      = ' & '.join([
 ])
 
 if args.save_ws : file_ws = ROOT.TFile(wspace_filename, "RECREATE")
-
-
-
-   
+ 
 # output tag
  # replace dot with p for the tag
 # BDT selection
@@ -252,6 +249,8 @@ elif args.bkg_func == 'multipdf':
     if not b_model:
         print(f'{ct.RED}[ERROR]{ct.END} multipdf model not found in {args.multipdf_ws}')
         exit()
+    else:
+        print(f'{ct.BOLD}[i]{ct.END} best p.d.f. from multipdf is {b_model.GetName()}')
     b_model.SetName(bkg_model_name)
 else : print(f'{ct.BOLD}[i]{ct.END} fit background with exponential')
 
@@ -409,7 +408,7 @@ if (args.fix_w) : width_Z.setConstant(True)
 
 # save observed data // bkg-only Asimov with name 'dat_obs'
 fulldata = ROOT.RooDataSet('full_data', 'full_data', data_tree, thevars, sgn_selection) # fixme : this is useless
-mass.setBins(nbins)
+mass.setBins(2*nbins)
 if runblind:
     # GenerateAsimovData() generates binned data following the binning of the observables
     print(f'{ct.RED}[i]{ct.END} running BLIND -- asimov dataset into workspace')
@@ -422,7 +421,7 @@ else :
 data.Print()
 
 ws   = ROOT.RooWorkspace(wspace_name, wspace_name)
-if args.bkg_func == 'multipdf':
+if args.bkg_func == 'multipdf' and not args.fixBestPdf:
     pdfs = ROOT.RooArgSet(s_model, enevlope)
 else:
     pdfs = ROOT.RooArgSet(s_model, b_model)
@@ -458,7 +457,7 @@ du.combineDatacard_writer(
     datacard_name= datacard_name,
     year         = args.year,
     cat          = args.category,
-    bkg_func     = args.bkg_func,
+    bkg_func     = args.bkg_func if not args.fixBestPdf else 'bestpdf',
     Nobs         = -1 if runblind else fulldata.numEntries(),
     Nsig         = nsig_W.getValV() + nsig_Z.getValV(),
     Nbkg         = nbkg.getVal(),

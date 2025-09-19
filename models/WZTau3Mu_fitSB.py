@@ -19,8 +19,13 @@ import mva.config as config
 from style.color_text import color_text as ct
 import models.datacard_utils as du
 import models.fit_utils as fitu
-import models.CMSStyle as CMS
 
+
+width_correction = {
+    'A22' : 1.033, 'A23' : 1.004,
+    'B22' : 1.001, 'B23' : 1.038,
+    'C22' : 1.067, 'C23' : 1.093,
+}
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--signal_W',                                                                           help='input WTau3Mu MC')
@@ -95,43 +100,12 @@ blind_region_lo, blind_region_hi = config.blind_range_lo, config.blind_range_hi 
 fit_range_lo  , fit_range_hi   = blind_region_lo - 0.05, blind_region_hi + 0.05 # GeV
 
 # binning
-bin_w = 0.01 # GeV
+bin_w = 0.010 # GeV
 nbins = int(np.rint((mass_window_hi-mass_window_lo)/bin_w)) # needed just for plotting, fits are all unbinned
 if (args.debug): print(f'{ct.BOLD}[INFO]{ct.END} binning {nbins} of type {type(nbins)}')
 
-
-mass = ROOT.RooRealVar('tau_fit_mass', 'M(3#mu)'  , mass_window_lo,  mass_window_hi, 'GeV' )
-mass.setRange('left_SB', mass_window_lo, blind_region_lo)
-mass.setRange('right_SB', blind_region_hi, mass_window_hi)
-mass.setRange('fit_range', fit_range_lo,fit_range_hi)
-mass.setRange('sig_range', blind_region_lo,blind_region_hi)
-mass.setRange('full_range', mass_window_lo, mass_window_hi)
-
-# tau mass resolution
-eta = ROOT.RooRealVar('tau_fit_eta', '#eta_{3 #mu}'  , -4.0,  4.0)
-# BDT score
-bdt = ROOT.RooRealVar('bdt_score', 'BDT score'  , 0.0,  1.0, '' )
-# data weights
-weight = ROOT.RooRealVar('weight', 'weight', -np.inf, np.inf, '')
-# di-muon mass
-mu12_mass = ROOT.RooRealVar('tau_mu12_fitM', 'tau_mu12_fitM'  , -10.0,  10.0, 'GeV' )
-mu23_mass = ROOT.RooRealVar('tau_mu23_fitM', 'tau_mu23_fitM'  , -10.0,  10.0, 'GeV' )
-mu13_mass = ROOT.RooRealVar('tau_mu13_fitM', 'tau_mu13_fitM'  , -10.0,  10.0, 'GeV' )
-#displacement
-Lsign = ROOT.RooRealVar('tau_Lxy_sign_BS', 'tau_Lxy_sign_BS', 0, np.inf)
-# year/era tag
-year_id = ROOT.RooRealVar('year_id', 'year_id', 0, 500, '')
-
-thevars = ROOT.RooArgSet()
-thevars.add(mass)
-thevars.add(eta)
-thevars.add(bdt)
-thevars.add(weight)
-thevars.add(mu12_mass)
-thevars.add(mu13_mass)
-thevars.add(mu23_mass)
-thevars.add(Lsign)
-thevars.add(year_id)
+vars, mass = fitu.load_data(mass_window_lo, mass_window_hi, blind_region_lo, blind_region_hi, fit_range_lo, fit_range_hi)
+thevars = ROOT.RooArgSet(*vars)
 
 # *** Punzi Sensitivity and AMS ***
 if args.optim_bdt :
@@ -257,7 +231,7 @@ for cut in set_bdt_cut:
     nsig_Z.setConstant(True)
     r_wz = ROOT.RooRealVar(f'r_wz_{catYY}', f'r_wz_{catYY}', nsig_W.getValV()/(nsig_W.getValV()+nsig_Z.getValV()))
     
-    s_model = ROOT.RooAddPdf(f'model_sig_{process_name}', f'model_sig_{process_name}', ROOT.RooArgList(cb_W, cb_Z), ROOT.RooArgList(r_wz))
+    s_model = ROOT.RooAddPdf(f'model_sig_{process_name}', f'model_sig_{process_name}', ROOT.RooArgList(cb_W, cb_Z), ROOT.RooArgList(r_wz), True)
 
     # **** BACKGROUND MODEL ****
     bkg_model_name = f'model_bkg_{process_name}' 
@@ -435,23 +409,29 @@ for cut in set_bdt_cut:
     # ----------------------------------------------------------------------------------------------------
     #### SAVE MODEL TO A WORKSPACE ####
     wspace_tag      = f'VTau3Mu_{point_tag}'
-    wspace_name     = f'wspace_{wspace_tag}'
+    wspace_name     = f'wspace_{wspace_tag}' if args.optim_bdt else f'wspace_vt3m'
     print(f'{ct.BOLD}[i]{ct.END} saving workspace {wspace_name} to {wspace_filename}')
     
     # W channel: fix signal mean value - width is fixed only during wp optimization
     dMtau_W.setConstant(True)
     alpha_W.setConstant(True)
     n_W.setConstant(True)
-    if (args.fix_w) : width_W.setConstant(True)
+    if (args.fix_w) : 
+        width_W.setVal(width_W.getValV() *width_correction[catYY]) # set width to the value from the table
+        width_W.setConstant(True)
+        print(f'{ct.BOLD}[i]{ct.END} fixing W width to {width_W.getValV():.4f} GeV')
     # Z channel: fix everything but width
     dMtau_Z.setConstant(True)
     alpha_Z.setConstant(True)
     n_Z.setConstant(True)
-    if (args.fix_w) : width_Z.setConstant(True)
+    if (args.fix_w) : 
+        width_Z.setConstant(True)
+        width_Z.setVal(width_Z.getValV() *width_correction[catYY]) # set width to the value from the table
+        print(f'{ct.BOLD}[i]{ct.END} fixing Z width to {width_Z.getValV():.4f} GeV')
 
     # save observed data // bkg-only Asimov with name 'dat_obs'
     fulldata = ROOT.RooDataSet('full_data', 'full_data', data_tree, thevars, sgn_selection) # fixme : this is useless
-    mass.setBins(nbins)
+    mass.setBins(4*nbins)
     if runblind:
         # GenerateAsimovData() generates binned data following the binning of the observables
         print(f'{ct.RED}[i]{ct.END} running BLIND -- asimov dataset into workspace')
@@ -459,8 +439,8 @@ for cut in set_bdt_cut:
         data.SetName('data_obs') 
     else :
         print(f'{ct.GREEN}[i]{ct.END} running OPEN -- real data into workspace !!!!')
-        data     = ROOT.RooDataSet('data_obs','data_obs', fulldata, ROOT.RooArgSet(mass))
-        #data = ROOT.RooDataHist("data_obs", "data_obs", mass, fulldata)
+        #data     = ROOT.RooDataSet('data_obs','data_obs', fulldata, ROOT.RooArgSet(mass))
+        data = ROOT.RooDataHist("data_obs", "data_obs", mass, fulldata)
     data.Print()
 
     ws = ROOT.RooWorkspace(wspace_name, wspace_name)
@@ -508,9 +488,6 @@ for cut in set_bdt_cut:
 if args.save_ws : file_ws.Close()
 if not args.optim_bdt: exit()
 tree_dict = dict(zip(df_columns, np.array([bdt_cut, sig_Nexp, sig_eff, bkg_Nexp, bkg_Nexp_Sregion, bkg_eff, PunziS_val, PunziS_err, AMS_val])))
-#if (ROOT.gROOT.GetVersion() == '6.22/09' ):
 out_rdf = ROOT.RDF.MakeNumpyDataFrame(tree_dict).Snapshot('sensitivity_tree', out_data_filename)
-#elif (ROOT.gROOT.GetVersion() == '6.30/07' ):
-#    out_rdf = ROOT.RDF.FromNumpy(tree_dict).Snapshot('sensitivity_tree', out_data_filename)
 print(f'[o] output tree saved in {out_data_filename}')
 print(tree_dict)

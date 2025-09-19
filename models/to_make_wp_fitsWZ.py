@@ -5,11 +5,13 @@ import sys
 import argparse
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import mva.config as config
+import style.color_text as ctext
 
 argparser = argparse.ArgumentParser()
-argparser.add_argument('-y','--year',   choices=['22', '23', '24'], default='22')
-argparser.add_argument('-b','--b_func', choices=['expo', 'const', 'powerlaw', 'dynamic'], default='expo')
-argparser.add_argument('-t','--tag',    default='apply_LxyS2.0')
+argparser.add_argument('-y','--year',     choices=['22', '23', '24'], default='22')
+argparser.add_argument('-b','--b_func',   choices=['expo', 'const', 'powerlaw', 'dynamic'], default='expo')
+argparser.add_argument('-u', '--unblind', action='store_true', help='Unblind the fit. If not specified, the fit will be blinded.')
+argparser.add_argument('-t','--tag',      default='apply_LxyS2.0')
 argparser.add_argument('-o','--output',
                     default='$COMBINEv10/WTau3Mu_limits/bias_study_v3/input_combine/',
                     help='Output directory for the combine datacards. If not specified, the default is used')
@@ -22,31 +24,35 @@ args = argparser.parse_args()
 year = args.year
 
 working_points = config.wp_dict[year]
-print(f'Working points for {year}: {working_points}')
+ctext.print_info(f'Working points for {year}: {working_points}')
+ctext.print_info(f'Using b_func: {args.b_func}')
 
 plot_outdir  = args.plot_outdir
 if plot_outdir.startswith('$'):
     plot_outdir = os.path.expandvars(plot_outdir)
 if not os.path.exists(plot_outdir):
     os.makedirs(plot_outdir)
-    print(f'[OUT] created directory {plot_outdir}')
+    ctext.print_addition(f'created directory {plot_outdir}')
 else:
-    print(f'[OUT] using existing directory {plot_outdir}')
+    ctext.print_addition(f'using existing directory {plot_outdir}')
 combine_dir  = args.output
 if combine_dir.startswith('$'):
     combine_dir = os.path.expandvars(combine_dir)
 if not os.path.exists(combine_dir):
     os.makedirs(combine_dir)
-    print(f'[OUT] created directory {combine_dir}')
+    ctext.print_addition(f'created directory {combine_dir}')
 else:
-    print(f'[OUT] using existing directory {combine_dir}')
+    ctext.print_addition(f'using existing directory {combine_dir}')
 tag          = args.tag
 b_func       = args.b_func
 
 for cat in working_points:
     if cat == 'comb': continue
-    print(f'\n\n------ CATEGORY {cat} ------\n\n')
-    cmd = f'python3 WZTau3Mu_fitSB.py --plot_outdir {plot_outdir} --goff --save_ws --sys_unc --combine_dir {combine_dir} --tag {tag}_{b_func} -b {b_func} -c {cat} -y {year} --bdt_cut {working_points[cat]}'
+    ctext.print_bold(f'\n\n------ CATEGORY {cat} ------')
+    cmd = f'python3 WZTau3Mu_fitSB.py --plot_outdir {plot_outdir} --goff --save_ws --sys_unc --combine_dir {combine_dir} --tag {tag}_{b_func} -b {b_func} -c {cat} -y {year} --bdt_cut {working_points[cat]} --fix_w'
+    if args.unblind:
+        ctext.print_warning('UNBLINDING THE FIT')
+        cmd += ' --unblind'
     if args.dry_run:
         print(cmd)
     else:

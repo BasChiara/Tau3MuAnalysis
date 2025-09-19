@@ -69,3 +69,6 @@ bin/*
 
 # xgb models
 *.pck
+
+# datacards
+*datacard*.txt

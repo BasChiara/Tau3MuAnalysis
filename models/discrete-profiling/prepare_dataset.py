@@ -93,8 +93,8 @@ if __name__ == "__main__":
     process_name = f'vt3m_{catYY}'
     cut = args.bdt_cut if hasattr(args, 'bdt_cut') else 0.0
     label = '_'.join([
-        f'bdt{cut:,.4f}',
         process_name,
+        f'bdt{cut:,.4f}',
         args.tag, 
         'blind' if isblind else 'unblind']
     ).strip('_')

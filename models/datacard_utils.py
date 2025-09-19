@@ -193,6 +193,7 @@ rate                             {signal:.4f}              {bkg:.4f}
         # **SIGNAL**
         if write_sys:
             for width in width_list:
+                if width.isConstant(): continue
                 width_error = np.sqrt(width.getError()**2 + (width.getVal()*shape_sys['width'])**2)
                 card.write(
 '{width_name}         param          {val:.4f}     {err:.4f}\n'.format(
@@ -207,17 +208,15 @@ rate                             {signal:.4f}              {bkg:.4f}
 '''
 multipdf_bkg_cat_{cyy}      discrete
 '''.format(
-                cyy = catYY
+                cyy      = catYY
             ))
-        else:
-            card.write(
+        card.write(
 '''
-bkg_scale_v_{c}_{yyyy}       rateParam     {proc}              bkg      1.      [{bkg_lo:.2f},{bkg_hi:.2f}]
-bkg_scale_v_{c}_{yyyy}       flatParam     1.    [{bkg_lo:.2f},{bkg_hi:.2f}]
+bkg_scale_V_{cyy}       rateParam     {proc}              bkg      1.      [{bkg_lo:.2f},{bkg_hi:.2f}]
+bkg_scale_V_{cyy}       flatParam     1.    [{bkg_lo:.2f},{bkg_hi:.2f}]
 '''.format(
                 proc     = process_name,
-                c        = cat,
-                yyyy     = '20' + year if not year.startswith('20') else year,
+                cyy      = catYY,
                 bkg_lo   = bkg_norm_lo,
                 bkg_hi   = bkg_norm_hi, 
             ))
