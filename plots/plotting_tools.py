@@ -1,4 +1,5 @@
 import ROOT
+ROOT.gStyle.SetOptStat(0)
 import cmsstyle as CMS
 CMS.SetEnergy(13.6)
 

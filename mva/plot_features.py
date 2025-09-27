@@ -127,9 +127,9 @@ CMS.SetEnergy(13.6)
 
 observables = cfg.features + ['tau_fit_eta', 'tauEta', bdt_score, 'tau_fit_mass', 'tau_mu12_fitM', 'tau_mu23_fitM', 'tau_mu13_fitM']
 observables = observables + ['tau_mu1_pt', 'tau_mu2_pt', 'tau_mu3_pt', 'tau_mu1_eta', 'tau_mu2_eta', 'tau_mu3_eta']
-#observables = [cfg.features[0], cfg.features[1], cfg.features[2], cfg.features[3]]
+
 no_overunderflow = ['tauEta', 'tau_mu1_TightID_PV', 'tau_mu2_TightID_PV', 'tau_mu3_TightID_PV', 'tau_mu1_MediumID', 'tau_mu2_MediumID', 'tau_mu3_MediumID', 'tau_fit_vprob', 'bdt_score']
-#observables = ['tau_Lxy_sign_BS']
+observables = ['tau_fit_charge']
 legend = ROOT.TLegend(0.55, 0.70, 0.90, 0.90)
 legend.SetTextSize(0.04)
 legend.SetBorderSize(0)

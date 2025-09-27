@@ -25,18 +25,17 @@ def make_eta_weights(dataframe_mc, dataframe_data, nbins, lo, hi, selection):
 
     return h_reweight
 
-def weighted_rdf(h_weight, dataframe):
 
+def weighted_rdf(h_weight, dataframe):
     # Declare the C++ function to calculate the weight based on the mass value
     ROOT.gInterpreter.Declare(f"""
     TH1F* h_weight_global = (TH1F*)gROOT->FindObject("{h_weight.GetName()}");
-    
+
     double get_weight(double eta_value) {{
         int bin = h_weight_global->FindBin(eta_value);
         return h_weight_global->GetBinContent(bin);
     }}
     """)
-
     # Define a new column "sb_weight" using the declared C++ function and the histogram
     dataframe = dataframe.Define("eta_weight", "get_weight(Ds_fit_eta)")
     dataframe = dataframe.Define("total_w", "eta_weight*norm_factor*weight")
@@ -65,6 +64,7 @@ base_selection = '(' + ' & '.join([
         config.year_selection['20'+args.year],
         config.Ds_base_selection,
         config.Ds_phi_selection,
+        config.Tau_sv_selection
 ]) + ')'
 
 h_reweight = make_eta_weights(
@@ -73,7 +73,21 @@ h_reweight = make_eta_weights(
     25, -2.5, 2.5, 
     base_selection
 )
-
+ 
+observables = {
+    'tau_Lxy_sign_BS':{
+        'bins' :np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 25, 30], dtype=float),
+        'x_title': 'L_{xy}/#sigma',
+    },
+    'Ds_Lxy_val_BS':{
+        'bins' : np.concatenate((np.linspace(0, 0.2, 10, dtype=float), np.linspace(0.3, 0.8, 5, dtype=float), np.array([1.0], dtype=float))),
+        'x_title': 'L_{xy} (cm)',
+    },
+    'Ds_Lxy_err_BS':{
+        'bins' : np.concatenate((np.array([0.002, 0.005, 0.008], dtype=float), np.linspace(0.010, 0.020, 10, dtype=float), np.array([0.030], dtype=float))),
+        'x_title': 'L_{xy} error (cm)',
+    },
+}
 
 for cat in categories:
 
@@ -86,7 +100,7 @@ for cat in categories:
 
     # put data in RootDataFrame
     rdf_sData = ROOT.RDataFrame('RooTreeDataStore_sData_data_fit', args.input).Filter(selection)
-    rdf_mc    = ROOT.RDataFrame('mc_tree', args.input).Filter(selection + ' & isMCmatching')
+    rdf_mc    = ROOT.RDataFrame('mc_tree', args.input).Filter(selection)
 
     # apply the weights to MC dataframe
     rdf_mc = weighted_rdf(h_reweight, rdf_mc)
@@ -115,39 +129,61 @@ for cat in categories:
 
     if not args.make_plots: continue
     # draw histograms
-    h_Data = rdf_sData.Histo1D(('h_Data', 'h_Data', 30, 0, 30), 'tau_Lxy_sign_BS', 'nDs_sw').GetValue()
-    #h_mc   = rdf_mc.Define('total_w', 'norm_factor*weight').Histo1D(('h_mc', 'h_mc', 30, 0, 30), 'tau_Lxy_sign_BS', 'total_w').GetValue()
-    h_mc   = rdf_mc.Histo1D(('h_mc', 'h_mc', 30, 0, 30), 'tau_Lxy_sign_BS', 'total_w').GetValue()
+    for obs in observables:
+        settings = observables[obs]
+        h_Data = rdf_sData.Histo1D(('h_Data', 'h_Data', len(settings['bins'])-1 ,settings['bins']), obs, 'nDs_sw').GetValue()
+        #h_mc   = rdf_mc.Define('total_w', 'norm_factor*weight').Histo1D(('h_mc', 'h_mc', 30, 0, 30), 'tau_Lxy_sign_BS', 'total_w').GetValue()
+        h_mc   = rdf_mc.Histo1D(('h_mc', 'h_mc', len(settings['bins'])-1, settings['bins']), obs, 'total_w').GetValue()
 
-    c = ROOT.TCanvas('c', 'c', 800, 600)
-    h_Data.SetMarkerStyle(20)
-    h_Data.SetMarkerColor(ROOT.kBlack)
-    h_Data.SetLineColor(ROOT.kBlack)
-    h_Data.SetLineWidth(2)
-    h_Data.SetTitle('')
-    
-    h_mc.SetFillColor(ROOT.kBlue)
-    h_mc.SetFillStyle(3004)
-    h_mc.SetLineColor(ROOT.kBlue)
-    h_mc.SetLineWidth(2)
-    h_mc.GetXaxis().SetTitle('L_{xy}/#sigma')
-    h_mc.GetYaxis().SetTitle('Events')
+        # normalize to bin width
+        for h in [h_Data, h_mc]:
+            for i in range(1, h.GetNbinsX()+1):
+                bin_width = h.GetBinWidth(i)
+                bin_content = h.GetBinContent(i)
+                bin_error = h.GetBinError(i)
+                if bin_width > 0:
+                    h.SetBinContent(i, bin_content / bin_width)
+                    h.SetBinError(i, bin_error / bin_width)
+            h.Sumw2()
 
-    leg = ROOT.TLegend(0.6, 0.6, 0.9, 0.85)
-    leg.AddEntry(h_Data, 'sWeighted data', 'lep')
-    leg.AddEntry(h_mc, 'MC', 'f')
-    leg.SetBorderSize(0)
+        c = ROOT.TCanvas('c', 'c', 800, 600)
+        h_Data.SetMarkerStyle(20)
+        h_Data.SetMarkerColor(ROOT.kBlack)
+        h_Data.SetLineColor(ROOT.kBlack)
+        h_Data.SetLineWidth(2)
+        h_Data.SetTitle('')
+        
+        h_mc.SetFillColor(ROOT.kBlue)
+        h_mc.SetFillStyle(3004)
+        h_mc.SetLineColor(ROOT.kBlue)
+        h_mc.SetLineWidth(2)
+        h_mc.GetXaxis().SetTitle(settings['x_title'])
+        h_mc.GetYaxis().SetTitle('Events')
 
-    name = f'{args.output}/LxyS_sPlot_{cat}20{args.year}'
+        leg = ROOT.TLegend(0.6, 0.6, 0.9, 0.85)
+        leg.AddEntry(h_Data, 'sWeighted data', 'lep')
+        leg.AddEntry(h_mc, 'MC', 'f')
+        leg.SetBorderSize(0)
 
-    pt.ratio_plot(
-        histo_num = [h_Data],
-        histo_den = h_mc,
-        to_ploton = [leg],
-        file_name = name,
-        ratio_w = 1.0,
-    )
-    
+        text = ROOT.TLatex(0.20, 0.8, f'CAT {cat} - 20{args.year}')
+        text.SetNDC()
+        text.SetTextSize(0.045)
+        text.SetTextFont(42)
+
+
+        name = f'{args.output}/LxyS_sPlot_{cat}20{args.year}-{obs}'
+
+        pt.ratio_plot(
+            histo_num = [h_Data],
+            draw_opt_num = 'PE',
+            histo_den = h_mc,
+            draw_opt_den = 'HISTE',
+            y_lim = [0., 1.4*max(h_Data.GetMaximum(), h_mc.GetMaximum())],
+            to_ploton = [leg, text],
+            file_name = name,
+            ratio_w = 1.0,
+        )
+        
 # save the efficiencies in a json file
 with open(f'{args.output}/LxyS_efficiency_20{args.year}.json', 'w') as f:
     json.dump(corr_dict, f)

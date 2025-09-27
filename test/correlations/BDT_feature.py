@@ -29,7 +29,8 @@ def style_histo(histo, title, xlabel, ylabel, color=None, ylim=None):
 
 
 year = '2022'
-infile = config.mc_bdt_samples['WTau3Mu']
+#infile = config.mc_bdt_samples['WTau3Mu']
+infile = config.data_bdt_samples['WTau3Mu']
 selection = '&'.join([
     config.year_selection[year],
     '(1)'
@@ -38,30 +39,32 @@ rdf = ROOT.RDataFrame("tree_w_BDT", infile).Filter(config.year_selection[year])
 plotpath = os.path.expandvars('$WWW/Tau3Mu_Run3/BPH-24-010_review/Lxy-significance')
 
 feature = 'tau_Lxy_sign_BS'
-
+min_feat, max_feat = 2.0, 100.0
+nbins_feature = int((max_feat - min_feat) / 0.5)
 # BDT correlation
 reference = 'bdt_score'
-min_ref, max_ref = 0.75, 1.0
+min_ref, max_ref = 0.0, 1.0
 nbins = int((max_ref - min_ref) / 0.01)
-bins = np.asarray([1.6, 1.7] + [1.8 + i * 0.01 for i in range(nbins - 2)] + [max_ref])
 
 
 # --- profile
-h2d = rdf.Histo2D((f"hprof_{feature}", "", nbins*2, min_ref, max_ref, config.features_NbinsXloXhiLabelLog[feature][0], config.features_NbinsXloXhiLabelLog[feature][1], config.features_NbinsXloXhiLabelLog[feature][2]), reference, feature)
-style_histo(h2d, f"{feature} vs BDT (signal {year})", config.features_NbinsXloXhiLabelLog[reference][3], config.features_NbinsXloXhiLabelLog[feature][3], ylim=None)
-profile = rdf.Profile1D(("hprof", "", nbins, min_ref, max_ref), reference, feature)
-style_histo(profile, f"{feature} vs BDT (signal {year})", config.features_NbinsXloXhiLabelLog[reference][3], config.features_NbinsXloXhiLabelLog[feature][3], color=ROOT.kBlack, ylim=[9, 15])
+h2d = rdf.Histo2D((f"hprof_{feature}", "", nbins*2, min_ref, max_ref, nbins_feature, min_feat, max_feat), reference, feature)
+style_histo(h2d, f"{feature} vs BDT (data {year})", config.features_NbinsXloXhiLabelLog[reference][3], config.features_NbinsXloXhiLabelLog[feature][3], ylim=None)
+profile = rdf.Profile1D(("hprof", "", nbins, min_ref, max_ref, min_feat, max_feat), reference, feature)
+style_histo(profile, f"{feature} vs BDT (data {year})", config.features_NbinsXloXhiLabelLog[reference][3], config.features_NbinsXloXhiLabelLog[feature][3], color=ROOT.kBlack, ylim=[0, 30])
 # --- draw
 c = ROOT.TCanvas("c", "c", 800, 600)
 profile.Draw("profcolz")
 c.SetGrid()
-c.SaveAs(os.path.join(plotpath,f"bdtVS{feature}_{year}.png") )
+c.SaveAs(os.path.join(plotpath,f"bdtVS{feature}_{year}_DATA-v2.png") )
 c.Clear()
 # --- draw 2D histogram
 h2d.Draw("COLZ")
 c.SetLogz()
-c.SaveAs(os.path.join(plotpath, f"bdtVS{feature}_2D_{year}.png"))
+c.SetLogy()
+c.SaveAs(os.path.join(plotpath, f"bdtVS{feature}_2D_{year}_DATA-v2.png"))
 
+sys.exit(0)
 # tau mass correlation
 ROOT.gStyle.SetPalette(ROOT.kCMYK)
 thresh = np.linspace(2.0, 10.0, 9)

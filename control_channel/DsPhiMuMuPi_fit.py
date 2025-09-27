@@ -56,8 +56,8 @@ ROOT.TH1.SetDefaultSumw2()
 # **** CONSTANT VARIABLES **** #
 fit_range_lo = config.Ds_mass_range_lo if not args.peak_bkg else config.peakB_mass_lo
 fit_range_hi = config.Ds_mass_range_hi if not args.peak_bkg else config.peakB_mass_hi
-binwidth = 0.01 
-nbins = int((fit_range_hi-fit_range_lo)/binwidth)
+binwidth = 0.010
+nbins = int((fit_range_hi-fit_range_lo)/binwidth) +1
 
 
 # *** INPUT DATA AND MONTE CARLO ***
@@ -136,7 +136,7 @@ fullmc.Print()
 
 # signal PDF : resonance + combinatorics
 Mass      = ROOT.RooRealVar('Ds_Mmc' , 'Ds_Mmc' , config.Ds_mass)
-dMass_mc  = ROOT.RooRealVar('dM_mc', 'dM_mc', 0, -0.1, 0.1)
+dMass_mc  = ROOT.RooRealVar('dM_mc', 'dM_mc', 0., -0.005, 0.005)
 mean_mc   = ROOT.RooFormulaVar('mean_mc','mean_mc', '(@0+@1)', ROOT.RooArgList(Mass,dMass_mc) )
 
 width_mc  = ROOT.RooRealVar('width_mc',   'width_mc',  0.01,    0.001, 0.1)
@@ -179,7 +179,6 @@ frame = mass.frame(Title=' ')
 fullmc.plotOn(
     frame, 
     ROOT.RooFit.Binning(nbins), 
-    ROOT.RooFit.XErrorSize(0), 
     ROOT.RooFit.LineWidth(2),
     ROOT.RooFit.FillColor(ROOT.kRed),
 )
@@ -323,8 +322,8 @@ full_model.plotOn(
     ROOT.RooFit.LineColor(ROOT.kBlue),
     ROOT.RooFit.LineStyle(ROOT.kDashed),
     )
-text_NDs = ROOT.TText(fit_range_lo + 0.02, 0.90*frame_b.GetMaximum(), "N_{Ds} = %.0f +/- %.0f"%(nDs.getValV(), nDs.getError()))
-text_NDp = ROOT.TText(fit_range_lo + 0.02, 0.85*frame_b.GetMaximum(), "N_{D+} = %.0f +/- %.0f"%(nDp.getValV(), nDp.getError()))
+text_NDs = ROOT.TText(fit_range_lo + 0.02, 0.90*frame_b.GetMaximum(), "N(Ds) = %.0f +/- %.0f"%(nDs.getValV(), nDs.getError()))
+text_NDp = ROOT.TText(fit_range_lo + 0.02, 0.85*frame_b.GetMaximum(), "N(D+) = %.0f +/- %.0f"%(nDp.getValV(), nDp.getError()))
 text_Nb  = ROOT.TText(fit_range_lo + 0.02, 0.80*frame_b.GetMaximum(), "Nb   = %.0f +/- %.0f"%(nB.getValV(), nB.getError()))
 text_NDs.SetTextSize(0.035)
 text_NDp.SetTextSize(0.035)

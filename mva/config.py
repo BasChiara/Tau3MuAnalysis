@@ -24,22 +24,24 @@ Ds_mass_range_hi  = 2.05 # GeV
 ###                ###
 #   EVENT SELECTION  #
 ###  at mva level  ###
-Phi_mass_, Phi_window_ = 1.020, 0.040
+Phi_mass_, Phi_window_ = 1.019, 6*0.013
+Omega_mass_, Omega_window_ = 0.780, 6*0.012
 LxySign_cut    = 2.0
-Ds_phi_mass_lo, Ds_phi_mass_hi = 0.98, 1.05
-Ds_minSVprob = 0.10
+Ds_phi_mass_lo, Ds_phi_mass_hi = 0.98, 1.06
+Ds_minSVprob = 0.001
 
 # tau->3mu
 base_selection      = f'(tau_fit_mass > {mass_range_lo} & tau_fit_mass < {mass_range_hi} ) & (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu)'
 phi_veto            = '''(fabs(tau_mu12_fitM- {mass:.3f})> {window:.3f} & fabs(tau_mu23_fitM - {mass:.3f})> {window:.3f} & fabs(tau_mu13_fitM -  {mass:.3f})>{window:.3f})'''.format(mass =Phi_mass_ , window = Phi_window_/2. )
+omega_veto          = '''(fabs(tau_mu12_fitM- {mass:.3f})> {window:.3f} & fabs(tau_mu23_fitM - {mass:.3f})> {window:.3f} & fabs(tau_mu13_fitM -  {mass:.3f})>{window:.3f})'''.format(mass =Omega_mass_ , window = Omega_window_/2. )
 sidebands_selection = f'((tau_fit_mass < {blind_range_lo} )|| (tau_fit_mass > {blind_range_hi}))'
 displacement_selection = f'(tau_Lxy_sign_BS > {LxySign_cut})'
 
 # Ds->Phi(MuMu)Pi
 Ds_base_selection   = f'(Ds_fit_mass > {Ds_mass_range_lo} & Ds_fit_mass < {Ds_mass_range_hi} )' #& (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu)'
-Ds_phi_selection    = f'(phi_fit_mass > {Ds_phi_mass_lo} & phi_fit_mass < {Ds_phi_mass_hi} )'
+Ds_phi_selection    = f'(fabs(phi_fit_mass - {Phi_mass_}) < {Phi_window_/2.:.3f})'#f'(phi_fit_mass > {Ds_phi_mass_lo} & phi_fit_mass < {Ds_phi_mass_hi} )'
 Ds_sv_selection     = f'(Ds_Lxy_sign_BS > 0.0 & Ds_fit_vprob > {Ds_minSVprob} )'
-Tau_sv_selection    = f'(tau_Lxy_sign_BS > {LxySign_cut} & tau_fit_vprob > {Ds_minSVprob} )'
+Tau_sv_selection    = f'(tau_Lxy_sign_BS > 0. & tau_fit_vprob > {Ds_minSVprob} )'
 
 # peaking background
 peakB_mass_lo = 1.70
@@ -404,7 +406,7 @@ data_samples = {
 bdt_output_path = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/'
 mc_bdt_samples = {
     'WTau3Mu'       : bdt_output_path+'XGBout_signal_kFold_ANv8_2025Jul28.root', 
-    'DsPhiMuMuPi'   : bdt_output_path+'XGBout_DsPhiMuMuPi_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
+    'DsPhiMuMuPi'   : bdt_output_path+'XGBout_DsPhiMuMuPi_MC_noSVp-ANv9.root',#'XGBout_DsPhiMuMuPi_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
     'W3MuNu'        : bdt_output_path+'XGBout_W3MuNu_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
     'peakingBkg'    : bdt_output_path+'XGBout_peakingBkg_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
     'ZTau3Mu'       : bdt_output_path+'XGBout_ZTau3Mu_MC_ANv8_2025Jul28.root', 
@@ -412,7 +414,7 @@ mc_bdt_samples = {
 }
 data_bdt_samples = {
     'WTau3Mu'       : bdt_output_path+'XGBout_data_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root',
-    'DsPhiMuMuPi'   : bdt_output_path+'XGBout_DsPhiMuMuPi_DATA_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root',
+    'DsPhiMuMuPi'   : bdt_output_path+'XGBout_DsPhiMuMuPi_DATA_noSVp-ANv9.root',#'XGBout_DsPhiMuMuPi_DATA_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root',
     'W3MuNu'        : bdt_output_path+'XGBout_data_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root',
     'ZTau3Mu'       : bdt_output_path+'XGBout_data_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root',
     'peakingBkg'    : bdt_output_path+'XGBout_data_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root',
@@ -423,24 +425,24 @@ data_bdt_samples = {
 # IMPORTANT : same order as features!!!
 #labels = OrderedDict()
 labels = {}
-labels['tau_fit_pt'         ] = '$\\tau$ $p_{T}$'
+labels['tau_fit_pt'         ] = '$p_{T} (3\mu)$'
 labels['tau_fit_mt'         ] = '$m_{T}(\\tau, MET)$'
-labels['tau_relIso'         ] = '$\\tau$ iso'
+labels['tau_relIso'         ] = '$I_{rel}(3\mu)$'
 labels['tau_met_Dphi'       ] = '$\Delta\phi(\\tau, MET)$'
-labels['tau_met_pt'         ] = 'MET $p_{T}$'
-labels['tau_met_ratio_pt'   ] = '$\\tau$ $p_{T}$/MET $p_{T}$' # only for >= v2
-labels['W_pt'               ] = 'W $p_{T}$'
+labels['tau_met_pt'         ] = 'MET'
+labels['tau_met_ratio_pt'   ] = '$p_{T}(\\tau)$/MET' # only for >= v2
+labels['W_pt'               ] = '$p_{T}$(W)'
 labels['miss_pz_min'        ] = 'min $p_{z}^{\\nu}$'
 labels['miss_pz_max'        ] = 'max $p_{z}^{\\nu}$'
 labels['tau_mu12_dZ'        ] = '$\Delta z (\mu_{1}, \mu_{2})$'
 labels['tau_mu13_dZ'        ] = '$\Delta z (\mu_{1}, \mu_{3})$'
 labels['tau_mu23_dZ'        ] = '$\Delta z (\mu_{2}, \mu_{3})$'
 labels['tau_Lxy_sign_BS'    ] = 'SV L/$\sigma$'
-labels['tau_fit_vprob'      ] = 'SV prob'
-labels['tau_cosAlpha_BS'    ] = 'SV cos($\\theta_{IP}$)'
-labels['tau_mu1_TightID_PV' ] = '$\mu_1$ ID'
-labels['tau_mu2_TightID_PV' ] = '$\mu_2$ ID'
-labels['tau_mu3_TightID_PV' ] = '$\mu_3$ ID'
+labels['tau_fit_vprob'      ] = 'SV prob.'
+labels['tau_cosAlpha_BS'    ] = 'SV cos($\\alpha$)'
+labels['tau_mu1_TightID_PV' ] = 'Tight-ID $\mu_1$'
+labels['tau_mu2_TightID_PV' ] = 'Tight-ID $\mu_2$'
+labels['tau_mu3_TightID_PV' ] = 'Tight-ID $\mu_3$'
 labels['tau_fit_eta'        ] = '$\eta_{\\tau}$'
 labels['tauEta'             ] = '$|\eta_{\\tau}|$'
 ##labels['bdt'                ] = 'BDT score'
@@ -449,6 +451,7 @@ labels['bdt_score'          ] = 'BDT score'
 #labels['bdt_score_b'        ] = 'BDT bkg'
 #labels['bdt_score_w3m'      ] = 'BDT W3$\\mu$'
 labels['tau_fit_mass'       ] = 'm_{3\mu}'
+labels['tau_fit_charge'     ] = 'q$_{3\mu}$'
 
 features = [
     'tau_fit_pt',
@@ -504,7 +507,7 @@ def tauEta(eta):
 
 features_NbinsXloXhiLabelLog = {
     'tau_fit_pt'        : [ 20, 10, 50,     'p_{T}(3 #mu) (GeV)',      0],
-    'tau_fit_mt'        : [ 30, 0, 120,     'M_{T}(3 #mu)',           0],
+    'tau_fit_mt'        : [ 30, 0, 120,     'M_{T}(3 #mu) (GeV)',           0],
     'tau_relIso'        : [ 50, 0, 3.0,     'rel. Isolation (3 #mu)',  1],
     'tau_met_Dphi'      : [ 32, 0, 6.4,     '#Delta #phi (3 #mu, MET)',0],
     'tau_met_pt'        : [ 20, 0, 100.,    'MET (GeV)',               0],
@@ -515,33 +518,34 @@ features_NbinsXloXhiLabelLog = {
     'tau_mu12_dZ'       : [ 20, 0, 0.2,     '#Delta z (#mu_{1}, #mu_{2})',  0],
     'tau_mu13_dZ'       : [ 20, 0, 0.2,     '#Delta z (#mu_{1}, #mu_{3})',  0],
     'tau_mu23_dZ'       : [ 20, 0, 0.2,     '#Delta z (#mu_{2}, #mu_{3})',  0],
-    'tau_Lxy_sign_BS'   : [ 60, 0, 30,      'SV L_{xy}/#sigma',         0],
-    #'tau_Lxy_sign_BS'   : [ 20, 0, 20,      'SV L_{xy}/#sigma',         0],
-    'tau_Lxy_val_BS'    : [ 40, 0,1.2,      'SV L_{xy} (cm)',           0],
-    'tau_Lxy_err_BS'    : [ 30, 0,0.03,     'SV #sigma_{L_{xy}} (cm)',  0],
+    'tau_Lxy_sign_BS'   : [50, 0, 50,      'SV L_{xy}/#sigma',         0],
+    #'tau_Lxy_sign_BS'   : [ 40, 0, 10,      'SV L_{xy}/#sigma',         0],
+    'tau_Lxy_val_BS'    : [ 40, 0,1.0,      'SV L_{xy} (cm)',           0],
+    'tau_Lxy_err_BS'    : [ 20, 0.01,0.03,  'SV #sigma_{L_{xy}} (cm)',  0],
     'Ds_Lxy_val_BS'     : [ 40, 0,1.0,      'SV L_{xy} (cm)',           0],
     'Ds_Lxy_err_BS'     : [ 30, 0,0.03,     'SV #sigma_{L_{xy}} (cm)',  0],
     'tau_fit_vprob'     : [ 50, 0,  1,      'SV probability',           1],
     'tau_cosAlpha_BS'   : [ 50, 0.995, 1, 'cos_{#alpha}(SV, BS)',     1],
-    'tau_mu1_TightID_PV': [  2,-0.5,1.5,    'Tight #mu_{1} ID',        0],
-    'tau_mu2_TightID_PV': [  2,-0.5,1.5,    'Tight #mu_{2} ID',        0],
-    'tau_mu3_TightID_PV': [  2,-0.5,1.5,    'Tight #mu_{3} ID',        0],
+    'tau_mu1_TightID_PV': [  2,-0.5,1.5,    'Tight-ID #mu_{1}',        0],
+    'tau_mu2_TightID_PV': [  2,-0.5,1.5,    'Tight-ID #mu_{2}',        0],
+    'tau_mu3_TightID_PV': [  2,-0.5,1.5,    'Tight-ID #mu_{3}',        0],
     'tri_muonID'        : [  4,-0.5,3.5,    'Medium ID_{#mu_1}+ID_{#mu_2}+ID_{#mu_3}',                0],
     'tauEta'            : [  8,-0.5,7.5,    '3#mu #eta bins',          0],
     'tau_fit_eta'       : [ 25, -2.5, 2.5,  '#eta (3 #mu)',           0],
     'Ds_fit_eta'        : [ 25, -2.5, 2.5,  '#eta (3 #mu)',           0],
     'tau_fit_mass'      : [ 65, 1.40, 2.05, 'm_{3#mu}',                0],
-    'bdt_score'         : [ 25, 0, 1,       'BDT score',               1],
+    'bdt_score'         : [ 50, 0, 1,       'BDT score',               1],
     'bdt_score_t3m'     : [ 50, 0, 1,       'BDT_{#tau 3 #mu} score',  1],
-    'tau_mu12_fitM'     : [ 160, 0.2, 1.8,   'M(#mu_{1}#mu_{2})',       0],
-    'tau_mu13_fitM'     : [ 160, 0.2, 1.8,   'M(#mu_{1}#mu_{3})',       0],
-    'tau_mu23_fitM'     : [ 160, 0.2, 1.8,   'M(#mu_{2}#mu_{3})',       0],
+    'tau_mu12_fitM'     : [ 160, 0.2, 1.8,  'M(#mu_{1}#mu_{2})',       0],
+    'tau_mu13_fitM'     : [ 160, 0.2, 1.8,  'M(#mu_{1}#mu_{3})',       0],
+    'tau_mu23_fitM'     : [ 160, 0.2, 1.8,  'M(#mu_{2}#mu_{3})',       0],
     'tau_mu1_pt'        : [ 45, 5, 50,      'p_{T}(#mu_{1}) (GeV)',    0],
     'tau_mu2_pt'        : [ 30, 0, 30,      'p_{T}(#mu_{2}) (GeV)',    0],
     'tau_mu3_pt'        : [ 30, 0, 30,      'p_{T}(#mu_{3}) (GeV)',    0],
     'tau_mu1_eta'       : [ 50, -2.5, 2.5,  '#eta(#mu_{1})',           0],
     'tau_mu2_eta'       : [ 50, -2.5, 2.5,  '#eta(#mu_{2})',           0],
     'tau_mu3_eta'       : [ 50, -2.5, 2.5,  '#eta(#mu_{3})',           0],
+    'tau_fit_charge'    : [  2,-0.5,1.5,    'q_{3#mu}',        0],
 }
 
 

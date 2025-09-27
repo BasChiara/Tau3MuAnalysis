@@ -1,0 +1,6 @@
+{
+   "tag"   : "Phi VETO pre-BDT",
+   "model" : "/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/classifiers/classifiers_kFold_PhiVETO_LxyS2.0_2025Sep23.pck",
+   "data"  : "/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/XGBout_data_kFold_PhiVETO_LxyS2.0_2025Sep23.root",
+   "signal": "/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/XGBout_signal_kFold_PhiVETO_LxyS2.0_2025Sep23.root"
+}

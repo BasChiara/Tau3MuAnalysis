@@ -43,7 +43,7 @@ def make_sPlot(
         add_tag = '',
         underoverflow = False
     ):
-    # MC matched
+    # MC matches
     mc_tree.Draw(f'{observable}>>h_{observable}_mc({nbins}, {lo}, {hi})', f'({selection}) * (weight * {mc_norm})', 'goff')
     h_mc = ROOT.gDirectory.Get(f"h_{observable}_mc")
     if underoverflow: h_mc = add_overunderflow(h_mc)
@@ -52,7 +52,7 @@ def make_sPlot(
     h_mc.SetFillStyle(3004)
     h_mc.SetLineColor(color)
     h_mc.SetLineWidth(2)
-    h_mc.Sumw2()
+    h_mc.SetMarkerStyle(0)
     # DATA sWeighted
     sData_tree.Draw(f'{observable}>>h_{observable}_data({nbins}, {lo}, {hi})', f'{selection} * nDs_sw', 'goff')
     h_sData = ROOT.gDirectory.Get(f"h_{observable}_data")
@@ -62,7 +62,6 @@ def make_sPlot(
     h_sData.SetMarkerStyle(20)
     h_sData.SetLineColor(ROOT.kBlack)
     h_sData.SetLineWidth(2)
-    h_sData.Sumw2()
     
     # build legend
     leg = ROOT.TLegend(0.40, 0.75, 0.90, 0.89)
@@ -102,10 +101,8 @@ def reweight_by_observable(observable = 'Ds_fit_eta'):
 
     mc_tree.Draw(f'{observable}>>h_{observable}_mc({nbins}, {lo}, {hi})', f'({selection}) * (weight * {mc_norm})', 'goff')
     h_mc = ROOT.gDirectory.Get(f"h_{observable}_mc")
-    h_mc.Sumw2()
     sData_tree.Draw(f'{observable}>>h_{observable}_data({nbins}, {lo}, {hi})', f'{selection} * nDs_sw', 'goff')
     h_sData = ROOT.gDirectory.Get(f"h_{observable}_data")
-    h_sData.Sumw2()
 
     h_ratio_eta = h_sData.Clone('h_ratio_eta')
     h_ratio_eta.Divide(h_mc)
@@ -118,8 +115,12 @@ def reweight_by_observable(observable = 'Ds_fit_eta'):
     return h_ratio_eta
 
 def apply_reweighting(observable, h_weights, weight_by = 'Ds_fit_eta', nbins = 30, lo = -3, hi = 3, selection = '1', to_ploton = [], add_tag = '', cat = 'ABC', underoverflow = False):
+    
+    
     # create reweighted histogram
     h_reweighted = ROOT.TH1F(f'h_{observable}_reweighted', f'{observable} reweighted by #eta', nbins, lo, hi)
+    total_weight = 0
+    norm_weight = 0
     for i in range(mc_tree.GetEntries()):
         # get entry
         mc_tree.GetEntry(i)
@@ -141,7 +142,6 @@ def apply_reweighting(observable, h_weights, weight_by = 'Ds_fit_eta', nbins = 3
     h_sData.SetMarkerStyle(20)
     h_sData.SetLineColor(ROOT.kBlack)
     h_sData.SetLineWidth(2)
-    h_sData.Sumw2()
     # plot reweighted histogram with sData
     h_reweighted.SetStats(0)
     h_reweighted.SetFillColor(ROOT.kGreen+1)
@@ -225,7 +225,7 @@ base_selection = '(' + ' & '.join([
 print('[i] base_selection = %s'%base_selection)
 # BDT input features
 observable_list = cfg.features + ['Ds_fit_eta', 'bdt_score']
-#observable_list  = ['bdt_score', 'Ds_Lxy_val_BS', 'Ds_Lxy_err_BS', 'tau_Lxy_sign_BS', 'Ds_fit_eta']
+observable_list  = ['bdt_score', 'Ds_Lxy_val_BS', 'Ds_Lxy_err_BS', 'tau_Lxy_sign_BS', 'Ds_fit_eta']
 
 no_overunderflow = ['tauEta', 'tau_mu1_TightID_PV', 'tau_mu2_TightID_PV', 'tau_mu3_TightID_PV', 'tau_fit_vprob', 'bdt_score']
 for obs in observable_list:
@@ -275,7 +275,7 @@ tag = f'_{args.year}' + (f'_{args.tag}' if args.tag else '')
 # bdt_score
 apply_reweighting('bdt_score', 
                     h_ratio_eta, weight_by='Ds_fit_eta',
-                    nbins=25, lo=0, hi=1, 
+                    nbins=50, lo=0, hi=1, 
                     selection=base_selection, 
                     add_tag=f'{args.tag}_byEta'
                     )
@@ -291,7 +291,7 @@ for cat in cfg.Ds_category_selection:
     
    
     apply_reweighting('bdt_score', h_ratio_eta, 
-                      nbins=25, lo=0, hi=1, 
+                      nbins=50, lo=0, hi=1, 
                       selection=cfg.Ds_category_selection[cat], 
                       add_tag=f'cat{cat}{tag}', 
                       to_ploton=[CAT_txt], 

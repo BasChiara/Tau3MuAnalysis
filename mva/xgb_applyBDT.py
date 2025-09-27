@@ -48,7 +48,6 @@ if(args.process == 'DsPhiMuMuPi'):
     base_selection = '&'.join([
         config.Ds_base_selection,
         config.Ds_phi_selection,
-        config.Ds_sv_selection,
     ])
 elif (args.process == 'peakingBkg'):
     base_selection = '&'.join([
@@ -65,8 +64,7 @@ elif (args.process == 'invMedID'):
 else:
     base_selection = ' & '.join([
         config.base_selection,
-        #config.displacement_selection,
-        "(1)"
+        config.displacement_selection
     ]) 
 
 print(f'{ct.BOLD}[!] base-selection : %s'%base_selection)

@@ -236,7 +236,8 @@ def apply_cms_style(frame, outfile, cat, year, Preliminary = True, margin = 0.12
 
 def add_summary_text(frame, text = '', x = 0.2, y = 0.8, size = 0.04):
     # add text to the plot
-    text = ROOT.TText(x, y, text)
+    #text = ROOT.TText(x, y, text)
+    text = ROOT.TLatex(x, y, text)
     text.SetTextSize(size)
     text.SetTextFont(42)
     

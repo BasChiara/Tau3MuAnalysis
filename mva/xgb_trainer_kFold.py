@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 import os
 import sys
 import shutil
-sns.set(style="white")
 
 #import xgboost
 from xgboost import XGBClassifier, callback, plot_importance
@@ -97,8 +96,10 @@ else :
 removeNaN = False
 
 # ------------ DEFINE SELECTIONS ------------ # 
-base_selection = config.base_selection +  f'& (tau_Lxy_sign_BS > {args.LxySign_cut} )'
-# '&(((tau_Lxy_sign_BS > 2.0) & (year_id > 219 & year_id< 230))|| ((tau_Lxy_sign_BS > 1.7) & (year_id > 229 & year_id< 240)))'#
+base_selection = '&'.join([config.base_selection,
+                           f'(tau_Lxy_sign_BS > {args.LxySign_cut} )' if args.LxySign_cut > 0 else '',
+                           config.phi_veto,
+                           ])
 sig_selection  = base_selection
 bkg_selection  = base_selection
 print('\n---------------------------------------------')
@@ -110,7 +111,6 @@ print('---------------------------------------------')
 # ------------ BDT settings ------------ #
 kfold = 5
 bdt_inputs = config.features + ['tauEta']
-# remove displacement significance if cut Lxy/sigma
 print('[i] BDT inputs')
 [print(f'  - {f}') for f in bdt_inputs]
 

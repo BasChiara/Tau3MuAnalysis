@@ -28,8 +28,7 @@ from plots.color_text import color_text as ct
 
 def plot_sWeights(observable, mc_norm = 1.0 ,selection = '', nbins = 100, lo = 0, hi = 100, color = ROOT.kRed, to_ploton = None, add_tag = ''):
     frame_sw = observable.frame(Title=" ", Bins= nbins)
-    # MC matched
-    mc_tree.Draw(f'{observable.GetName()}>>h_{observable.GetName()}({nbins}, {lo}, {hi})', f'({selection}) * (weight * isMCmatching * {mc_norm})', 'goff')
+    mc_tree.Draw(f'{observable.GetName()}>>h_{observable.GetName()}({nbins}, {lo}, {hi})', f'({selection}) * (weight * {mc_norm})', 'goff')
     h_mc = ROOT.gDirectory.Get(f"h_{observable.GetName()}")
     h_mc.SetFillColor(color)
     h_mc.SetFillStyle(3004)
@@ -182,6 +181,7 @@ print('[+] DATA entries = %.2f'%datatofit.sumEntries() )
 #signal_model.fitTo(fullmc, ROOT.RooFit.Range('fit_range'), ROOT.RooFit.SumW2Error(ROOT.kTRUE))
 nMC = wspace_mc['nMC']
 nMC.setConstant()
+nMC_raw = ROOT.RooRealVar('nMC_raw', 'nMC_raw', fullmc.sumEntries())
 #nBflat = wspace_mc['nBflat']
 #nBflat.setConstant()
 # Fit to data & fix the parameters
@@ -195,7 +195,7 @@ nDp.setConstant()
 nB = wspace_data['nB']
 nB.setConstant()
 # * MC normalization
-fnorm_mc = ROOT.RooFormulaVar('fnorm_mc','fnorm_mc', '(@0/@1)', ROOT.RooArgList(nDs,nMC) )
+fnorm_mc = ROOT.RooFormulaVar('fnorm_mc','fnorm_mc', '(@0/@1)', ROOT.RooArgList(nDs,nMC_raw) )
 
 frame = mass.frame(Title=" ", Bins= nbins)
 datatofit.plotOn(

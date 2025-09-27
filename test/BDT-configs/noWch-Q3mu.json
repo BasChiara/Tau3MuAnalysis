@@ -1,0 +1,6 @@
+{
+   "tag"   : "NO W+/- re-weight + q(3μ)",
+   "model" : "/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/classifiers/classifiers_kFold_noWch-Q3mu_LxyS2.0_2025Sep25.pck",
+   "data"  : "/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/XGBout_data_kFold_noWch-Q3mu_LxyS2.0_2025Sep25.root",
+   "signal": "/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/XGBout_signal_kFold_noWch-Q3mu_LxyS2.0_2025Sep25.root"
+}

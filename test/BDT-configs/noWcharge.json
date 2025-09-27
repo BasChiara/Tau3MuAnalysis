@@ -1,0 +1,6 @@
+{
+   "tag"   : "NO W+/- re-weight",
+   "model" : "/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/classifiers/classifiers_kFold_noWcharge_LxyS2.0_2025Sep22.pck",
+   "data"  : "/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/XGBout_data_kFold_noWcharge_LxyS2.0_2025Sep22.root",
+   "signal": "/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/XGBout_signal_kFold_noWcharge_LxyS2.0_2025Sep22.root"
+}

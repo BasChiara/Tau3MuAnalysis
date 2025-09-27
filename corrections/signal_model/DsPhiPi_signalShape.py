@@ -18,18 +18,18 @@ args = argparser.parse_args()
 
 wspace_byCat = {}
 tag = 'LxyS2.0_2024Jul16'
-tag = 'reviewANv3'
+tag = 'ANv9'
 if args.year == 2022:
     wspace_byCat ={
-        "A22" : f'../../models/workspaces/DsPhiPi_wspace_catA2022_{tag}.root',
-        "B22" : f'../../models/workspaces/DsPhiPi_wspace_catB2022_{tag}.root',
-        "C22" : f'../../models/workspaces/DsPhiPi_wspace_catC2022_{tag}.root',
+        "A22" : f'../../control_channel/workspaces/DsPhiPi_wspace_catA2022_{tag}.root',
+        "B22" : f'../../control_channel/workspaces/DsPhiPi_wspace_catB2022_{tag}.root',
+        "C22" : f'../../control_channel/workspaces/DsPhiPi_wspace_catC2022_{tag}.root',
     }
 elif args.year == 2023:
     wspace_byCat ={
-        "A23" : f'../../models/workspaces/DsPhiPi_wspace_catA2023_{tag}.root',
-        "B23" : f'../../models/workspaces/DsPhiPi_wspace_catB2023_{tag}.root',
-        "C23" : f'../../models/workspaces/DsPhiPi_wspace_catC2023_{tag}.root',
+        "A23" : f'../../control_channel/workspaces/DsPhiPi_wspace_catA2023_{tag}.root',
+        "B23" : f'../../control_channel/workspaces/DsPhiPi_wspace_catB2023_{tag}.root',
+        "C23" : f'../../control_channel/workspaces/DsPhiPi_wspace_catC2023_{tag}.root',
     }
 else:
     print('Year not supported')
@@ -93,7 +93,7 @@ for i, cat in enumerate(wspace_byCat.keys()):
         'width': np.abs(width_ratio[i] - 1.0),
     } 
 with open(f'signal_shape_comparison_{args.year}_{tag}.json', 'w') as f:
-    json.dump(sys_dict, f)
+    json.dump(sys_dict, f, indent=4)
 print(f'[o] json file with systematic uncertainty saved as signal_shape_comparison_{args.year}.json')
 
 # comparison plot data/mc with ratio plot
