@@ -204,7 +204,7 @@ rate                             {signal:.4f}              {bkg:.4f}
             for dM in dM_list:
                 if dM.isConstant():
                     print(f' dM {dM.GetName()} = {dM.getVal():.5f} +/- {dM.getError():.5f}(fit) [constant]')
-                    dM.setVal( dM.getVal() + config.tau_mass*shape_sys['mean']) )
+                    dM.setVal( dM.getVal() + config.tau_mass*shape_sys['mean'])
                     dM.setConstant(True)
                     print(f' dM {dM.GetName()} changed to {dM.getVal():.5f} [systematic applied]')
                 

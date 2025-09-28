@@ -324,8 +324,12 @@ if MERGE_WZ:
             ROOT.RooFit.NormRange('full_range'),
             ROOT.RooFit.MoveToBack()
         )
+        
+        fitu.add_summary_text(frame_s, f'M_{{3#mu}} = {mean.getValV():.2f} +/- {mean.getError():.2f}', x = tau_mass, y=0.90*frame_s.GetMaximum())
+        fitu.add_summary_text(frame_s, f'#sigma(M_{{3#mu}}) = {width.getValV():.2f} +/- {width.getError():.2f}', x = tau_mass, y=0.90*frame_s.GetMaximum())
         fitu.draw_fit_pull(frame_s, fitvar=mass, out_name=f'{args.plot_outdir}/massfit_S_WZt3m_{point_tag}')
         s_model = cb # use single CB for the workspace
+        exit()
 else :
     # signal fit (W)
     results_W = signal_model_W.fitTo(
