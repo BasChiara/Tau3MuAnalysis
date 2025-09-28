@@ -61,26 +61,32 @@ BR_taunu_ratio         lnN           {Br_taunu_ratio:.4f}               -
             Br_taunu_ratio = weight_systematics(config.Br_Wtaunu_munu_sys, config.Br_Ztautau_mumu_sys, W_f)  # uncertainty on the Br ratio meas. V->tauX/V->muX
         )
         )
-        #BR_vmn             lnN           {Br_Wmunu:.4f}               -
-        #BR_vtn             lnN            {Br_Wtaunu:.4f}               -
+        
 
 
 
 def combineDatacard_writer(**kwargs):
     # needed arguments
     process_name    = kwargs['process_name'] if 'process_name' in kwargs else 'wt3m'
+    # input MC
     input_mc        = kwargs['input_mc'] if 'input_mc' in kwargs else None
     selection_mc    = kwargs['selection'] if 'selection' in kwargs else None
+    # workspace and datacard
     wspace_filename = kwargs['ws_filename'] if 'ws_filename' in kwargs else None
     workspace       = kwargs['workspace'] if 'workspace' in kwargs else None
     datacard_name   = kwargs['datacard_name'] if 'datacard_name' in kwargs else 'datacard.txt'
+    # category and year
     year            = kwargs['year'] if 'year' in kwargs else '16'
     cat             = kwargs['cat'] if 'cat' in kwargs else 'cat0'
+    # sig/bkg model
     bkg_func        = kwargs['bkg_func'] if 'bkg_func' in kwargs else 'expo'
+    merge_wz        = kwargs['merge_wz'] if 'merge_wz' in kwargs else False
+    ratio_wz        = kwargs['ratio_wz'] if 'ratio_wz' in kwargs else 1.0
     Nobs            = kwargs['Nobs'] if 'Nobs' in kwargs else 0
     Nsig            = kwargs['Nsig'] if 'Nsig' in kwargs else 0
     Nbkg            = kwargs['Nbkg'] if 'Nbkg' in kwargs else 0
     Ndata           = kwargs['Ndata'] if 'Ndata' in kwargs else 0
+    # systematics
     write_sys       = kwargs['write_sys']  if 'write_sys' in kwargs else False
 
     #catYY = f'{cat}_20{year}'
@@ -99,13 +105,21 @@ def combineDatacard_writer(**kwargs):
         print(f'{ct.RED}[ERROR]{ct.END} NO signal model found in the workspace')
         return 1
     width_list = []
+    dM_list = []
     WZ_ratio = 1.0
     if 'W' in process_name or 'w' in process_name:
         width_list.append( signal_model.getVariables().find(f'signal_width_{catYY}') )
     elif 'V' in process_name or 'v' in process_name:
-        width_list.append( signal_model.getVariables().find(f'signal_width_W_{catYY}') )
-        width_list.append( signal_model.getVariables().find(f'signal_width_Z_{catYY}') )
-        WZ_ratio = signal_model.getVariables().find(f'r_wz_{catYY}').getVal()
+        if merge_wz:
+            width_list.append( signal_model.getVariables().find(f'signal_width_{catYY}') )
+            dM_list.append( signal_model.getVariables().find(f'dM') )
+            WZ_ratio = ratio_wz
+        else:
+            width_list.append( signal_model.getVariables().find(f'signal_width_W_{catYY}') )
+            dM_list.append( signal_model.getVariables().find(f'dM_W') )
+            width_list.append( signal_model.getVariables().find(f'signal_width_Z_{catYY}') )
+            dM_list.append( signal_model.getVariables().find(f'dM_Z') )
+            WZ_ratio = signal_model.getVariables().find(f'r_wz_{catYY}').getVal()
     
     # -- background -- #
     b_model = workspace.pdf(f'multipdf_bkg_{process_name}' if bkg_func == 'multipdf' else f'model_bkg_{process_name}')
@@ -113,12 +127,6 @@ def combineDatacard_writer(**kwargs):
     if not b_model:
         print(f'{ct.RED}[ERROR]{ct.END} NO background model found in the workspace')
         return 1
-    #if bkg_func == 'expo' : 
-    #    slope = b_model.getVariables().find(f'background_slope_{catYY}')
-    #    if not slope:  print(f'{ct.RED}[ERROR]{ct.END} NO background slope found in the workspace')
-    #elif bkg_func == 'poly1': slope = b_model.getVariables().find(f'p1_{catYY}')
-    #else :  slope = None
-    #print(slope)
     
     # uncorrelated systematics dictionary
     sys_dict = {}
@@ -190,18 +198,34 @@ rate                             {signal:.4f}              {bkg:.4f}
                 corr_deg = '_' + sys_dict[sys]['corregree'] if sys_dict[sys]['corregree'] else '',
                 sys_tot = sys_dict[sys]['total']
                 ))
+        
         # **SIGNAL**
         if write_sys:
+            for dM in dM_list:
+                if dM.isConstant():
+                    print(f' dM {dM.GetName()} = {dM.getVal():.5f} +/- {dM.getError():.5f}(fit) [constant]')
+                    dM.setVal( dM.getVal() + config.tau_mass*shape_sys['mean']) )
+                    dM.setConstant(True)
+                    print(f' dM {dM.GetName()} changed to {dM.getVal():.5f} [systematic applied]')
+                
             for width in width_list:
-                if width.isConstant(): continue
-                width_error = np.sqrt(width.getError()**2 + (width.getVal()*shape_sys['width'])**2)
-                card.write(
+                
+                if width.isConstant():
+                    print(f' width {width.GetName()} = {width.getVal():.5f} +/- {width.getError():.5f}(fit) [constant]')
+                    width.setVal( width.getVal() * (1.0 + shape_sys['width']) )
+                    width.setConstant(True)
+                    print(f' width {width.GetName()} changed to {width.getVal():.5f} [systematic applied]')
+                
+                else:    
+                    width_error = np.sqrt(width.getError()**2 + (width.getVal()*shape_sys['width'])**2)
+                    card.write(
 '{width_name}         param          {val:.4f}     {err:.4f}\n'.format(
-                    width_name  = width.GetName(),
-                    val         = width.getVal(),
-                    err         = np.max([1e-4, width_error])
-                ))
-                print(f' width = {width.getVal():.5f} +/- {width.getError():.5f}(fit) +/- {width_error:.5f}(sys+fit)')
+                        width_name  = width.GetName(),
+                        val         = width.getVal(),
+                        err         = np.max([1e-4, width_error])
+                    ))
+                    print(f' width = {width.getVal():.5f} +/- {width.getError():.5f}(fit) +/- {width_error:.5f}(sys+fit)')
+        
         # **BACKGROUND**
         if bkg_func == 'multipdf':
             card.write(

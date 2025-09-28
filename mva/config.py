@@ -8,6 +8,7 @@ import ROOT
 ###                ###
 #    W->tau(3mu)nu   #
 ###                ###
+tau_mass       = 1.777 #GeV
 mass_range_lo  = 1.40 # GeV
 mass_range_hi  = 2.05 # GeV
 blind_range_lo = 1.72 # GeV
@@ -172,9 +173,9 @@ Br_Ztautau_sys= 1.0025
 Br_Ztautau_mumu_sys = 1.0026
 # signal shape systematics
 shape_systematics = {
-    '2022'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/signal_model/signal_shape_comparison_2022_reviewANv3.json'),
-    '2023'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/signal_model/signal_shape_comparison_2023_reviewANv3.json'),
-    '2024'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/signal_model/signal_shape_comparison_2024_reviewANv3.json'), # fixme : it is just a copy of 2023
+    '2022'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/signal_model/signal_shape_comparison_2022_ANv9.json'),
+    '2023'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/signal_model/signal_shape_comparison_2023_ANv9.json'),
+    '2024'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/signal_model/signal_shape_comparison_2024_ANv9.json'), # fixme : it is just a copy of 2023
 }
 # LxyS efficiency systematics
 LxySign_cut_systematics ={

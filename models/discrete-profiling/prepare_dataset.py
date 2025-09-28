@@ -107,7 +107,7 @@ if __name__ == "__main__":
 
     # ---- OUTPUT ----
     if not os.path.exists(args.outdir):
-        os.path.makedirs(args.outdir)
+        os.makedirs(args.outdir)
     print(f'{ct.BOLD}[+]{ct.END} output directory: {args.outdir}')
 
 
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     selection      = ' & '.join([
         config.cat_eta_selection_dict_fit[args.category], 
         config.year_selection['20'+args.year],
-        config.phi_veto,
+        config.phi_veto, config.omega_veto,
         f'bdt_score > {cut:.4f}'
     ])
     sideband_selection = '&'.join([
