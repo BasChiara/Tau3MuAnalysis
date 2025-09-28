@@ -20,6 +20,8 @@ from style.color_text import color_text as ct
 import models.datacard_utils as du
 import models.fit_utils as fitu
 
+MERGE_WZ = True
+
 
 def get_multipdf(file, workspace, name):
     
@@ -43,7 +45,7 @@ def get_multipdf(file, workspace, name):
     print(f'{ct.BOLD}[i]{ct.END} multipdf {bestpdf.GetName()} loaded from {args.multipdf_ws}')
 
     return bestpdf, multipdf
-
+    
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--signal_W',                                                                           help='input WTau3Mu MC')
@@ -133,7 +135,7 @@ base_selection      = ' & '.join([
 if args.save_ws : file_ws = ROOT.TFile(wspace_filename, "RECREATE")
  
 # output tag
- # replace dot with p for the tag
+# replace dot with p for the tag
 # BDT selection
 bdt_selection       = f'(bdt_score > {cut:,.4f})'
 sgn_selection       = ' & '.join([bdt_selection, base_selection])
@@ -162,6 +164,12 @@ mc_Z_dataset, Z_eff, Z_Nmc = fitu.import_data_from_file(
 )
 # exit if no signal events
 if mc_W_dataset.sumEntries() == 0: exit()
+# merge the two datasets
+mc_dataset = mc_W_dataset.Clone()
+if MERGE_WZ:
+    mc_dataset.append(mc_Z_dataset)
+    print(f'{ct.BOLD}[i]{ct.END} merged W and Z signal datasets')
+    mc_dataset.Print('v')
 
 # **** IMPORT DATA ****
 data_tree        = fitu.get_tree_from_file(data_file, input_tree_name)
@@ -229,7 +237,21 @@ nsig_W.setConstant(True)
 nsig_Z.setConstant(True)
 r_wz = ROOT.RooRealVar(f'r_wz_{catYY}', f'r_wz_{catYY}', nsig_W.getValV()/(nsig_W.getValV()+nsig_Z.getValV()))
 
-s_model = ROOT.RooAddPdf(f'model_sig_{process_name}', f'model_sig_{process_name}', ROOT.RooArgList(cb_W, cb_Z), ROOT.RooArgList(r_wz))
+# W+Z signal model
+dMtau = ROOT.RooRealVar('dM', 'dM', 0, -0.04, 0.04)
+mean = ROOT.RooFormulaVar('mean','mean', '(@0+@1)', ROOT.RooArgList(Mtau,dMtau) )
+width = ROOT.RooRealVar(f'signal_width_{catYY}',  f'signal_width_{catYY}',  0.01,    0.005, 0.05)
+n = ROOT.RooRealVar(f'n_{catYY}', f'n_{catYY}', 1.0, 0.1, 10.0)
+alpha = ROOT.RooRealVar(f'alpha_{catYY}', f'alpha_{catYY}', 1.0, 0.0, 10.0)
+
+cb = ROOT.RooCBShape('model_sig_%s'%process_name, 'cb_%s'%process_name, mass, mean, width, alpha, n)
+
+nsig = ROOT.RooRealVar('model_sig_%s_norm'%process_name, 'model_sig_%s_norm'%process_name, mc_W_dataset.sumEntries()+mc_Z_dataset.sumEntries(), 0.0, 10*(mc_W_dataset.sumEntries()+mc_Z_dataset.sumEntries()))
+
+#s_model = ROOT.RooAddPdf(f'model_sig_{process_name}', f'model_sig_{process_name}', ROOT.RooArgList(cb_W, cb_Z), ROOT.RooArgList(r_wz))
+s_model = ROOT.RooAddPdf(f'model_sig_{process_name}', f'model_sig_{process_name}', ROOT.RooArgList(cb), ROOT.RooArgList(nsig))
+
+
 
 # **** BACKGROUND MODEL ****
 bkg_model_name = f'model_bkg_{process_name}'
@@ -261,7 +283,7 @@ ext_bkg_model = ROOT.RooAddPdf(f'ext_{bkg_model_name}', f'ext_{bkg_model_name}',
 
 # **** TIME TO FIT ****
 # signal fit
-results_gaus_W = signal_model_W.fitTo(
+results_W = signal_model_W.fitTo(
     mc_W_dataset, 
     ROOT.RooFit.Range('fit_range'), 
     ROOT.RooFit.Save(),
@@ -269,8 +291,8 @@ results_gaus_W = signal_model_W.fitTo(
     ROOT.RooFit.SumW2Error(True),
     ROOT.RooFit.PrintLevel(-1),
 )
-results_gaus_W.Print()
-results_gaus_Z = signal_model_Z.fitTo(
+results_W.Print()
+results_Z = signal_model_Z.fitTo(
     mc_Z_dataset, 
     ROOT.RooFit.Range('fit_range'), 
     ROOT.RooFit.Save(),
@@ -278,7 +300,17 @@ results_gaus_Z = signal_model_Z.fitTo(
     ROOT.RooFit.SumW2Error(True),
     ROOT.RooFit.PrintLevel(-1),
 )
-results_gaus_Z.Print()
+results_Z.Print()
+# merged W+Z fit
+results = s_model.fitTo(
+    mc_dataset, 
+    ROOT.RooFit.Range('fit_range'), 
+    ROOT.RooFit.Save(),
+    ROOT.RooFit.Extended(ROOT.kTRUE),
+    ROOT.RooFit.SumW2Error(True),
+    ROOT.RooFit.PrintLevel(-1),
+)
+results.Print()
 # * draw & save
 frame_W = mass.frame()
 frame_W.SetTitle('#tau -> 3#mu signal - CAT %s BDTscore > %.4f'%(args.category, cut))
@@ -286,7 +318,7 @@ frame_W.SetTitle('#tau -> 3#mu signal - CAT %s BDTscore > %.4f'%(args.category, 
 mc_W_dataset.plotOn(
     frame_W, 
     ROOT.RooFit.Binning(nbins), 
-    ROOT.RooFit.XErrorSize(0), 
+    #ROOT.RooFit.XErrorSize(0), 
     ROOT.RooFit.LineWidth(2),
     ROOT.RooFit.FillColor(ROOT.kRed),
     ROOT.RooFit.DataError(1),
@@ -304,7 +336,7 @@ frame_Z.SetTitle('#tau -> 3#mu signal - CAT %s BDTscore > %.4f'%(args.category, 
 mc_Z_dataset.plotOn(
     frame_Z, 
     ROOT.RooFit.Binning(nbins), 
-    ROOT.RooFit.XErrorSize(0), 
+    #ROOT.RooFit.XErrorSize(0), 
     ROOT.RooFit.LineWidth(2),
     ROOT.RooFit.FillColor(ROOT.kGreen+3),
     ROOT.RooFit.DataError(1),
@@ -315,11 +347,25 @@ signal_model_Z.plotOn(
     ROOT.RooFit.Range('full_range'),
     ROOT.RooFit.NormRange('full_range'),
     ROOT.RooFit.MoveToBack()
-)    
+)
+
+frame_s = mass.frame()
+frame_s.SetTitle('#tau -> 3#mu signal - CAT %s BDTscore > %.4f'%(args.category, cut))
+mc_dataset.plotOn(
+    frame_s, 
+    ROOT.RooFit.Binning(nbins), 
+    #ROOT.RooFit.XErrorSize(0), 
+    ROOT.RooFit.LineWidth(2),
+    ROOT.RooFit.FillColor(ROOT.kBlue),
+    ROOT.RooFit.DataError(1),
+) 
+
 if not args.goff:
     fitu.draw_fit_pull(frame_W, fitvar=mass, out_name=f'{args.plot_outdir}/massfit_S_Wt3m_{point_tag}')
     fitu.draw_fit_pull(frame_Z, fitvar=mass, out_name=f'{args.plot_outdir}/massfit_S_Zt3m_{point_tag}')
+    fitu.draw_fit_pull(frame_s, fitvar=mass, out_name=f'{args.plot_outdir}/massfit_S_WZt3m_{point_tag}')
 
+exit(0)
 # fit background
 results_expo = ext_bkg_model.fitTo(
     bkg_dataset, 
