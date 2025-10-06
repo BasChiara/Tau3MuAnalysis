@@ -63,7 +63,7 @@ else:
 # ------------ APPLY SELECTIONS ------------ #
 base_selection = ' & '.join([
     cfg.base_selection,
-    cfg.phi_veto,
+    cfg.phi_veto, cfg.omega_veto,
     cfg.year_selection[args.year],
     f' (tau_Lxy_sign_BS > {args.LxySign_cut})',
 
@@ -128,8 +128,8 @@ CMS.SetEnergy(13.6)
 observables = cfg.features + ['tau_fit_eta', 'tauEta', bdt_score, 'tau_fit_mass', 'tau_mu12_fitM', 'tau_mu23_fitM', 'tau_mu13_fitM']
 observables = observables + ['tau_mu1_pt', 'tau_mu2_pt', 'tau_mu3_pt', 'tau_mu1_eta', 'tau_mu2_eta', 'tau_mu3_eta']
 
-no_overunderflow = ['tauEta', 'tau_mu1_TightID_PV', 'tau_mu2_TightID_PV', 'tau_mu3_TightID_PV', 'tau_mu1_MediumID', 'tau_mu2_MediumID', 'tau_mu3_MediumID', 'tau_fit_vprob', 'bdt_score']
-observables = ['tau_fit_charge']
+no_overunderflow = ['tauEta', 'tau_mu1_TightID_PV', 'tau_mu2_TightID_PV', 'tau_mu3_TightID_PV', 'tau_mu1_MediumID', 'tau_mu2_MediumID', 'tau_mu3_MediumID', 'tau_fit_vprob', 'bdt_score', 'tau_mu12_fitM', 'tau_mu23_fitM', 'tau_mu13_fitM']
+observables = ['tau_mu12_fitM', 'tau_mu23_fitM', 'tau_mu13_fitM']
 legend = ROOT.TLegend(0.55, 0.70, 0.90, 0.90)
 legend.SetTextSize(0.04)
 legend.SetBorderSize(0)
@@ -203,9 +203,11 @@ for i,obs in enumerate(observables):
     h_sig_cut = sig_rdf.Filter('%s>%f'%( bdt_score, args.bdt_cut)).Histo1D(('h_sig_%s'%obs, '', nbins, xlo, xhi), obs, 'weight').GetPtr()
     if not (obs in no_overunderflow) : h_sig_cut = add_overunderflow(h_sig_cut)
     if sig_amplify : h_sig_cut.Scale(sig_amplify)
+    h_sig_cut.Scale(1./h_sig_cut.Integral())
     
     h_bkg_cut = bkg_rdf.Filter('%s>%f'%( bdt_score, args.bdt_cut)).Histo1D(('h_bkg_%s'%obs, '', nbins, xlo, xhi), obs).GetPtr()
     if not (obs in no_overunderflow) : h_bkg_cut = add_overunderflow(h_bkg_cut)
+    h_bkg_cut.Scale(1./h_bkg_cut.Integral())
     
     if i ==0:
         legend_cut.AddEntry(h_bkg_cut, 'data sidebands', 'pe')

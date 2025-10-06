@@ -8,7 +8,8 @@ RUNTIME_H=8
 FILES_PER_JOB=50
 HLT_CONF='HLT_overlap'
 #EOS_PATH='/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022/'
-EOS_PATH='/eos/user/c/cbasile/Tau3MuRun3/data/bkg_samples/reMini2022/'
+#EOS_PATH='/eos/user/c/cbasile/Tau3MuRun3/data/bkg_samples/reMini2022/'
+EOS_PATH='/eos/cms/store/group/phys_bphys/cbasile/Tau3MuFlat_2025Sep30/reMini2022/'
 DATA_PATH='data/data_reMini2022/'
 
 ## 2022 era C ##

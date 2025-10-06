@@ -160,7 +160,9 @@ void WTau3Mu_analyzer::Loop(){
          // muons kinematics
          tau_mu1_pt  = TauTo3Mu_mu1_pt[t];   tau_mu2_pt  = TauTo3Mu_mu2_pt[t];   tau_mu3_pt  = TauTo3Mu_mu3_pt[t];
          tau_mu1_eta = TauTo3Mu_mu1_eta[t];  tau_mu2_eta = TauTo3Mu_mu2_eta[t];  tau_mu3_eta = TauTo3Mu_mu3_eta[t];
-         tau_mu1_idx = TauTo3Mu_mu1_idx[t]; tau_mu2_idx = TauTo3Mu_mu2_idx[t]; tau_mu3_idx = TauTo3Mu_mu3_idx[t];
+         tau_mu1_phi = TauTo3Mu_mu1_phi[t];  tau_mu2_phi = TauTo3Mu_mu2_phi[t];  tau_mu3_phi = TauTo3Mu_mu3_phi[t];
+         tau_mu1_idx = TauTo3Mu_mu1_idx[t];  tau_mu2_idx = TauTo3Mu_mu2_idx[t];  tau_mu3_idx = TauTo3Mu_mu3_idx[t];
+         tau_mu1_charge = Muon_charge[tau_mu1_idx];  tau_mu2_charge = Muon_charge[tau_mu2_idx];  tau_mu3_charge = Muon_charge[tau_mu3_idx];
          tau_mu1_z   = Muon_z[TauTo3Mu_mu1_idx[t]]; tau_mu2_z   = Muon_z[TauTo3Mu_mu2_idx[t]]; tau_mu3_z   = Muon_z[TauTo3Mu_mu3_idx[t]];
          tau_mu12_dZ = TauTo3Mu_dZmu12[t];   tau_mu23_dZ = TauTo3Mu_dZmu23[t];   tau_mu13_dZ = TauTo3Mu_dZmu13[t];
          tau_mu12_dR = ROOT::Math::VectorUtil::DeltaR(RecoMu1_P4, RecoMu2_P4); tau_mu23_dR = ROOT::Math::VectorUtil::DeltaR(RecoMu2_P4, RecoMu3_P4); tau_mu13_dR = ROOT::Math::VectorUtil::DeltaR(RecoMu1_P4, RecoMu3_P4);
@@ -231,7 +233,7 @@ void WTau3Mu_analyzer::Loop(){
          }
 
          outTree_->Fill();
-         break; // only one tau candidate per event
+         //break; // only one tau candidate per event
       
       }// loop on tau cands
 
@@ -439,9 +441,15 @@ void WTau3Mu_analyzer::outTreeSetUp(){
    outTree_->Branch("tau_mu1_eta",     &tau_mu1_eta,  "tau_mu1_eta/F");
    outTree_->Branch("tau_mu2_eta",     &tau_mu2_eta,  "tau_mu2_eta/F");
    outTree_->Branch("tau_mu3_eta",     &tau_mu3_eta,  "tau_mu3_eta/F");
+   outTree_->Branch("tau_mu1_phi",     &tau_mu1_phi,  "tau_mu1_phi/F");
+   outTree_->Branch("tau_mu2_phi",     &tau_mu2_phi,  "tau_mu2_phi/F");
+   outTree_->Branch("tau_mu3_phi",     &tau_mu3_phi,  "tau_mu3_phi/F");
    outTree_->Branch("tau_mu1_idx",     &tau_mu1_idx,  "tau_mu1_idx/I");
    outTree_->Branch("tau_mu2_idx",     &tau_mu2_idx,  "tau_mu2_idx/I");
    outTree_->Branch("tau_mu3_idx",     &tau_mu3_idx,  "tau_mu3_idx/I");
+   outTree_->Branch("tau_mu1_charge",     &tau_mu1_charge,  "tau_mu1_charge/I");
+   outTree_->Branch("tau_mu2_charge",     &tau_mu2_charge,  "tau_mu2_charge/I");
+   outTree_->Branch("tau_mu3_charge",     &tau_mu3_charge,  "tau_mu3_charge/I");
    outTree_->Branch("tau_mu1_z",       &tau_mu1_z,    "tau_mu1_z/F");
    outTree_->Branch("tau_mu2_z",       &tau_mu2_z,    "tau_mu2_z/F");
    outTree_->Branch("tau_mu3_z",       &tau_mu3_z,    "tau_mu3_z/F");

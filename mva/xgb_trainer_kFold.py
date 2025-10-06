@@ -98,7 +98,6 @@ removeNaN = False
 # ------------ DEFINE SELECTIONS ------------ # 
 base_selection = '&'.join([config.base_selection,
                            f'(tau_Lxy_sign_BS > {args.LxySign_cut} )' if args.LxySign_cut > 0 else '',
-                           config.phi_veto,
                            ])
 sig_selection  = base_selection
 bkg_selection  = base_selection

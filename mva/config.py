@@ -71,11 +71,11 @@ Nmc_DsPhiPi = {
     '2023BPix'  :  1000000,
 }
 Nmc_W3MuNu = {
-    '2022preEE' :  1000000,
-    '2022EE'    :  1000000,
-    '2023preBPix':  1000000,
-    '2023BPix'  :  1000000,
-    '2024'      :  1000000,
+    '2022preEE'  :  9963904,
+    '2022EE'     :  9978946,
+    '2023preBPix':  9924000,
+    '2023BPix'   :  9864000,
+    '2024'       :  1000000,
 }
 Nmc_ZTau3Mu = {
     '2022preEE' :  195001,
@@ -226,12 +226,12 @@ Ds_category_selection = {
 #########################
 year_list=['22', '23', '24']
 cat_list=['A', 'B', 'C', 'comb']
-bdt_cuts_22 = [0.997, 0.996, 0.995, -1]
-bdt_cuts_23 = [0.987, 0.996, 0.992, -1]
+bdt_cuts_22 = [0.991, 0.994, 0.995, -1]#[0.997, 0.996, 0.995, -1]
+bdt_cuts_23 = [0.993, 0.993, 0.988, -1]#[0.987, 0.996, 0.992, -1]
 bdt_cuts_23tight = [0.994, 0.996, 0.992, -1]
 bdt_cuts_24 = [0.997, 0.996, 0.996, -1]
-cat_sensitivity_22 = [1.5, 1.7, 4.2, 1.0]
-cat_sensitivity_23 = [1.6, 2.1, 6.0, 1.2]
+cat_sensitivity_22 = [-1., -1., -1., -1.]#[1.5, 1.7, 4.2, 1.0]
+cat_sensitivity_23 = [-1., -1., -1., -1.]#[1.6, 2.1, 6.0, 1.2]
 cat_sensitivity_24 = [-1., -1., -1., -1.]
 
 wp_dict = dict(zip(year_list, [
@@ -408,7 +408,7 @@ bdt_output_path = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/'
 mc_bdt_samples = {
     'WTau3Mu'       : bdt_output_path+'XGBout_signal_kFold_ANv8_2025Jul28.root', 
     'DsPhiMuMuPi'   : bdt_output_path+'XGBout_DsPhiMuMuPi_MC_noSVp-ANv9.root',#'XGBout_DsPhiMuMuPi_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
-    'W3MuNu'        : bdt_output_path+'XGBout_W3MuNu_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
+    'W3MuNu'        : bdt_output_path+'XGBout_W3MuNu_MC_noLxyScut.root',#'XGBout_W3MuNu_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
     'peakingBkg'    : bdt_output_path+'XGBout_peakingBkg_MC_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root', 
     'ZTau3Mu'       : bdt_output_path+'XGBout_ZTau3Mu_MC_ANv8_2025Jul28.root', 
     'TTbar_WTau3Mu' : bdt_output_path+'XGBout_WTau3Mu_MC_TTbar-2022preEE.root',
@@ -537,16 +537,19 @@ features_NbinsXloXhiLabelLog = {
     'tau_fit_mass'      : [ 65, 1.40, 2.05, 'm_{3#mu}',                0],
     'bdt_score'         : [ 50, 0, 1,       'BDT score',               1],
     'bdt_score_t3m'     : [ 50, 0, 1,       'BDT_{#tau 3 #mu} score',  1],
-    'tau_mu12_fitM'     : [ 160, 0.2, 1.8,  'M(#mu_{1}#mu_{2})',       0],
-    'tau_mu13_fitM'     : [ 160, 0.2, 1.8,  'M(#mu_{1}#mu_{3})',       0],
-    'tau_mu23_fitM'     : [ 160, 0.2, 1.8,  'M(#mu_{2}#mu_{3})',       0],
+    'tau_mu12_fitM'     : [ 100, 0.30, 1.60,  'M(#mu_{1}#mu_{2})',       0],
+    'tau_mu13_fitM'     : [ 100, 0.30, 1.6,  'M(#mu_{1}#mu_{3})',       0],
+    'tau_mu23_fitM'     : [ 100, 0.30, 1.6,  'M(#mu_{2}#mu_{3})',       0],
+    'tau_mu12_M'        : [ 100, 0.30, 1.60,  'M(#mu_{1}#mu_{2})',       0],
+    'tau_mu13_M'        : [ 100, 0.30, 1.6,  'M(#mu_{1}#mu_{3})',       0],
+    'tau_mu23_M'        : [ 100, 0.30, 1.6,  'M(#mu_{2}#mu_{3})',       0],
     'tau_mu1_pt'        : [ 45, 5, 50,      'p_{T}(#mu_{1}) (GeV)',    0],
     'tau_mu2_pt'        : [ 30, 0, 30,      'p_{T}(#mu_{2}) (GeV)',    0],
     'tau_mu3_pt'        : [ 30, 0, 30,      'p_{T}(#mu_{3}) (GeV)',    0],
     'tau_mu1_eta'       : [ 50, -2.5, 2.5,  '#eta(#mu_{1})',           0],
     'tau_mu2_eta'       : [ 50, -2.5, 2.5,  '#eta(#mu_{2})',           0],
     'tau_mu3_eta'       : [ 50, -2.5, 2.5,  '#eta(#mu_{3})',           0],
-    'tau_fit_charge'    : [  2,-0.5,1.5,    'q_{3#mu}',        0],
+    'tau_fit_charge'    : [  2, -2.0, 2.0,    'q(3#mu)',        0],
 }
 
 

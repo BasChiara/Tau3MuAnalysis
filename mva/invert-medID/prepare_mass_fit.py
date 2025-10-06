@@ -23,12 +23,13 @@ if __name__ == '__main__':
     categories = ['ABC', 'A', 'B', 'C']
     bdt_cuts   = np.linspace(0.980, 0.999, 20)  # 10 bins between 0.98 and 1.0
     print(f"[i] BDT cuts: {bdt_cuts}")
+    selection = '(is_dataSB == 0)'
 
     # -- INPUT -- #
     if not os.path.exists(input_file):
         raise FileNotFoundError(f"Input file not found: {input_file}")
     print(f"[+] Input file: {input_file}")
-    rdf = ROOT.RDataFrame(treename, input_file).Filter('(is_dataSB == 0)')
+    rdf = ROOT.RDataFrame(treename, input_file).Filter(selection)
 
     
     # -- OUTPUT -- #

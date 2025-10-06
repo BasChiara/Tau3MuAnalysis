@@ -5,8 +5,9 @@ cd /afs/cern.ch/user/c/cbasile/WTau3MuRun3_Analysis/CMSSW_13_0_13/src/Tau3MuAnal
 RUNTIME_H=12
 FILES_PER_JOB=50
 HLT_CONF='HLT_overlap'
-EOS_PATH='/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/'
+#EOS_PATH='/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2023/'
 #EOS_PATH='/eos/user/c/cbasile/Tau3MuRun3/data/bkg_samples/reMini2023/'
+EOS_PATH='/eos/cms/store/group/phys_bphys/cbasile/Tau3MuFlat_2025Sep30/reMini2023/'
 DATA_PATH='data/data_reMini2023/'
 
 

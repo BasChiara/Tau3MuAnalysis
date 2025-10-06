@@ -1,9 +1,9 @@
 import ROOT 
-ROOT.EnableImplicitMT()
 import argparse
 import pickle
 import numpy  as np
 import pandas as pd
+import glob
 
 from xgboost import XGBClassifier, plot_importance
 from sklearn.preprocessing import LabelEncoder
@@ -21,6 +21,16 @@ import config
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from plots.color_text import color_text as ct
 
+LOAD_IN_CHUNKS = True  # load input data in chunks (to save memory)
+def loadInChunks(file_path, treename, selection, chunk_size=100000):
+    """Load a ROOT file in chunks using RDataFrame and convert to pandas DataFrame."""
+    rdf = ROOT.RDataFrame(treename, file_path).Filter(selection)
+    total_rows = rdf.Count().GetValue()
+    for start in range(0, total_rows, chunk_size):
+        end = min(start + chunk_size, total_rows)
+        chunk_rdf = rdf.Range(start, end)
+        chunk_df = pd.DataFrame(chunk_rdf.AsNumpy())
+        yield chunk_df
 
 ##########################################################################################
 # Define the gini metric - from https://www.kaggle.com/c/ClaimPredictionChallenge/discussion/703#5897
@@ -65,7 +75,7 @@ else:
     base_selection = ' & '.join([
         config.base_selection,
         config.displacement_selection
-    ]) 
+    ])
 
 print(f'{ct.BOLD}[!] base-selection : %s'%base_selection)
 print(f'---------------------------------------------{ct.END}')
@@ -78,15 +88,29 @@ else:
     dataset = args.data
 tree_name = 'WTau3Mu_tree' if not args.process == 'DsPhiMuMuPi' else 'DsPhiMuMuPi_tree' 
 print('[+] processing files :')
+if not dataset:
+    print(f'[!] No files found for {args.process} in {args.data}')
+    sys.exit(1)
 [print(f' - {sample}') for sample in dataset]
-
-
-data_rdf = ROOT.RDataFrame(tree_name, dataset).Filter(base_selection)
-input_branches = [str(name) for name in data_rdf.GetColumnNames()]
-if (args.debug) : print("[i] Extracted Column Names:", input_branches)
 print('... processing input ...')
-print('[+] input-dataset is %s : %s entries passed the selection' %( args.process ,data_rdf.Count().GetValue()))
-dat = pd.DataFrame( data_rdf.AsNumpy())
+if (LOAD_IN_CHUNKS):
+    dat_tmp = []
+    for sample in dataset:
+        print(f'[i] loading {sample}')
+        [dat_tmp.append(chunk) for chunk in loadInChunks(sample, tree_name, base_selection)]
+    dat = pd.concat(dat_tmp, ignore_index=True)
+    print('[i] events passing selection : %d'%(dat.shape[0]))
+    input_branches = dat.columns.tolist()
+    # remove data_tmp to save memory
+    del dat_tmp
+else:
+    ROOT.EnableImplicitMT()
+    data_rdf = ROOT.RDataFrame(tree_name, dataset).Filter(base_selection)
+    input_branches = [str(name) for name in data_rdf.GetColumnNames()]
+    if (args.debug) : print("[i] Extracted Column Names:", input_branches)
+    print('[+] input-dataset is %s : %s entries passed the selection' %( args.process ,data_rdf.Count().GetValue()))
+    dat = pd.DataFrame( data_rdf.AsNumpy())
+
 dat.columns = input_branches
 if (args.debug): print(dat)
 

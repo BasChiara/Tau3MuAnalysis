@@ -137,6 +137,7 @@ class WTau3Mu_analyzer : public WTau3Mu_tools{
       float tau_mu1_eta, tau_mu2_eta, tau_mu3_eta;
       float tau_mu1_phi, tau_mu2_phi, tau_mu3_phi;
       int   tau_mu1_idx, tau_mu2_idx, tau_mu3_idx;
+      int   tau_mu1_charge, tau_mu2_charge, tau_mu3_charge;
       float tau_mu1_z, tau_mu2_z, tau_mu3_z;
       
       float tau_mu12_dZ, tau_mu23_dZ, tau_mu13_dZ;
