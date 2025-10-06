@@ -1,0 +1,11 @@
+Gen filter & 100.0 & 100.0 & 100.0 & 100.0 \\ 
+Preselection & 10.0 & 10.0 & 10.6 & 10.6 \\ 
+HLT bits & 7.1 & 7.1 & 7.6 & 7.6 \\ 
+Muon ID & 5.1 & 5.1 & 5.1 & 5.0 \\ 
+HLT emulation & 5.0 & 5.0 & 5.0 & 5.0 \\ 
+$\mu\mu$ resonances veto & 4.8 & 4.8 & 4.8 & 4.8 \\ 
+\hltDimu reinforcement & 4.8 & 4.8 & 4.8 & 4.7 \\ 
+$L_{xy}/\sigma$ > 2.0 & 0.8 & 0.8 & 0.5 & 0.5 \\ 
+$m_{3\mu}$ range & 0.2 & 0.2 & 0.1 & 0.1 \\ 
+$\omega/\rho$ and $\phi\to\mu\mu$ veto & 0.2 & 0.2 & 0.1 & 0.1 \\ 
+BDT selection & 0.0 & 0.0 & 0.0 & 0.0 \\ 

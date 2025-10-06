@@ -11,6 +11,7 @@ import mva.config as config
 import style.color_text as ct
 
 py_step_labels = {
+    'nEvGenFilter' : 'Gen filter',
     'nEvTau3Mu' : 'Preselection',
     'nTriggerBit' : 'HLT bits',
     'nEvTauMediumID' : r'$\mu$ ID',
@@ -18,8 +19,8 @@ py_step_labels = {
     'nEvDiMuResVeto' : r'$\mu\mu$ res. veto',
     'nEvReinforcedHLT' : 'HLT reinforcement',
     'LxyS' : r'$L_{xy}/\sigma}$ cut',
-    'mass_range' : r'$M_{3\mu}$ range',
-    'phi_veto' : r'$\phi \to \mu\mu$ veto',
+    'mass_range' : r'$m_{3\mu}$ range',
+    'phi_veto' : r'$\omega/\rho$ and $\phi\to\mu\mu$ veto',
     'BDT' : 'BDT'
 }
 
@@ -31,9 +32,9 @@ LateX_step_labels = {
     'nEvTriggerFired_Total' : 'HLT emulation',
     'nEvDiMuResVeto' : '$\\mu\\mu$ resonances veto',
     'nEvReinforcedHLT' : '\\hltDimu reinforcement',
-    'LxyS' : '$L_{xy}/\\sigma$ > 2.0',
-    'mass_range' : '$M_{3\\mu}$ range',
-    'phi_veto' : '$\\phi \\to \\mu\\mu$ veto',
+    'LxyS' : '$L_{xy}/\\sigma >$ 2.0',
+    'mass_range' : '$m_{3\\mu}$ range',
+    'phi_veto' : '$\omega/\\rho$ and $\\phi\\to\\mu\\mu$ veto',
     'BDT' : 'BDT selection'
 }
 
@@ -45,35 +46,36 @@ def get_Nevents(rdf, selection):
 def plot_WZvsYear(df_list, selection_step_list, var='yield_ratio', exp_WZratio=5.30, y_label=None):
 
     fig, ax = plt.subplots()
-    ax.axhline(exp_WZratio, color='grey', linestyle='--', label='expected')
-    for year in df_list: ax.plot(selection_step_list, df_list[year][var], label=year, marker='o')
-    ax.set_xticklabels([py_step_labels[step] for step in selection_step_list], rotation=45)
+    ax.axhline(exp_WZratio, color='grey', linestyle='--')
+    for year in df_list: ax.plot(selection_step_list, df_list[year][var], 'o--', label=year)
+    ax.set_xticks(range(len(selection_step_list)))
+    ax.set_xticklabels([py_step_labels[step] for step in selection_step_list], rotation=45, ha="right", fontsize=14)
     # add orizontal line for expected ratio  
-    ax.legend(loc='upper left')
+    ax.legend(loc='upper left', fontsize=14, frameon=False)
     ax.grid()
     if not y_label : ax.set_ylabel(f'W/Z {var}', fontsize=14)
-    else: ax.set_ylabel(y_label, fontsize=14)
-    ax.set_ylim(0.8*exp_WZratio, 1.5*exp_WZratio)
+    else: ax.set_ylabel(y_label, fontsize=16)
+    ax.set_ylim(0.5*exp_WZratio, 1.5*exp_WZratio)
     #ax.set_yscale('log')
     fig.tight_layout()
-    fig.savefig(f'../outRoot/WvsZ_{var}.png')
-    fig.savefig(f'../outRoot/WvsZ_{var}.pdf')
+    fig.savefig(f'outRoot/WvsZ_{var}.png')
+    fig.savefig(f'outRoot/WvsZ_{var}.pdf')
 
 def print_LateX_table(eras = ['2022preEE', '2022EE', '2023preBPix', '2023BPix'], process='WTau3Mu', onfile=False):
     eff_dict = {}
     eff_dict['step'] = [LateX_step_labels[name] for name in LateX_step_labels]
     names = []
     for era in eras:
-        df = pd.read_csv(f'../outRoot/efficiency_breakdown_{era}_{process}.csv')
+        df = pd.read_csv(f'outRoot/efficiency_breakdown_{era}_{process}.csv')
         abs_eff = df['efficiency']*100
         eff_dict[era] = abs_eff
     
     dfLateX = pd.DataFrame(eff_dict)
     # loop on the rows
     if onfile:
-        with open(f'../outRoot/efficiency_LateXbreakdown_{process}.txt', 'w') as f:
+        with open(f'outRoot/efficiency_LateXbreakdown_{process}.txt', 'w') as f:
             for i in range(len(dfLateX)):
-                values = ' & '.join([f'{val:.2f}' for val in dfLateX.iloc[i].values[1:]])
+                values = ' & '.join([f'{val:.1f}' for val in dfLateX.iloc[i].values[1:]])
                 selection = dfLateX.iloc[i].values[0]
                 f.write(f'{selection} & {values} \\\\ \n')
     else: 
@@ -118,7 +120,7 @@ if make_csv:
 
         # file with preselection efficiencies
         process = 'Tau3Mu' if args.process == 'WTau3Mu' else args.process
-        preselection_file = samples[i]#f'../outRoot/WTau3Mu_MCanalyzer_{year}_HLT_overlap_on{process}.root'
+        preselection_file = samples[i]#f'outRoot/WTau3Mu_MCanalyzer_{year}_HLT_overlap_on{process}.root'
         if not os.path.isfile(preselection_file):
             print(f'{ct.color_text.RED}ERROR: file {preselection_file} does not exist{ct.color_text.END}')
             exit(-1)
@@ -155,7 +157,7 @@ if make_csv:
         N_w   = np.append(N_w, N_mass_range_w)
         print(f'Base selection: {N_mass_range} {N_mass_range_w:.3f}(w) ----> ({N_mass_range/N*100:,.2f} %)')
         # - phi veto
-        selection    = selection + ' && ' + config.phi_veto
+        selection    = selection + ' && ' + config.phi_veto + ' && ' + config.omega_veto
         N_phi_veto, N_phi_veto_w = get_Nevents(rdf, selection)
         N_raw = np.append(N_raw, N_phi_veto)
         N_w   = np.append(N_w, N_phi_veto_w)
@@ -184,7 +186,7 @@ if make_csv:
         df = pd.DataFrame({'slection' : selection_step_list ,'N_raw': N_raw, 'N_w': N_w})
         df['efficiency'] = df['N_raw']/df['N_raw'][0]
         df['efficiency_w'] = df['N_w']/df['N_w'][0]
-        df.to_csv(f'../outRoot/efficiency_breakdown_{year}_{args.process}.csv', index=False)
+        df.to_csv(f'outRoot/efficiency_breakdown_{year}_{args.process}.csv', index=False)
     
     if args.LateX:
         print(f'{ct.color_text.BOLD} -- {year} {ct.color_text.END} : LateX table --')
@@ -200,14 +202,14 @@ elif args.compareWZ:
     df_list = []
 
     for i, year in enumerate(years_list):
-        W_csv = pd.read_csv(f'../outRoot/efficiency_breakdown_{year}_WTau3Mu.csv')
-        Z_csv = pd.read_csv(f'../outRoot/efficiency_breakdown_{year}_ZTau3Mu.csv')
+        W_csv = pd.read_csv(f'outRoot/efficiency_breakdown_{year}_WTau3Mu.csv')
+        Z_csv = pd.read_csv(f'outRoot/efficiency_breakdown_{year}_ZTau3Mu.csv')
 
         df = pd.DataFrame()
-        df['NW'] = W_csv['N_w']
-        df['efficiencyW'] = W_csv['efficiency_w']*base_eff_W[i]
-        df['NZ'] = Z_csv['N_w']
-        df['efficiencyZ'] = Z_csv['efficiency_w']*base_eff_Z[i]
+        df['NW'] = W_csv['N_w'][1:] # without gen filter
+        df['efficiencyW'] = W_csv['efficiency_w'][1:]*base_eff_W[i]
+        df['NZ'] = Z_csv['N_w'][1:]
+        df['efficiencyZ'] = Z_csv['efficiency_w'][1:]*base_eff_Z[i]
         
         df['efficiency_ratio'] = df['efficiencyW']/df['efficiencyZ']
         df['yield_ratio'] = W_csv['N_w']/Z_csv['N_w']
@@ -218,6 +220,7 @@ elif args.compareWZ:
 
         df_list.append(df)
         print(f'{year} :')
+        print(df)
     dict_df = dict(zip(years_list, df_list))
 
     y_label_dict = {
@@ -226,6 +229,7 @@ elif args.compareWZ:
         'effyield_ratio'    : r'$(N_W/\epsilon_W) / (N_Z/\epsilon_Z)$'}
 
     exp_Yratio = config.xsec_ppWxTauNu/(2.0 * config.xsec_ppZxTauTau)
-    plot_WZvsYear(dict_df, selection_step_list, var='yield_ratio', exp_WZratio=exp_Yratio, y_label=y_label_dict['yield_ratio'])
-    plot_WZvsYear(dict_df, selection_step_list, var='effyield_ratio', exp_WZratio=exp_Yratio, y_label=y_label_dict['effyield_ratio'])
-    plot_WZvsYear(dict_df, selection_step_list, var='efficiency_ratio', exp_WZratio=1.0, y_label=y_label_dict['efficiency_ratio'])
+    step_to_plot = selection_step_list[1:] # without gen filter
+    plot_WZvsYear(dict_df, step_to_plot, var='yield_ratio', exp_WZratio=exp_Yratio, y_label=y_label_dict['yield_ratio'])
+    plot_WZvsYear(dict_df, step_to_plot, var='effyield_ratio', exp_WZratio=exp_Yratio, y_label=y_label_dict['effyield_ratio'])
+    plot_WZvsYear(dict_df, step_to_plot, var='efficiency_ratio', exp_WZratio=1.0, y_label=y_label_dict['efficiency_ratio'])
