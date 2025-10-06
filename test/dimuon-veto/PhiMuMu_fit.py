@@ -41,10 +41,10 @@ if args.resonance == 'phi':
     fit_range_lo  , fit_range_hi   = 0.90, 1.20 # GeV
     res_mass = phi_mass
 elif args.resonance == 'omega':
-    fit_range_lo  , fit_range_hi   = 0.70, 0.85 # GeV
+    fit_range_lo  , fit_range_hi   = 0.70, 0.86 # GeV
     res_mass = omega_mass
-binw  = 0.005 # GeV
-nbins = int((fit_range_hi - fit_range_lo)/binw)
+binw  = 0.005 if args.resonance == 'phi' else 0.004 # GeV
+nbins = int((fit_range_hi - fit_range_lo)/binw) + ( 1 if args.resonance == 'phi' else 0)
 
 
 
@@ -60,6 +60,8 @@ data_file = cfg.data_bdt_samples['WTau3Mu']
 bdt = ROOT.RooRealVar('bdt_score', 'BDT score'  , 0.0,  1.0, '' )
 # data weights
 weight = ROOT.RooRealVar('weight', 'weight'  , 0.0,  1.0, '' )
+ref_var= f'tau_mu{args.mu_pair}_M'
+mumu_ref = ROOT.RooRealVar(ref_var, cfg.features_NbinsXloXhiLabelLog[ref_var][3], 0.0, 10.0, 'GeV' )
 # di-muon mass
 mass_var = f'tau_mu{args.mu_pair}_fitM'
 mumu_mass = ROOT.RooRealVar(mass_var, cfg.features_NbinsXloXhiLabelLog[mass_var][3], fit_range_lo,  fit_range_hi, 'GeV' )
@@ -68,6 +70,7 @@ mumu_mass.setRange('fit_range', fit_range_lo, fit_range_hi)
 thevars = ROOT.RooArgSet()
 thevars.add(bdt)
 thevars.add(weight)
+thevars.add(mumu_ref)
 thevars.add(mumu_mass)
 
 ### IMPORT DATA ###
@@ -84,8 +87,8 @@ datatofit.Print('v')
 
 # PHI -> mumu signal model + bkg
 
-M_mumu   = ROOT.RooRealVar('M_mumu' , 'M_{#mu#mu}' , res_mass, res_mass - 0.010, res_mass + 0.010)
-width  = ROOT.RooRealVar('width',  'width', 0.01,    0.005, 0.05 if args.resonance=='phi' else 0.10) #GeV
+M_mumu   = ROOT.RooRealVar('M_mumu' , 'M_{#mu#mu}' , res_mass, res_mass - 0.002, res_mass + 0.002)
+width  = ROOT.RooRealVar('width',  'width', 0.012,    0.005, 0.03 if args.resonance=='phi' else 0.05) #GeV
 if args.bdt_cut >= 0.980:
     width.setConstant(ROOT.kTRUE)
     M_mumu.setConstant(ROOT.kTRUE)
@@ -98,6 +101,8 @@ a2 = ROOT.RooRealVar('a2', 'a2', 0, -1.0,1.0)
 a3 = ROOT.RooRealVar('a3', 'a3', 0, -1.0,1.0)
 #bmodel = ROOT.RooPolynomial('background_phimumu', "background_phimumu", mumu_mass, ROOT.RooArgList(a0, a1), 0)
 order =  ROOT.RooArgList(a0, a1, a2) if args.bdt_cut < 0.5 else ROOT.RooArgList(a0)
+if args.resonance == 'omega' and args.bdt_cut < 0.5:
+    order = ROOT.RooArgList(a0, a1)
 bmodel = ROOT.RooChebychev('bmodel', 'bmodel', mumu_mass, order)
 
 nsig = ROOT.RooRealVar('Ns', 'N signal', datatofit.sumEntries(), 0., 3*datatofit.sumEntries())
@@ -127,6 +132,17 @@ full_model.plotOn(
     ROOT.RooFit.Range('fit_range'),
     ROOT.RooFit.NormRange('fit_range')
 )
+# add line in the veto region
+line = ROOT.TLine(M_mumu.getVal() - 3*width.getVal(), 0, M_mumu.getVal() - 3*width.getVal(), frame.GetMaximum())
+line.SetLineColor(ROOT.kBlack)
+line.SetLineStyle(ROOT.kDashed)
+line.SetLineWidth(2)
+line2 = ROOT.TLine(M_mumu.getVal() + 3*width.getVal(), 0, M_mumu.getVal() + 3*width.getVal(), frame.GetMaximum())
+line2.SetLineColor(ROOT.kBlack)
+line2.SetLineStyle(ROOT.kDashed)
+line2.SetLineWidth(2)
+frame.addObject(line)
+frame.addObject(line2)
 print('chi2 %.2f'%(frame.chiSquare()))
 fit_utils.add_summary_text(frame, text = f'#sigma = ({width.getVal()*1000:.1f} #pm {width.getError()*1000:.1f}) MeV', x=fit_range_lo+0.010, y=0.20*frame.GetMaximum(), size=0.04)
 fit_utils.add_summary_text(frame, text = f'#chi^{{2}}/nDoF = {frame.chiSquare():.2f}', x=fit_range_lo+0.010, y=0.20*frame.GetMaximum()-500, size=0.04)

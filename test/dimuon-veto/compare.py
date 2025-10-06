@@ -3,6 +3,7 @@ ROOT.gROOT.SetBatch(True)
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
 import os, sys
 
 input_dict = {
@@ -49,7 +50,7 @@ input_dict = {
         }
     },
 }
-outdir = os.path.expandvars('$WWW/Tau3Mu_Run3/BPH-24-010_review/dimuon-veto/preVSpost_BDTtraining/')
+outdir = os.path.expandvars('$WWW/Tau3Mu_Run3/BPH-24-010_review/dimuon-veto/post_BDTtraining')
 
 def get_data(file, tree='sensitivity_tree'):
     rdf = ROOT.RDataFrame(tree, file)
@@ -60,8 +61,8 @@ def get_data(file, tree='sensitivity_tree'):
 
 if __name__ == '__main__':
 
-    ref_key = 'PhiOmega_post'
-    tst_key = 'PhiOmega_pre'
+    ref_key = 'Phi_post'
+    tst_key = 'PhiOmega_post'
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     for cat in ['A22', 'B22', 'C22', 'A23', 'B23', 'C23']:
@@ -69,17 +70,17 @@ if __name__ == '__main__':
         df_test = get_data(input_dict[tst_key]['files'][cat])
 
         plt.figure(figsize=(8,6))
-        plt.plot(df_ref['bdt_cut'], df_ref['sig_Nexp']/df_ref['bkg_Nexp_Sregion'], 
+        plt.plot(df_ref['bdt_cut'], df_ref['sig_Nexp']/np.sqrt(df_ref['bkg_Nexp_Sregion']), 
                 label=input_dict[ref_key]['description'],
                 marker='o', ls='--',
                 color=input_dict[ref_key]['color'])
-        plt.plot(df_test['bdt_cut'], df_test['sig_Nexp']/df_test['bkg_Nexp_Sregion'],
+        plt.plot(df_test['bdt_cut'], df_test['sig_Nexp']/np.sqrt(df_test['bkg_Nexp_Sregion']),
                 label=input_dict[tst_key]['description'], 
                 marker='o', ls='--',
                 color=input_dict[tst_key]['color'])
         plt.xlabel('BDT cut', fontsize=20)
         plt.xticks(fontsize=16)
-        plt.ylabel('S/B', fontsize=20)
+        plt.ylabel('S/√B', fontsize=20)
         plt.yticks(fontsize=16)
 
         plt.grid()
@@ -87,7 +88,7 @@ if __name__ == '__main__':
         plt.text(0.05, 0.75, f'{cat}', 
                 transform=plt.gca().transAxes, 
                 fontsize=20, verticalalignment='top')
-        plot_name = os.path.join(outdir, f'sensitivity_comparison_{cat}')
+        plot_name = os.path.join(outdir, f'sensitivitySsqrtB_comparison_{cat}')
         plt.tight_layout()
         plt.savefig(plot_name+'.png')
         plt.savefig(plot_name+'.pdf')

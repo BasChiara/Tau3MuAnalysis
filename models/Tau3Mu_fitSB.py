@@ -19,7 +19,7 @@ from style.color_text import color_text as ct
 import models.datacard_utils as du
 import models.fit_utils as fitu
 
-INVID_MUON = True # set True if the input sample is with inverted muon ID
+INVID_MUON = False # set True if the input sample is with inverted muon ID
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-s', '--signal',                                                                       help='input Tau3Mu MC')
@@ -113,7 +113,7 @@ if args.optim_bdt :
 base_selection      = ' & '.join([
     config.cat_eta_selection_dict_fit[args.category], 
     config.year_selection['20'+args.year],
-    config.phi_veto,
+    config.phi_veto, config.omega_veto,
 ])
 
 if args.save_ws : file_ws = ROOT.TFile(wspace_filename, "RECREATE")
