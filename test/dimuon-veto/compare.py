@@ -27,12 +27,12 @@ input_dict = {
         'color': 'blue',
         'label': '',
         'files': {
-            'A22' :'veto_postBDT/phi-omega/input_combine/sensitivity_tree_bdt_scan_wt3m_A_2022_PhiOmegaVETO.root',
-            'B22' :'veto_postBDT/phi-omega/input_combine/sensitivity_tree_bdt_scan_wt3m_B_2022_PhiOmegaVETO.root',
-            'C22' :'veto_postBDT/phi-omega/input_combine/sensitivity_tree_bdt_scan_wt3m_C_2022_PhiOmegaVETO.root',
-            'A23' :'veto_postBDT/phi-omega/input_combine/sensitivity_tree_bdt_scan_wt3m_A_2023_PhiOmegaVETO.root',
-            'B23' :'veto_postBDT/phi-omega/input_combine/sensitivity_tree_bdt_scan_wt3m_B_2023_PhiOmegaVETO.root',
-            'C23' :'veto_postBDT/phi-omega/input_combine/sensitivity_tree_bdt_scan_wt3m_C_2023_PhiOmegaVETO.root',
+            'A22' :'veto_postBDT/omega-phi/input_combine/sensitivity_tree_bdt_scan_wt3m_A_2022_OmPhiVeto.root',
+            'B22' :'veto_postBDT/omega-phi/input_combine/sensitivity_tree_bdt_scan_wt3m_B_2022_OmPhiVeto.root',
+            'C22' :'veto_postBDT/omega-phi/input_combine/sensitivity_tree_bdt_scan_wt3m_C_2022_OmPhiVeto.root',
+            'A23' :'veto_postBDT/omega-phi/input_combine/sensitivity_tree_bdt_scan_wt3m_A_2023_OmPhiVeto.root',
+            'B23' :'veto_postBDT/omega-phi/input_combine/sensitivity_tree_bdt_scan_wt3m_B_2023_OmPhiVeto.root',
+            'C23' :'veto_postBDT/omega-phi/input_combine/sensitivity_tree_bdt_scan_wt3m_C_2023_OmPhiVeto.root',
         }
     },
     'Phi_post':
@@ -41,16 +41,16 @@ input_dict = {
         'color': 'red',
         'label': '',
         'files': {
-            'A22' :'veto_postBDT/phionly/input_combine/sensitivity_tree_bdt_scan_wt3m_A_2022_PhiVETO.root',
-            'B22' :'veto_postBDT/phionly/input_combine/sensitivity_tree_bdt_scan_wt3m_B_2022_PhiVETO.root',
-            'C22' :'veto_postBDT/phionly/input_combine/sensitivity_tree_bdt_scan_wt3m_C_2022_PhiVETO.root',
-            'A23' :'veto_postBDT/phionly/input_combine/sensitivity_tree_bdt_scan_wt3m_A_2023_PhiVETO.root',
-            'B23' :'veto_postBDT/phionly/input_combine/sensitivity_tree_bdt_scan_wt3m_B_2023_PhiVETO.root',
-            'C23' :'veto_postBDT/phionly/input_combine/sensitivity_tree_bdt_scan_wt3m_C_2023_PhiVETO.root',
+            'A22' :'veto_postBDT/phi/input_combine/sensitivity_tree_bdt_scan_wt3m_A_2022_PhiVeto.root',
+            'B22' :'veto_postBDT/phi/input_combine/sensitivity_tree_bdt_scan_wt3m_B_2022_PhiVeto.root',
+            'C22' :'veto_postBDT/phi/input_combine/sensitivity_tree_bdt_scan_wt3m_C_2022_PhiVeto.root',
+            'A23' :'veto_postBDT/phi/input_combine/sensitivity_tree_bdt_scan_wt3m_A_2023_PhiVeto.root',
+            'B23' :'veto_postBDT/phi/input_combine/sensitivity_tree_bdt_scan_wt3m_B_2023_PhiVeto.root',
+            'C23' :'veto_postBDT/phi/input_combine/sensitivity_tree_bdt_scan_wt3m_C_2023_PhiVeto.root',
         }
     },
 }
-outdir = os.path.expandvars('$WWW/Tau3Mu_Run3/BPH-24-010_review/dimuon-veto/post_BDTtraining')
+outdir = os.path.expandvars('plots-v2/bdt-scan/')
 
 def get_data(file, tree='sensitivity_tree'):
     rdf = ROOT.RDataFrame(tree, file)
@@ -70,17 +70,17 @@ if __name__ == '__main__':
         df_test = get_data(input_dict[tst_key]['files'][cat])
 
         plt.figure(figsize=(8,6))
-        plt.plot(df_ref['bdt_cut'], df_ref['sig_Nexp']/np.sqrt(df_ref['bkg_Nexp_Sregion']), 
+        plt.plot(df_ref['bdt_cut'], df_ref['sig_Nexp']/df_ref['PunziS_val'], 
                 label=input_dict[ref_key]['description'],
                 marker='o', ls='--',
                 color=input_dict[ref_key]['color'])
-        plt.plot(df_test['bdt_cut'], df_test['sig_Nexp']/np.sqrt(df_test['bkg_Nexp_Sregion']),
+        plt.plot(df_test['bdt_cut'], df_test['sig_Nexp']/df_test['PunziS_val'],
                 label=input_dict[tst_key]['description'], 
                 marker='o', ls='--',
                 color=input_dict[tst_key]['color'])
         plt.xlabel('BDT cut', fontsize=20)
         plt.xticks(fontsize=16)
-        plt.ylabel('S/√B', fontsize=20)
+        plt.ylabel('Punzi significance', fontsize=20)
         plt.yticks(fontsize=16)
 
         plt.grid()
@@ -88,7 +88,7 @@ if __name__ == '__main__':
         plt.text(0.05, 0.75, f'{cat}', 
                 transform=plt.gca().transAxes, 
                 fontsize=20, verticalalignment='top')
-        plot_name = os.path.join(outdir, f'sensitivitySsqrtB_comparison_{cat}')
+        plot_name = os.path.join(outdir, f'sensitivityPunzi_comparison_{cat}')
         plt.tight_layout()
         plt.savefig(plot_name+'.png')
         plt.savefig(plot_name+'.pdf')

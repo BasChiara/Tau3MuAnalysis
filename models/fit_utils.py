@@ -25,9 +25,9 @@ def load_data(mass_window_lo, mass_window_hi, blind_region_lo, blind_region_hi, 
     # data weights
     weight = ROOT.RooRealVar('weight', 'weight', -np.inf, np.inf, '')
     # di-muon mass
-    mu12_mass = ROOT.RooRealVar('tau_mu12_fitM', 'tau_mu12_fitM'  , -10.0,  10.0, 'GeV' )
-    mu23_mass = ROOT.RooRealVar('tau_mu23_fitM', 'tau_mu23_fitM'  , -10.0,  10.0, 'GeV' )
-    mu13_mass = ROOT.RooRealVar('tau_mu13_fitM', 'tau_mu13_fitM'  , -10.0,  10.0, 'GeV' )
+    mu12_mass = ROOT.RooRealVar('tau_mu12_M', 'tau_mu12_M'  , -10.0,  10.0, 'GeV' )
+    mu23_mass = ROOT.RooRealVar('tau_mu23_M', 'tau_mu23_M'  , -10.0,  10.0, 'GeV' )
+    mu13_mass = ROOT.RooRealVar('tau_mu13_M', 'tau_mu13_M'  , -10.0,  10.0, 'GeV' )
     #displacement
     Lsign = ROOT.RooRealVar('tau_Lxy_sign_BS', 'tau_Lxy_sign_BS', 0, np.inf)
     # year/era tag

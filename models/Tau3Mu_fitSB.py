@@ -113,7 +113,7 @@ if args.optim_bdt :
 base_selection      = ' & '.join([
     config.cat_eta_selection_dict_fit[args.category], 
     config.year_selection['20'+args.year],
-    config.phi_veto, config.omega_veto,
+    config.phi_veto, #config.omega_veto,
 ])
 
 if args.save_ws : file_ws = ROOT.TFile(wspace_filename, "RECREATE")

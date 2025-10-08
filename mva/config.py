@@ -33,8 +33,8 @@ Ds_minSVprob = 0.001
 
 # tau->3mu
 base_selection      = f'(tau_fit_mass > {mass_range_lo} & tau_fit_mass < {mass_range_hi} ) & (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu)'
-phi_veto            = '''(fabs(tau_mu12_fitM- {mass:.3f})> {window:.3f} & fabs(tau_mu23_fitM - {mass:.3f})> {window:.3f} & fabs(tau_mu13_fitM -  {mass:.3f})>{window:.3f})'''.format(mass =Phi_mass_ , window = Phi_window_/2. )
-omega_veto          = '''(fabs(tau_mu12_fitM- {mass:.3f})> {window:.3f} & fabs(tau_mu23_fitM - {mass:.3f})> {window:.3f} & fabs(tau_mu13_fitM -  {mass:.3f})>{window:.3f})'''.format(mass =Omega_mass_ , window = Omega_window_/2. )
+phi_veto            = '''(fabs(tau_mu12_M- {mass:.3f})> {window:.3f} & fabs(tau_mu23_M - {mass:.3f})> {window:.3f} & fabs(tau_mu13_M -  {mass:.3f})>{window:.3f})'''.format(mass =Phi_mass_ , window = Phi_window_/2. )
+omega_veto          = '''(fabs(tau_mu12_M- {mass:.3f})> {window:.3f} & fabs(tau_mu23_M - {mass:.3f})> {window:.3f} & fabs(tau_mu13_M -  {mass:.3f})>{window:.3f})'''.format(mass =Omega_mass_ , window = Omega_window_/2. )
 sidebands_selection = f'((tau_fit_mass < {blind_range_lo} )|| (tau_fit_mass > {blind_range_hi}))'
 displacement_selection = f'(tau_Lxy_sign_BS > {LxySign_cut})'
 
