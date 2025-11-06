@@ -4,22 +4,29 @@ ROOT.ROOT.EnableImplicitMT()
 ROOT.gStyle.SetOptStat(0)
 import numpy as np
 
+import cmsstyle as CMS
+CMS.setCMSStyle()
+cmsStyle = CMS.getCMSStyle()
+cmsStyle.SetErrorX(0)
+CMS.SetEnergy(13.6)
+CMS.SetLumi('')
+
 import os
 import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, os.pardir))
 import mva.config as config
 
-def get_bdt_efficiency(tree, selection='(1)'):
+def get_bdt_efficiency(tree, selection='(1)', BDT_cut=0.990):
 
     bdt_selection = '||'.join([
-        f'({config.cat_eta_selection_dict_fit["A"]}) && (bdt_score > {config.bdt_cuts_22[0]})',
-        f'({config.cat_eta_selection_dict_fit["B"]}) && (bdt_score > {config.bdt_cuts_22[1]})',
-        f'({config.cat_eta_selection_dict_fit["C"]}) && (bdt_score > {config.bdt_cuts_22[2]})',
+        f'({config.cat_eta_selection_dict_fit["A"]}) && (bdt_score > {BDT_cut})',
+        f'({config.cat_eta_selection_dict_fit["B"]}) && (bdt_score > {BDT_cut})',
+        f'({config.cat_eta_selection_dict_fit["C"]}) && (bdt_score > {BDT_cut})',
     ])
     bdt_selection = f'({bdt_selection}) && ({selection})'
-    print(f"Selection: {selection}")
+    #print(f"Selection: {selection}")
     print(f"BDT Selection: {bdt_selection}")
-    n_total = tree.GetEntries(selection)
+    n_total    = tree.GetEntries(selection)
     n_selected = tree.GetEntries(bdt_selection)
     efficiency = n_selected / n_total if n_total > 0 else 0.0
     error = np.sqrt(efficiency * (1 - efficiency) / n_total) if n_total > 0 else 0.0
@@ -67,11 +74,11 @@ mc_files = {
     "M1900" : "/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/MTauX//XGBout_WTau3Mu_MC_MTau1900.root",
     "M1950" : "/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/MTauX//XGBout_WTau3Mu_MC_MTau1950.root",
 }
+output_dir = os.path.expandvars('$WWW/Tau3Mu_Run3/BDTtraining/validations/')
 
 sel = '&&'.join([config.base_selection, config.phi_veto, config.year_selection['2022preEE']])
-
+BDTcut = 0.990
 results = {}
-stack = ROOT.THStack("stack", "Kinematic Distributions")
 for m in mc_files:
     file_path = mc_files[m]
     if not os.path.exists(file_path):
@@ -81,7 +88,7 @@ for m in mc_files:
     tree = ROOT.TChain("tree_w_BDT")
     tree.Add(file_path)
     print(f" [i] processing {m} with {tree.GetEntries()} entries")
-    efficiency, error = get_bdt_efficiency(tree, selection=sel)
+    efficiency, error = get_bdt_efficiency(tree, selection=sel, BDT_cut=BDTcut)
     results[m] = {
         "efficiency": efficiency,
         "error": error
@@ -95,14 +102,14 @@ for m in mc_files:
         hist.SetLineWidth(2)
         hist.SetMarkerStyle(20)
         hist.SetMarkerColor(colors[m])
-        stack.Add(hist)
+        #stack.Add(hist)
         legend.AddEntry(hist, get_legend_entry(m), "l")
 
 
 # plot the results
 graph = ROOT.TGraphErrors(len(results))
-graph.SetTitle("BDT Efficiency vs Mass")
-graph.GetXaxis().SetTitle("Mass (GeV)")
+#graph.SetTitle("BDT Efficiency vs Mass")
+graph.GetXaxis().SetTitle("simulated #tau mass (GeV)")
 graph.GetYaxis().SetTitle("Efficiency")
 i = 0
 iref = 2
@@ -111,37 +118,40 @@ for m, res in results.items():
     graph.SetPoint(i, mass, res["efficiency"])
     graph.SetPointError(i, 0, res["error"])
     i += 1
-canvas = ROOT.TCanvas("c", "BDT Efficiency", 800, 600)
-graph.SetMarkerStyle(20)
-graph.SetMarkerColor(ROOT.kBlack)
-graph.SetLineColor(ROOT.kBlack)
-graph.Draw("AP")
-# add horizontal line at 1, 3, and 5 sigma levels
-text = ROOT.TLatex()
-text.SetTextSize(0.03)
+# add horizontal line at 1, 3, and 5 sigma levels based on M1777
 line1_p = get_hline(graph.GetXaxis().GetXmin(), graph.GetXaxis().GetXmax(), results['M1777']['efficiency'] + 1 * results['M1777']['error'], color=ROOT.kGreen)
 line1_m = get_hline(graph.GetXaxis().GetXmin(), graph.GetXaxis().GetXmax(), results['M1777']['efficiency'] - 1 * results['M1777']['error'], color=ROOT.kGreen)
 line3_p = get_hline(graph.GetXaxis().GetXmin(), graph.GetXaxis().GetXmax(), results['M1777']['efficiency'] + 3 * results['M1777']['error'], color=ROOT.kBlue)
 line3_m = get_hline(graph.GetXaxis().GetXmin(), graph.GetXaxis().GetXmax(), results['M1777']['efficiency'] - 3 * results['M1777']['error'], color=ROOT.kBlue)
 line5_p = get_hline(graph.GetXaxis().GetXmin(), graph.GetXaxis().GetXmax(), results['M1777']['efficiency'] + 5 * results['M1777']['error'], color=ROOT.kRed)
 line5_m = get_hline(graph.GetXaxis().GetXmin(), graph.GetXaxis().GetXmax(), results['M1777']['efficiency'] - 5 * results['M1777']['error'], color=ROOT.kRed)
-line1_p.Draw("SAME")
-line1_m.Draw("SAME")
-line3_p.Draw("SAME")
-line3_m.Draw("SAME")
-line5_p.Draw("SAME")
-line5_m.Draw("SAME")
-graph.Draw("P SAME")
-canvas.SetGrid()
+# plot with cmsstyle
+canvas = CMS.cmsCanvas("c",
+                        x_min=1.6, x_max=2.0,
+                        y_min=0.45, y_max=0.60,
+                        nameXaxis="simulated #tau mass (GeV)",
+                        nameYaxis=f"efficiency BDT score > {BDTcut}",
+                        square=False,
+                        extraSpace=0.15,
+                        yTitOffset=1.2,
+                        )
+# add horizontal lines
+CMS.cmsDrawLine(line1_p, lcolor=ROOT.kGreen+1,  lstyle=ROOT.kDashed, lwidth=2)
+CMS.cmsDrawLine(line1_m, lcolor=ROOT.kGreen+1,  lstyle=ROOT.kDashed, lwidth=2)
+CMS.cmsDrawLine(line3_p, lcolor=ROOT.kBlue,     lstyle=ROOT.kDashed, lwidth=2)
+CMS.cmsDrawLine(line3_m, lcolor=ROOT.kBlue,     lstyle=ROOT.kDashed, lwidth=2)
+CMS.cmsDrawLine(line5_p, lcolor=ROOT.kRed,      lstyle=ROOT.kDashed, lwidth=2)
+CMS.cmsDrawLine(line5_m, lcolor=ROOT.kRed,      lstyle=ROOT.kDashed, lwidth=2)
+CMS.cmsDraw(
+    graph,
+    'P',
+    lcolor=ROOT.kBlack,
+    marker=20,
+    mcolor=ROOT.kBlack,
+)
 
-canvas.SaveAs("bdt_efficiency_vs_mass.png")
-
-# plot the histograms
-canvas_hist = ROOT.TCanvas("c_hist", "Kinematic Distributions", 800, 600)
-stack.Draw("nostack hist")
-legend.Draw("SAME")
-canvas_hist.SetLogy(1)
-canvas_hist.SaveAs("kinematic_distributions.png")
+CMS.SaveCanvas(canvas, os.path.join(output_dir, "bdt_efficiency_vs_mass.png"), False)
+CMS.SaveCanvas(canvas, os.path.join(output_dir, "bdt_efficiency_vs_mass.pdf"), False)
 
 
 

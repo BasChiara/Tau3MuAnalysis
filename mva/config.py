@@ -64,6 +64,8 @@ Nmc_WTau3Mu = {
     '2023BPix'   :  330000,
     '2024'       :  3894160,
 }
+Nmc_WTau3Mu['2022'] = Nmc_WTau3Mu['2022preEE'] + Nmc_WTau3Mu['2022EE']
+Nmc_WTau3Mu['2023'] = Nmc_WTau3Mu['2023preBPix'] + Nmc_WTau3Mu['2023BPix']
 Nmc_DsPhiPi = {
     '2022preEE' :  1000000,
     '2022EE'    :  1000000,
@@ -84,11 +86,13 @@ Nmc_ZTau3Mu = {
     '2023BPix'  :  317554,
     '2024'      :  4103413,
 }
+Nmc_ZTau3Mu['2022'] = Nmc_ZTau3Mu['2022preEE'] + Nmc_ZTau3Mu['2022EE']
+Nmc_ZTau3Mu['2023'] = Nmc_ZTau3Mu['2023preBPix'] + Nmc_ZTau3Mu['2023BPix']
 Nmc_TTbar_WTau3Mu = {
     '2022preEE'  :  47680,
-    '2022EE'     :  -1,
-    '2023preBPix':  -1,
-    '2023BPix'   :  -1,
+    '2022EE'     :  0,
+    '2023preBPix':  0,
+    '2023BPix'   :  0,
 }
 Nmc_process = {
     'WTau3Mu'   : Nmc_WTau3Mu,
@@ -103,16 +107,18 @@ eff_filterW = 1.0
 xsec_ppWxMuNu_SMP_Run3 = 20928000  # Cross-section for W -> Mu Nu in fb
 Br_WtoMuNu = 0.1063  # Branching ratio for W -> Mu Nu
 Br_WtoTauNu = 0.1138  # Branching ratio for W -> Tau Nu
+Br_WTauNu_MuNu_ratio = 1.002 # Br_WtoTauNu / Br_WtoMuNu (measured ratio)
 
-xsec_ppWxTauNu = xsec_ppWxMuNu_SMP_Run3 * Br_WtoTauNu / Br_WtoMuNu
+xsec_ppWxTauNu = xsec_ppWxMuNu_SMP_Run3 * Br_WTauNu_MuNu_ratio
 
 # xsec Z -> Tau Tau [fb]
 eff_filterZ = 0.2444  # Filter efficiency for 60 GeV < Mtautau < 120 GeV
 xsec_ppZxMuMu_SMP_Run3 = 2026000  # Cross-section for Z -> Mu Mu in fb
 Br_ZtoTauTau = 0.0337  # Branching ratio for Z -> Tau Tau
 Br_ZtoMuMu = 0.0337  # Branching ratio for Z -> Mu Mu
+Br_ZTauTau_MuMu_ratio = 1.0010 # Br_ZtoTauTau / Br_ZtoMuMu (measured ratio)
 
-xsec_ppZxTauTau = xsec_ppZxMuMu_SMP_Run3 * Br_ZtoTauTau / Br_ZtoMuMu
+xsec_ppZxTauTau = xsec_ppZxMuMu_SMP_Run3 * Br_ZTauTau_MuMu_ratio
 
 
 
@@ -427,31 +433,27 @@ data_bdt_samples = {
 #labels = OrderedDict()
 labels = {}
 labels['tau_fit_pt'         ] = '$p_{T} (3\mu)$'
-labels['tau_fit_mt'         ] = '$m_{T}(\\tau, MET)$'
+labels['tau_fit_mt'         ] = '$m_{T}(3\mu, MET)$'
 labels['tau_relIso'         ] = '$I_{rel}(3\mu)$'
-labels['tau_met_Dphi'       ] = '$\Delta\phi(\\tau, MET)$'
+labels['tau_met_Dphi'       ] = '$\Delta\phi(3\mu, MET)$'
 labels['tau_met_pt'         ] = 'MET'
-labels['tau_met_ratio_pt'   ] = '$p_{T}(\\tau)$/MET' # only for >= v2
+labels['tau_met_ratio_pt'   ] = '$p_{T}(3\mu)$/MET' # only for >= v2
 labels['W_pt'               ] = '$p_{T}$(W)'
 labels['miss_pz_min'        ] = 'min $p_{z}^{\\nu}$'
 labels['miss_pz_max'        ] = 'max $p_{z}^{\\nu}$'
-labels['tau_mu12_dZ'        ] = '$\Delta z (\mu_{1}, \mu_{2})$'
-labels['tau_mu13_dZ'        ] = '$\Delta z (\mu_{1}, \mu_{3})$'
-labels['tau_mu23_dZ'        ] = '$\Delta z (\mu_{2}, \mu_{3})$'
+labels['tau_mu12_dZ'        ] = '$\Delta z(\mu_{1}, \mu_{2})$'
+labels['tau_mu13_dZ'        ] = '$\Delta z(\mu_{1}, \mu_{3})$'
+labels['tau_mu23_dZ'        ] = '$\Delta z(\mu_{2}, \mu_{3})$'
 labels['tau_Lxy_sign_BS'    ] = 'SV L/$\sigma$'
 labels['tau_fit_vprob'      ] = 'SV prob.'
 labels['tau_cosAlpha_BS'    ] = 'SV cos($\\alpha$)'
-labels['tau_mu1_TightID_PV' ] = 'Tight-ID $\mu_1$'
-labels['tau_mu2_TightID_PV' ] = 'Tight-ID $\mu_2$'
-labels['tau_mu3_TightID_PV' ] = 'Tight-ID $\mu_3$'
-labels['tau_fit_eta'        ] = '$\eta_{\\tau}$'
-labels['tauEta'             ] = '$|\eta_{\\tau}|$'
-##labels['bdt'                ] = 'BDT score'
+labels['tau_mu1_TightID_PV' ] = 'Tight-ID($\mu_1$)'
+labels['tau_mu2_TightID_PV' ] = 'Tight-ID($\mu_2$)'
+labels['tau_mu3_TightID_PV' ] = 'Tight-ID($\mu_3$)'
+labels['tau_fit_eta'        ] = '$\eta(3\mu)$'
+labels['tauEta'             ] = '$|\eta(3\mu)|$'
 labels['bdt_score'          ] = 'BDT score'
-#labels['bdt_score_t3m'      ] = 'BDT $\\tau 3\\mu$ '
-#labels['bdt_score_b'        ] = 'BDT bkg'
-#labels['bdt_score_w3m'      ] = 'BDT W3$\\mu$'
-labels['tau_fit_mass'       ] = 'm_{3\mu}'
+labels['tau_fit_mass'       ] = 'm$_{3\mu}$'
 labels['tau_fit_charge'     ] = 'q$_{3\mu}$'
 
 features = [
@@ -507,29 +509,29 @@ def tauEta(eta):
 ### ----- features Nbins xlow xhigh ---- ###
 
 features_NbinsXloXhiLabelLog = {
-    'tau_fit_pt'        : [ 20, 10, 50,     'p_{T}(3 #mu) (GeV)',      0],
-    'tau_fit_mt'        : [ 30, 0, 120,     'M_{T}(3 #mu) (GeV)',           0],
-    'tau_relIso'        : [ 50, 0, 3.0,     'rel. Isolation (3 #mu)',  1],
+    'tau_fit_pt'        : [ 50, 10, 75,     'p_{T}(3#mu) (GeV)',      0],
+    'tau_fit_mt'        : [ 30, 0, 120,     'M_{T}(3#mu) (GeV)',           0],
+    'tau_relIso'        : [ 50, 0, 3.0,     'I_{rel} (3 #mu)',  1],
     'tau_met_Dphi'      : [ 32, 0, 6.4,     '#Delta #phi (3 #mu, MET)',0],
     'tau_met_pt'        : [ 20, 0, 100.,    'MET (GeV)',               0],
     'tau_met_ratio_pt'  : [ 30, 0., 3.,     'MET/p_{T}(3 #mu)',        0],
     'W_pt'              : [ 20, 0, 100,     'p_{T}(W) (GeV)',          0],
     'miss_pz_min'       : [40, -200, 200,   'min p_{z}^{#nu} (GeV)',  0],
     'miss_pz_max'       : [40,-1500, 1500,  'max p_{z}^{#nu} (GeV)',  0],
-    'tau_mu12_dZ'       : [ 20, 0, 0.2,     '#Delta z (#mu_{1}, #mu_{2})',  0],
-    'tau_mu13_dZ'       : [ 20, 0, 0.2,     '#Delta z (#mu_{1}, #mu_{3})',  0],
-    'tau_mu23_dZ'       : [ 20, 0, 0.2,     '#Delta z (#mu_{2}, #mu_{3})',  0],
-    'tau_Lxy_sign_BS'   : [50, 0, 50,      'SV L_{xy}/#sigma',         0],
+    'tau_mu12_dZ'       : [ 20, 0, 0.2,     '#Delta z(#mu_{1}, #mu_{2}) (cm)',  0],
+    'tau_mu13_dZ'       : [ 20, 0, 0.2,     '#Delta z(#mu_{1}, #mu_{3}) (cm)',  0],
+    'tau_mu23_dZ'       : [ 20, 0, 0.2,     '#Delta z(#mu_{2}, #mu_{3}) (cm)',  0],
+    'tau_Lxy_sign_BS'   : [50, 0, 50,       'SV L_{xy}/#sigma',         0],
     #'tau_Lxy_sign_BS'   : [ 40, 0, 10,      'SV L_{xy}/#sigma',         0],
     'tau_Lxy_val_BS'    : [ 40, 0,1.0,      'SV L_{xy} (cm)',           0],
     'tau_Lxy_err_BS'    : [ 20, 0.01,0.03,  'SV #sigma_{L_{xy}} (cm)',  0],
     'Ds_Lxy_val_BS'     : [ 40, 0,1.0,      'SV L_{xy} (cm)',           0],
     'Ds_Lxy_err_BS'     : [ 30, 0,0.03,     'SV #sigma_{L_{xy}} (cm)',  0],
     'tau_fit_vprob'     : [ 50, 0,  1,      'SV probability',           1],
-    'tau_cosAlpha_BS'   : [ 50, 0.995, 1, 'cos_{#alpha}(SV, BS)',     1],
-    'tau_mu1_TightID_PV': [  2,-0.5,1.5,    'Tight-ID #mu_{1}',        0],
-    'tau_mu2_TightID_PV': [  2,-0.5,1.5,    'Tight-ID #mu_{2}',        0],
-    'tau_mu3_TightID_PV': [  2,-0.5,1.5,    'Tight-ID #mu_{3}',        0],
+    'tau_cosAlpha_BS'   : [ 50, 0.990, 1,   'SV cos(#alpha)',     1],
+    'tau_mu1_TightID_PV': [  2,-0.5,1.5,    'Tight-ID (#mu_{1})',        0],
+    'tau_mu2_TightID_PV': [  2,-0.5,1.5,    'Tight-ID (#mu_{2})',        0],
+    'tau_mu3_TightID_PV': [  2,-0.5,1.5,    'Tight-ID (#mu_{3})',        0],
     'tri_muonID'        : [  4,-0.5,3.5,    'Medium ID_{#mu_1}+ID_{#mu_2}+ID_{#mu_3}',                0],
     'tauEta'            : [  8,-0.5,7.5,    '3#mu #eta bins',          0],
     'tau_fit_eta'       : [ 25, -2.5, 2.5,  '#eta (3 #mu)',           0],

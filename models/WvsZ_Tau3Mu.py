@@ -13,7 +13,7 @@ argparser.add_argument('-y', '--year', choices=['22', '23'], default='22', help=
 argparser.add_argument('-c', '--category', choices=['A', 'B', 'C', 'ABC'], default='ABC', help='input data file')
 args = argparser.parse_args()
 
-input_data   = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/XGBout_data_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root'
+input_data    = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/XGBout_data_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root'
 input_Wsignal = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/XGBout_signal_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root'
 input_Zsignal = '/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/XGBout_ZTau3Mu_MC_kFold_Optuna_HLT_overlap_LxyS2.0_2024Jul16.root'
 

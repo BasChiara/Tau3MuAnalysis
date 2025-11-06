@@ -2,7 +2,8 @@ import ROOT
 ROOT.gROOT.SetBatch(True)
 ROOT.EnableImplicitMT()
 import cmsstyle as CMS
-
+CMS.setCMSStyle()
+cmsStyle = CMS.cmsStyle
 import pandas as pd
 import numpy as np
 import os, sys
@@ -24,14 +25,18 @@ def drawCMSstyle(observable, histo_list, colors, names, output, y_max=None, addi
         CMS.AppendAdditionalInfo(additional_text)
     minima = min([h.GetMinimum() for h in histo_list])
     SETLOGY = cfg.features_NbinsXloXhiLabelLog[observable][4]
+    xlo, xhi = cfg.features_NbinsXloXhiLabelLog[observable][1], cfg.features_NbinsXloXhiLabelLog[observable][2]
+
     c = CMS.cmsCanvas(f'c_{observable}', 
-        x_min = cfg.features_NbinsXloXhiLabelLog[observable][1], 
-        x_max = cfg.features_NbinsXloXhiLabelLog[observable][2], 
+        x_min = xlo, 
+        x_max = xhi, 
         y_min = max( minima, 1e-4) if SETLOGY else 0.0,
         y_max = 1.4*max([h.GetMaximum() for h in histo_list]) if not y_max else y_max,
         nameXaxis = cfg.features_NbinsXloXhiLabelLog[observable][3], 
         nameYaxis = 'Events', 
         square = CMS.kSquare, 
+        maxXdigi = 3,
+        NdivX = 505 if (xhi-xlo) < 0.05 else 510,
         extraSpace=0.02, 
         iPos=11
     ) 
@@ -68,6 +73,7 @@ def drawCMSstyle(observable, histo_list, colors, names, output, y_max=None, addi
     ROOT.gPad.RedrawAxis()
     plot_name = os.path.join(output, f'{observable}'+(f'_{name_tag}' if name_tag else ''))
     CMS.SaveCanvas(c, plot_name+'.png', False)
+    CMS.SaveCanvas(c, plot_name+'.pdf', True)
 
 def weightBy(rdf_reference, rdf_toCorrect, handle = 'bdt_score', nbins = 50, xlo = 0, xhi = 1):
     
@@ -166,24 +172,25 @@ if __name__ == '__main__':
         exit(1)
 
     observables = cfg.features + ['tau_fit_eta', 'bdt_score', 'tau_fit_mass']
-
-    legend = ROOT.TLegend(0.55, 0.70, 0.90, 0.90)
-    legend.SetTextSize(0.04)
-    legend.SetBorderSize(0)
-    legend.SetFillStyle(0)
+    observables = ['tau_cosAlpha_BS']
+    reduce_digi = ['tau_cosAlpha_BS']
     for i,obs in enumerate(observables):
+        nbins, xlo, xhi = cfg.features_NbinsXloXhiLabelLog[obs][0], cfg.features_NbinsXloXhiLabelLog[obs][1], cfg.features_NbinsXloXhiLabelLog[obs][2]
+        name_x = cfg.features_NbinsXloXhiLabelLog[obs][3]
+        #if obs == 'bdt_score': nbins = 200
+
         # --- data sidebands
-        h_data     = data_rdf.Histo1D(('h_data_%s'%obs, '', cfg.features_NbinsXloXhiLabelLog[obs][0], cfg.features_NbinsXloXhiLabelLog[obs][1], cfg.features_NbinsXloXhiLabelLog[obs][2]), obs).GetPtr()
+        h_data     = data_rdf.Histo1D(('h_data_%s'%obs, '', nbins, xlo, xhi), obs).GetPtr()
         h_data.Scale(1./h_data.Integral())
         
         # --- inverted ID sidebands
-        h_invID     = invID_rdf.Histo1D(('h_invID_%s'%obs, '', cfg.features_NbinsXloXhiLabelLog[obs][0], cfg.features_NbinsXloXhiLabelLog[obs][1], cfg.features_NbinsXloXhiLabelLog[obs][2]), obs).GetPtr()
+        h_invID     = invID_rdf.Histo1D(('h_invID_%s'%obs, '', nbins, xlo, xhi), obs).GetPtr()
         h_invID.Scale(1./h_invID.Integral())
 
         # --- inverted ID sidebands weighted
-        h_invID_w   = invID_rdf.Histo1D(('h_invID_w_%s'%obs, '', cfg.features_NbinsXloXhiLabelLog[obs][0], cfg.features_NbinsXloXhiLabelLog[obs][1], cfg.features_NbinsXloXhiLabelLog[obs][2]), obs, 'weight').GetPtr()
+        h_invID_w   = invID_rdf.Histo1D(('h_invID_w_%s'%obs, '', nbins, xlo, xhi), obs, 'weight').GetPtr()
         h_invID_w.Scale(1./h_invID_w.Integral())
-
+        #if obs == 'bdt_score':xlo = 0.8
         drawCMSstyle(
             obs, 
             [h_data, h_invID, h_invID_w], 
@@ -200,15 +207,17 @@ if __name__ == '__main__':
         h_invID_w_ratio.Divide(h_data)
     
         c_ratio = CMS.cmsDiCanvas(f'c_ratio_{obs}',                           
-            x_min=cfg.features_NbinsXloXhiLabelLog[obs][1], 
-            x_max=cfg.features_NbinsXloXhiLabelLog[obs][2], 
-            y_min=max(min(h_data.GetMinimum(),h_invID.GetMinimum()), 1e-4) if cfg.features_NbinsXloXhiLabelLog[obs][4] else 0.0,
+            x_min=xlo,
+            x_max=xhi, 
+            y_min=0.0,
             y_max=1.4*max(h_data.GetMaximum(),h_invID.GetMaximum()), 
-            nameXaxis=cfg.features_NbinsXloXhiLabelLog[obs][3],
+            nameXaxis=name_x,
             nameYaxis='Events',
             r_min = 0.5,
             r_max = 1.5,
             nameRatio = 'inv-ID/data SB',
+            maxXdigi = 3,
+            NdivX = 505 if obs in reduce_digi else 510,
             square=True,
             iPos=11,
             extraSpace=0,
@@ -241,6 +250,10 @@ if __name__ == '__main__':
             fcolor = 0,
             fstyle = 0,
         )
+        legend = CMS.cmsLeg(0.55, 0.65, 0.85, 0.90)#ROOT.TLegend(0.55, 0.70, 0.90, 0.90)
+        legend.AddEntry( h_data, 'data sidebands', 'pe')
+        legend.AddEntry( h_invID, 'inv-ID', 'pe')
+        legend.AddEntry( h_invID_w, 'inv-ID (weighted)', 'pe')
         legend.Draw()
         ROOT.gPad.RedrawAxis()
         c_ratio.cd(2)
@@ -260,9 +273,10 @@ if __name__ == '__main__':
             mcolor = ROOT.kRed,
             fcolor = ROOT.kRed,
         )
-        ref_line = ROOT.TLine(cfg.features_NbinsXloXhiLabelLog[obs][1], 1.0, cfg.features_NbinsXloXhiLabelLog[obs][2], 1.0)
+        ref_line = ROOT.TLine(xlo, 1.0, xhi, 1.0)
         CMS.cmsDrawLine(ref_line, lcolor=ROOT.kBlack, lwidth=2, lstyle=ROOT.kDotted)
         CMS.SaveCanvas(c_ratio, os.path.join(output_dir, f'{obs}_ratio')+'.png', False)
+        CMS.SaveCanvas(c_ratio, os.path.join(output_dir, f'{obs}_ratio')+'.pdf', True)
 
     # post BDT only for mass
     #from ROOT import RooFit, RooRealVar, RooExponential
@@ -290,7 +304,7 @@ if __name__ == '__main__':
             [ROOT.kBlack, ROOT.kRed],
             ['data sidebands', 'inv-ID', 'inv-ID (weighted)'],
             output_dir,
-            #y_max = 50,
+            y_max = max(max(h_data_bdt.GetMaximum(), h_invID_w_bdt.GetMaximum())*1.4, 10.0),
             additional_text = 'BDT > %.3f' % bdt_cut,
             name_tag = 'BDT'+str(bdt_cut).replace('.', 'p'),
         )

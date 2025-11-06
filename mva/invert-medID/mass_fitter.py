@@ -220,12 +220,13 @@ for cut in set_bdt_cut:
     )
     results_gaus.Print()
     frame_b = mass.frame()
-    frame_b.SetTitle('#tau -> 3 #mu signal+bkg - CAT %s BDTscore > %.3f'%(args.category, cut))
+    frame_b.SetTitle('')
 
     datatofit.plotOn(
         frame_b, 
         ROOT.RooFit.Binning(nbins), 
-        ROOT.RooFit.MarkerSize(1.)
+        ROOT.RooFit.MarkerSize(1.),
+        ROOT.RooFit.Name('data')
     )
 
     # fit background
@@ -245,43 +246,52 @@ for cut in set_bdt_cut:
         frame_b, 
         ROOT.RooFit.LineColor(ROOT.kBlue),
         ROOT.RooFit.Range('full_range'),
-        ROOT.RooFit.NormRange('left_SB,right_SB') 
+        ROOT.RooFit.NormRange('left_SB,right_SB'),
+        ROOT.RooFit.Name('background')
     )
     fullmc.plotOn(
         frame_b, 
         ROOT.RooFit.Binning(nbins), 
-        ROOT.RooFit.DrawOption('B'), 
+        ROOT.RooFit.DrawOption('HIST'), 
         ROOT.RooFit.DataError(ROOT.RooAbsData.ErrorType(2)), 
         ROOT.RooFit.XErrorSize(0), 
         ROOT.RooFit.LineWidth(2),
         ROOT.RooFit.FillColor(ROOT.kRed),
-        ROOT.RooFit.FillStyle(3004),                
+        ROOT.RooFit.FillStyle(3004),          
     )
     signal_model.plotOn(
         frame_b, 
         ROOT.RooFit.LineColor(ROOT.kRed),
-        ROOT.RooFit.Range('sig_range'),
-        ROOT.RooFit.NormRange('sig_range')
+        ROOT.RooFit.Range('full_range'),
+        ROOT.RooFit.NormRange('sig_range'),
+        ROOT.RooFit.Name('signal')
     )
     # print N signal and N background on plot
-    text_S = ROOT.TText(tau_mass, 0.90*frame_b.GetMaximum(), "Ns = %.2f +/- %.2f"%(nsig.getValV(), nsig.getError()))
-    text_eS= ROOT.TText(tau_mass, 0.85*frame_b.GetMaximum(), "effS = %.2f"%(sig_efficiency))
-    text_B = ROOT.TText(tau_mass, 0.80*frame_b.GetMaximum(), "Nb = %.2f +/- %.2f"%(nbkg.getValV(), nbkg.getError()))
-    text_eB= ROOT.TText(tau_mass, 0.75*frame_b.GetMaximum(), "effB = %.2e"%(bkg_efficiency))
-    text_S.SetTextSize(0.035)
-    text_eS.SetTextSize(0.035)
-    text_B.SetTextSize(0.035)
-    text_eB.SetTextSize(0.035)
-    frame_b.addObject(text_S)
-    frame_b.addObject(text_eS)
-    frame_b.addObject(text_B)
-    frame_b.addObject(text_eB)
+    MAX_Y = max(frame_b.GetMaximum(), 5.)
+    frame_b.SetMaximum(MAX_Y)
+    xtxt, ytxt, dytxt          = 1.45, 0.90*frame_b.GetMaximum(), 0.05*frame_b.GetMaximum()
+    xleg1, yleg1, xleg2, yleg2 = 0.5, (ytxt-5*dytxt)/MAX_Y, 0.90, (ytxt-2*dytxt)/MAX_Y
 
+    legend = ROOT.TLegend(xleg1, yleg1, xleg2, yleg2)
+    legend.SetBorderSize(0)
+    legend.SetFillStyle(0)
+    legend.SetTextSize(0.04)
+    legend.AddEntry(frame_b.findObject('data'), 'inv-ID data (w)', 'PE')
+    legend.AddEntry(frame_b.findObject('background'), 'exponential fit', 'L')
+    legend.AddEntry(frame_b.findObject('signal'), 'W#rightarrow#tau(3#mu)#nu (MC)', 'L')
+
+    fitu.add_summary_text(frame_b, text= "Ns = %.2f +/- %.2f"%(nsig.getValV(), nsig.getError()), x = xtxt, y = ytxt, size = 0.04)
+    fitu.add_summary_text(frame_b, text= "Nb = %.2f +/- %.2f"%(nbkg.getValV(), nbkg.getError()), x = xtxt, y = ytxt - dytxt, size = 0.04)
+    fitu.add_summary_text(frame_b, text= "#varepsilon_{S} = %.2f"%(sig_efficiency), x = xtxt, y = ytxt - 2*dytxt, size = 0.04)
+    
+    fitu.add_summary_text(frame_b, text= f"CAT {args.category}{args.year}", x = tau_mass, y = ytxt, size = 0.05)
+    
+    frame_b.GetYaxis().SetTitle('Events / %.0f MeV'% (bin_w*1000) )
 
     c2 = ROOT.TCanvas("c2", "c2", 800, 800)
-    ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
+    #ROOT.gPad.SetMargin(0.15,0.15,0.15,0.15)
     frame_b.Draw()
-    
+    legend.Draw() 
     c2.SaveAs('%s/massfit_SB_%s.png'%(args.plot_outdir, point_tag)) 
     c2.SaveAs('%s/massfit_SB_%s.pdf'%(args.plot_outdir, point_tag))
     if not args.goff :

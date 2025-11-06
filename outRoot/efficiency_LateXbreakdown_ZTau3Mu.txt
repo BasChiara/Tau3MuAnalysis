@@ -5,7 +5,7 @@ Muon ID & 27.7 & 27.7 & 27.1 & 26.9 \\
 HLT emulation & 27.6 & 27.6 & 27.1 & 26.8 \\ 
 $\mu\mu$ resonances veto & 26.7 & 26.7 & 26.1 & 25.8 \\ 
 \hltDimu reinforcement & 26.5 & 26.4 & 25.9 & 25.6 \\ 
-$L_{xy}/\sigma$ > 2.0 & 21.8 & 21.8 & 20.5 & 20.3 \\ 
+$L_{xy}/\sigma >$ 2.0 & 21.8 & 21.8 & 20.5 & 20.3 \\ 
 $m_{3\mu}$ range & 21.7 & 21.7 & 20.4 & 20.2 \\ 
-$\omega/\rho$ and $\phi\to\mu\mu$ veto & 13.6 & 13.6 & 12.8 & 12.7 \\ 
-BDT selection & 4.5 & 4.6 & 4.7 & 4.7 \\ 
+$\phi\to\mu\mu$ veto & 18.5 & 18.4 & 17.3 & 17.2 \\ 
+BDT selection & 6.1 & 6.2 & 6.4 & 6.3 \\ 

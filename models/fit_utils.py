@@ -118,7 +118,8 @@ def draw_fit_pull(frame_fit, frame_pull= None, fitvar = None, out_name = 'Pull D
             return False
         frame_pull = get_pull(fitvar, frame_fit, title=' ')
     frame_pull.GetYaxis().SetTitle('Pull')
-    frame_pull.GetYaxis().SetTitleSize(0.1)
+    frame_pull.GetYaxis().SetTitleSize(0.15)
+    frame_pull.GetYaxis().SetTitleOffset(0.3)
     frame_pull.GetYaxis().SetLabelSize(0.1)
     frame_pull.GetXaxis().SetTitle(frame_fit.GetXaxis().GetTitle())
     frame_pull.GetXaxis().SetTitleSize(0.1)

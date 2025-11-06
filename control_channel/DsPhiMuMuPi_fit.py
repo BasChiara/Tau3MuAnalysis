@@ -174,27 +174,38 @@ results_gaus = signal_model.fitTo(
 )
 
 # * draw & save
-frame = mass.frame(Title=' ') 
+frame = mass.frame(Title=' ')
+xleg1, yleg1, xleg2, yleg2 = 0.2, 0.6, 0.5, 0.8
+legend = ROOT.TLegend(xleg1, yleg1, xleg2, yleg2)
+legend.SetBorderSize(0)
+legend.SetFillStyle(0)
+legend.SetTextSize(0.04)
 
 fullmc.plotOn(
     frame, 
     ROOT.RooFit.Binning(nbins), 
     ROOT.RooFit.LineWidth(2),
     ROOT.RooFit.FillColor(ROOT.kRed),
+    ROOT.RooFit.Name("mc_data"),
 )
+legend.AddEntry(frame.findObject("mc_data"), "MC data", "PE")
 if results_gaus.status() > 1:
     print(f'{ct.RED}[-] fit failed: status {results_gaus.status()}{ct.END}')
 else :
-    signal_model.paramOn(
-        frame,
-        ROOT.RooFit.Layout(0.2, 0.50, 0.85),
-        ROOT.RooFit.Format("NEU", ROOT.RooFit.AutoPrecision(1)),
-    )
-    frame.getAttText().SetTextSize(0.03)
+    # signal model parameters
+    xtxt, ytxt, dytxt = fit_range_lo+0.02, 0.5*frame.GetMaximum(), 0.10*frame.GetMaximum()
+    #fitu.add_summary_text(frame, f'mean {mass.GetTitle()} = {mean_mc.evaluate()} #pm {dMass_mc.getError()}', xtxt, ytxt, 0.04)
+    fitu.add_summary_text(frame, f'N(D_{{s}})_{{MC}} = {nMC.getValV():.0f} #pm {nMC.getError():.0f}', xtxt, ytxt, 0.04)
+    fitu.add_summary_text(frame, f'#sigma = {width_mc.getValV()*1000:.1f} #pm {width_mc.getError()*1000:.1f} MeV', xtxt, ytxt - dytxt, 0.04)
+
     sig_curve = signal_model.plotOn(
         frame,
         ROOT.RooFit.MoveToBack(),
+        ROOT.RooFit.LineColor(ROOT.kBlue),
+        ROOT.RooFit.Name("signalfit"),
     )
+    legend.AddEntry(frame.findObject("signalfit"), "Signal + Comb. fit", "L")
+    frame.addObject(legend)
     fitu.draw_fit_pull(
         frame, 
         fitvar = mass, 
@@ -295,47 +306,66 @@ if args.peak_bkg: # no D+ in peak bkg
     full_model = ROOT.RooAddPdf("extDATAmodel_DsPhiMuMuPi", "extDATAmodel_DsPhiMuMuPi", ROOT.RooArgList(Ds_model, bkg_model), ROOT.RooArgList(nDs, nB))
 else:
     full_model = ROOT.RooAddPdf("extDATAmodel_DsPhiMuMuPi", "extDATAmodel_DsPhiMuMuPi", ROOT.RooArgList(Ds_model, gaus_Dp, bkg_model), ROOT.RooArgList(nDs, nDp, nB))
+# --- fit data ---
+results = full_model.fitTo(datatofit, ROOT.RooFit.Range('fit_range'), ROOT.RooFit.Save())
 
+# --- draw & save ---
 frame_b = mass.frame(Title=" ")
-
+xleg1, yleg1, xleg2, yleg2 = 0.20, 0.50, 0.50, 0.90
+legend_b = ROOT.TLegend(xleg1, yleg1, xleg2, yleg2)
+legend_b.SetBorderSize(0)
+legend_b.SetFillStyle(0)
+legend_b.SetTextSize(0.04)
 datatofit.plotOn(
     frame_b, 
     ROOT.RooFit.Binning(nbins), 
-    ROOT.RooFit.MarkerSize(1.)
+    ROOT.RooFit.MarkerSize(1.),
+    ROOT.RooFit.Name("data")
 )
-
-# fit background with exponential model
-results = full_model.fitTo(datatofit, ROOT.RooFit.Range('fit_range'), ROOT.RooFit.Save())
+legend_b.AddEntry(frame_b.findObject("data"), "Data", "PE")
+frame_b.SetMaximum(1.4*frame_b.GetMaximum())
+frame_b.GetYaxis().SetTitleSize(0.05)
+frame_b.GetYaxis().SetMaxDigits(3)
+xtxt, ytxt, dytxt = 1.92, 0.9*frame_b.GetMaximum(), 0.06*frame_b.GetMaximum()
+# --- text boxes ---
+fitu.add_summary_text(frame_b, "N(D_{s}^{#pm}) = %.0f +/- %.0f"%(nDs.getValV(), nDs.getError()), xtxt, ytxt, 0.04)
+if not args.peak_bkg:
+    fitu.add_summary_text(frame_b, "N(D^{#pm}) = %.0f +/- %.0f"%(nDp.getValV(), nDp.getError()), xtxt, ytxt - dytxt, 0.04)
+    dytxt = dytxt*2
+fitu.add_summary_text(frame_b, "Nbkg = %.0f +/- %.0f"%(nB.getValV(), nB.getError()), xtxt, ytxt - dytxt, 0.04)
+# --- plot components ---
 full_model.plotOn(
     frame_b, 
     ROOT.RooFit.Components(Ds_model.GetName()),
     ROOT.RooFit.LineColor(ROOT.kRed),
+    ROOT.RooFit.Name("Ds_signal")
 )
-full_model.plotOn(
-    frame_b, 
-    ROOT.RooFit.Components(gaus_Dp.GetName()),
-    ROOT.RooFit.LineColor(ROOT.kOrange),
+legend_b.AddEntry(frame_b.findObject("Ds_signal"), "D_{s}^{#pm}#rightarrow#phi(#mu#mu)#pi^{#pm}", "L")
+if not args.peak_bkg:
+    full_model.plotOn(
+        frame_b, 
+        ROOT.RooFit.Components(gaus_Dp.GetName()),
+        ROOT.RooFit.LineColor(ROOT.kOrange),
+        ROOT.RooFit.MoveToBack(),
+        ROOT.RooFit.Name("Dp_signal")
     )
+    legend_b.AddEntry(frame_b.findObject("Dp_signal"), "D^{#pm}#rightarrow#phi(#mu#mu)#pi^{#pm}", "L")
 full_model.plotOn(
     frame_b, 
     ROOT.RooFit.Components(bkg_model.GetName()),
     ROOT.RooFit.LineColor(ROOT.kBlue),
     ROOT.RooFit.LineStyle(ROOT.kDashed),
+    ROOT.RooFit.Name("bkg_fit"),
     )
-text_NDs = ROOT.TText(fit_range_lo + 0.02, 0.90*frame_b.GetMaximum(), "N(Ds) = %.0f +/- %.0f"%(nDs.getValV(), nDs.getError()))
-text_NDp = ROOT.TText(fit_range_lo + 0.02, 0.85*frame_b.GetMaximum(), "N(D+) = %.0f +/- %.0f"%(nDp.getValV(), nDp.getError()))
-text_Nb  = ROOT.TText(fit_range_lo + 0.02, 0.80*frame_b.GetMaximum(), "Nb   = %.0f +/- %.0f"%(nB.getValV(), nB.getError()))
-text_NDs.SetTextSize(0.035)
-text_NDp.SetTextSize(0.035)
-text_Nb.SetTextSize(0.035)
-frame_b.addObject(text_NDs)
-if not args.peak_bkg: frame_b.addObject(text_NDp)
-frame_b.addObject(text_Nb)
+legend_b.AddEntry(frame_b.findObject("bkg_fit"), "Comb. background", "L")
 full_model.plotOn(
-    frame_b, 
+    frame_b,
     ROOT.RooFit.LineColor(ROOT.kBlue),
+    ROOT.RooFit.Name("full_fit"),
     #ROOT.RooFit.MoveToBack(),
 )
+legend_b.AddEntry(frame_b.findObject("full_fit"), "Total fit", "L")
+frame_b.addObject(legend_b)
 fitu.draw_fit_pull(
     frame_b,
     fitvar = mass,

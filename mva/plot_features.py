@@ -1,5 +1,6 @@
 import ROOT
 ROOT.EnableImplicitMT()
+ROOT.gROOT.SetBatch(True)
 import cmsstyle as CMS
 import argparse
 import os
@@ -110,13 +111,13 @@ if(args.debug):print(bkg)
 #    PLOTTING   #
 ##             ##
 CMS.setCMSStyle()
-ROOT.gROOT.SetBatch(True)
-ROOT.gStyle.SetOptStat(0)
-ROOT.gStyle.SetLineWidth(2)
-ROOT.gStyle.SetPadTickX(1)
-ROOT.gStyle.SetPadTickY(1)
-ROOT.gStyle.SetLegendBorderSize(0)
-ROOT.gStyle.SetLegendTextSize(0.1)
+cmsStyle = CMS.getCMSStyle()
+#ROOT.gStyle.SetOptStat(0)
+#ROOT.gStyle.SetLineWidth(2)
+#ROOT.gStyle.SetPadTickX(1)
+#ROOT.gStyle.SetPadTickY(1)
+#ROOT.gStyle.SetLegendBorderSize(0)
+#ROOT.gStyle.SetLegendTextSize(0.1)
 CMS.SetExtraText("Preliminary")
 if args.year == 'Run3':
     lumitext = f'2022+2023, {cfg.LumiVal_plots[args.year]}'
@@ -128,8 +129,7 @@ CMS.SetEnergy(13.6)
 observables = cfg.features + ['tau_fit_eta', 'tauEta', bdt_score, 'tau_fit_mass', 'tau_mu12_fitM', 'tau_mu23_fitM', 'tau_mu13_fitM']
 observables = observables + ['tau_mu1_pt', 'tau_mu2_pt', 'tau_mu3_pt', 'tau_mu1_eta', 'tau_mu2_eta', 'tau_mu3_eta']
 
-no_overunderflow = ['tauEta', 'tau_mu1_TightID_PV', 'tau_mu2_TightID_PV', 'tau_mu3_TightID_PV', 'tau_mu1_MediumID', 'tau_mu2_MediumID', 'tau_mu3_MediumID', 'tau_fit_vprob', 'bdt_score', 'tau_mu12_fitM', 'tau_mu23_fitM', 'tau_mu13_fitM']
-observables = ['tau_mu12_fitM', 'tau_mu23_fitM', 'tau_mu13_fitM']
+no_overunderflow = ['tauEta', 'tau_mu1_TightID_PV', 'tau_mu2_TightID_PV', 'tau_mu3_TightID_PV', 'tau_mu1_MediumID', 'tau_mu2_MediumID', 'tau_mu3_MediumID', 'tau_fit_vprob', 'bdt_score', 'tau_mu12_fitM', 'tau_mu23_fitM', 'tau_mu13_fitM', 'tau_mu12_M', 'tau_mu23_M', 'tau_mu13_M']
 legend = ROOT.TLegend(0.55, 0.70, 0.90, 0.90)
 legend.SetTextSize(0.04)
 legend.SetBorderSize(0)
@@ -143,6 +143,9 @@ for i,obs in enumerate(observables):
         print(f'[!] {obs} not in features_NbinsXloXhiLabelLog')
         continue
     nbins, xlo, xhi, xlabel, logscale = cfg.features_NbinsXloXhiLabelLog[obs]
+    if obs in ['tau_cosAlpha_BS']: cmsStyle.SetNdivisions(305, "X")
+    elif 'ID' in obs : cmsStyle.SetNdivisions(402, "X")
+    else : cmsStyle.SetNdivisions(510, "X")
 
     ### signal MC
     h_sig     = sig_rdf.Histo1D(('h_sig_%s'%obs, '', nbins, xlo, xhi), obs).GetPtr()
@@ -164,11 +167,12 @@ for i,obs in enumerate(observables):
     c = CMS.cmsCanvas(f'c_{obs}', 
         xlo, xhi, 
         max(min(h_bkg.GetMinimum(),h_sig.GetMinimum()), 1e-4) if logscale else 0.0,
-        1.4*max(h_bkg.GetMaximum(),h_sig.GetMaximum()) if not logscale else 5., 
+        1.5*max(h_bkg.GetMaximum(),h_sig.GetMaximum()) if not logscale else 5., 
         xlabel, 'Events', 
         square = CMS.kSquare, 
         extraSpace=0.02, 
-        iPos=11
+        iPos=11,
+        yTitOffset = 1.30,
     ) 
     c.cd()
     c.SetLogy(logscale)
@@ -216,12 +220,13 @@ for i,obs in enumerate(observables):
     c_cut = CMS.cmsCanvas(f'c_cut_{obs}', 
         xlo, xhi,
         max(min(h_bkg.GetMinimum(),h_sig.GetMinimum()), 1e-4) if logscale else 0.0,
-        1.4*max(h_bkg_cut.GetMaximum(),h_sig_cut.GetMaximum()), 
+        1.5*max(h_bkg_cut.GetMaximum(),h_sig_cut.GetMaximum()), 
         xlabel, 
         'Events', 
         square = CMS.kSquare, 
         extraSpace=0.02, 
-        iPos=11
+        iPos=11,
+        yTitOffset = 1.30,
     ) 
     c_cut.cd()
     CMS.cmsDraw(h_sig_cut, 

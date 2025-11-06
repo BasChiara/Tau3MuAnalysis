@@ -7,10 +7,20 @@ import pickle, json
 import matplotlib.pyplot as plt
 import argparse
 
+import matplotlib.pyplot as plt  # matplotlib library
+
 import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
 from mva import config
 from plots.color_text import color_text as ct
+
+import cmsstyle as CMS
+CMS.setCMSStyle()
+cmsStyle = CMS.getCMSStyle()
+cmsStyle.SetErrorX(0)
+CMS.SetEnergy(13.6)
+CMS.SetLumi(f'2022+2023, {config.LumiVal_plots["2022+2023"]}')
+CMS.cmsGrid(False)
 
 FONTSIZE = 16
 
@@ -19,17 +29,20 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='XGBoost model plotting')
     parser.add_argument('--model',      dest='model',      
                         help='Path to the trained model', 
-                        required=True)
+                        default='/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/classifiers/classifiers_kFold_Optuna_HLT_overlap_LxyS2.0_2024Jul16.pck'
+                        )
     parser.add_argument('-k', '--kFolds',
                         dest='kFolds',      
                         help='Number of folds for cross-validation', 
                         default=5, type=int)
     parser.add_argument('--signal',     dest='signal',
                         help='Signal w/ BDT applied', 
-                        default='Tau3Mu', type=str)
+                        default='/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/XGBout_signal_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root', 
+                        type=str)
     parser.add_argument('--data',     dest='data',
                         help='Data w/ BDT applied', 
-                        default='data', type=str)
+                        default='/eos/user/c/cbasile/Tau3MuRun3/data/mva_data/output/XGBout_data_kFold_Optuna_HLT_overlap_apply_LxyS2.0_2024Oct10.root', 
+                        type=str)
     parser.add_argument('--outdir',   dest='outdir',
                         help='Output directory', 
                         default='.', type=str)
@@ -141,7 +154,8 @@ if __name__ == '__main__':
         print(f'{ct.RED}[ERROR]{ct.END} cannot find preprocessed background input {data}')
         exit(-1)
     
-    branches_to_load = mod_inputs + ['target', 'bdt_to_apply', 'bdt_score', 'bdt_training']
+    branches_to_load = mod_inputs + ['target', 'bdt_to_apply', 'bdt_score', 'bdt_training', 'bdt_fold0_isTrainSet', 'bdt_fold1_isTrainSet', 'bdt_fold2_isTrainSet', 'bdt_fold3_isTrainSet', 'bdt_fold4_isTrainSet']
+
     sig_rdf = ROOT.RDataFrame(tree_name, signal)
     sig = pd.DataFrame( sig_rdf.AsNumpy(branches_to_load) )
     bkg_rdf = ROOT.RDataFrame(tree_name, data).Filter(config.sidebands_selection)
@@ -150,17 +164,125 @@ if __name__ == '__main__':
     print(f"  DATA  : {bkg.shape[0]} events")
     
     data = pd.concat([sig, bkg], ignore_index=True)
+    print(f"  TOTAL : {data.shape[0]} events")
+    # BDT score distribution
+    print(f"{ct.BOLD}--- BDT Score Distribution ---{ct.END}")
+    
+    nbins, xlo, xhi = 50, 0, 1
+    train_data = data[ (data['bdt_fold1_isTrainSet'] + data['bdt_fold0_isTrainSet'] + data['bdt_fold2_isTrainSet'] + data['bdt_fold3_isTrainSet'] + data['bdt_fold4_isTrainSet']) > 0 ]
+    train_selection ='(bdt_fold0_isTrainSet == 1 || bdt_fold1_isTrainSet == 1 || bdt_fold2_isTrainSet == 1 || bdt_fold3_isTrainSet == 1 || bdt_fold4_isTrainSet == 1)' 
+    # -- signal 
+    sig_train_rdf = sig_rdf.Filter(train_selection + ' && (target == 1)')
+    h_sig_train   = sig_train_rdf.Histo1D(('h_sig_train', '', nbins, xlo, xhi), 'bdt_training').GetValue()
+    h_sig_analy   = sig_train_rdf.Histo1D(('h_sig_train', '', nbins, xlo, xhi), 'bdt_score').GetValue()
+    h_sig_train.Sumw2()
+    h_sig_analy.Sumw2()
+    h_sig_ratio   = h_sig_analy.Clone('h_sig_ratio')
+    h_sig_ratio.Divide(h_sig_train)
 
+    # -- background
+    bkg_rdf       = bkg_rdf.Filter(train_selection + ' && (target == 0)')
+    h_bkg_train   = bkg_rdf.Histo1D(('h_bkg_train', '', nbins, xlo, xhi), 'bdt_training').GetValue()
+    h_bkg_analy   = bkg_rdf.Histo1D(('h_bkg_train', '', nbins, xlo, xhi), 'bdt_score').GetValue()
+    h_bkg_train.Sumw2()
+    h_bkg_analy.Sumw2()
+    h_bkg_ratio   = h_bkg_analy.Clone('h_bkg_ratio')
+    h_bkg_ratio.Divide(h_bkg_train)
+
+    legend = CMS.cmsLeg(0.50, 0.60, 0.85, 0.85)
+    # plot histograms
+    dr = 0.5
+    c = CMS.cmsDiCanvas(
+        'c',
+        x_min = 0., x_max = 1.,
+        y_min = 5*1e2, y_max = 1e7,
+        r_min = 1-dr, r_max = 1+dr,
+        nameXaxis = config.labels.get('bdt_score', 'BDT score'),
+        nameYaxis = 'Events',
+        nameRatio = 'ana./train.',
+        square=False,
+        iPos=11,
+        extraSpace=0.1,
+    )
+    c.cd(1)
+    ROOT.gPad.SetLogy()
+    CMS.cmsDraw(
+        h_bkg_train,
+        'HIST',
+        lcolor=ROOT.kBlue-4,
+        lwidth=2,
+        fcolor=ROOT.kBlue-4,
+        fstyle=3004,
+        msize=0,
+        alpha=0.5,
+    )
+    legend.AddEntry(h_bkg_train, 'Data sidebands (training)', 'f')
+    CMS.cmsDraw(
+        h_bkg_analy,
+        'PE same',
+        lcolor=ROOT.kBlue,
+        lwidth=2,
+        msize=1,
+        mcolor=ROOT.kBlue,
+    )
+    legend.AddEntry(h_bkg_analy, 'Data sidebands (analysis)', 'pe')
+    CMS.cmsDraw(
+        h_sig_train,
+        'HIST same',
+        lcolor=ROOT.kRed-3,
+        lwidth=2,
+        fcolor=ROOT.kRed-3,
+        fstyle=3004,
+        msize=0,
+        alpha=0.5,
+    )
+    legend.AddEntry(h_sig_train, 'W#rightarrow #tau(3#mu)#nu MC (training)', 'f')
+    CMS.cmsDraw(
+        h_sig_analy,
+        'PE same',
+        lcolor=ROOT.kRed,
+        lwidth=2,
+        msize=1,
+        mcolor=ROOT.kRed,
+    )
+    legend.AddEntry(h_sig_analy, 'W#rightarrow #tau(3#mu)#nu MC (analysis)', 'pe')
+    legend.Draw()
+    # -- ratio
+    c.cd(2)
+    line = ROOT.TLine(0, 1, 1, 1)
+    CMS.cmsDrawLine(line=line, 
+                    lcolor=ROOT.kBlack, lstyle=ROOT.kDashed, lwidth=1)
+    CMS.cmsDraw(
+        h_bkg_ratio,
+        'PE',
+        lcolor=ROOT.kBlue,
+        lwidth=2,
+        msize=1,
+        mcolor=ROOT.kBlue,
+    )
+    CMS.cmsDraw(
+        h_sig_ratio,
+        'PE same',
+        lcolor=ROOT.kRed,
+        lwidth=2,
+        msize=1,
+        mcolor=ROOT.kRed,
+    )
+    c.cd()
+    CMS.SaveCanvas(c, f'{plotdir}/bdt_score_training_{out_tag}.png', False)
+    CMS.SaveCanvas(c, f'{plotdir}/bdt_score_training_{out_tag}.pdf', True)
+    exit()
     # ROC curve
     print(f"{ct.BOLD}--- ROC Curve ---{ct.END}")
     from sklearn.metrics import RocCurveDisplay, roc_curve, auc
     
     cuts_to_display = [0.600, 0.990, 0.995, 0.998]
+    Y_train_true  = train_data['target']
+    Y_train = train_data['bdt_training']
     Y_true  = data['target']
-    Y_train = data['bdt_training']
     Y_score = data['bdt_score']
     
-    fpr_train, tpr_train, thresholds = roc_curve(Y_true, Y_train)
+    fpr_train, tpr_train, thresholds = roc_curve(Y_train_true, Y_train)
     fpr, tpr, thresholds = roc_curve(Y_true, Y_score)
 
     fig, ax = plt.subplots(figsize=(8, 6))
@@ -195,6 +317,7 @@ if __name__ == '__main__':
     with open(f'{plotdir}/ROC_{out_tag}.json', 'w') as fp:
         json.dump(roc_results, fp, indent=4)
     print(f"[i] ROC curve results saved to {plotdir}/ROC_{out_tag}.json")
+    exit(0)
 
     # permutation importance
     print(f"{ct.BOLD}--- Permutation Importance ---{ct.END}")

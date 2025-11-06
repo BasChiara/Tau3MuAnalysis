@@ -9,25 +9,30 @@ import style.color_text as ct
 
 files = config.mc_samples['WTau3Mu']
 year  = '2023'
-year_selection = config.year_selection[year]
+
+selection = '&&'.join([
+    config.year_selection[year],
+    '(fabs(tau_fit_eta) < 0.9)',  # eta cut
+    ])
 
 
 mass     = ROOT.RooRealVar('tau_fit_mass', 'm_{3#mu}'  , 1.6,  2.0, 'GeV' )
-mass.setRange('plot_range', 1.70, 1.85)
+mass.setRange('plot_range', 1.60, 2.0)
 mass.setRange('fit_range',  1.70, 1.88)
 mass_raw = ROOT.RooRealVar('tau_raw_mass', 'm_{3#mu}'  , 1.6,  2.0, 'GeV' )
 mass_raw.setRange('plot_range', 1.70, 1.85)
 mass_raw.setRange('fit_range',  1.70, 1.85)
 year_id  = ROOT.RooRealVar('year_id', 'year_id', 0, 500, '')
+eta      = ROOT.RooRealVar('tau_fit_eta', 'tau_fit_eta', -5, 5, '')
 
 # root data frame
 tree = ROOT.TChain('WTau3Mu_tree')
 [tree.Add(file) for file in files]
-data = ROOT.RooDataSet('data', 'data', tree, ROOT.RooArgSet(mass, mass_raw, year_id), year_selection)
+data = ROOT.RooDataSet('data', 'data', tree, ROOT.RooArgSet(mass, mass_raw, year_id, eta), selection)
 
 # --- signal model with sum of 2 gaussians
 # prefit
-mean_prefit = ROOT.RooRealVar('mean_prefit', 'mean_prefit', 1.777, 1.6, 2.0)
+mean_prefit = ROOT.RooRealVar('mean_prefit', 'mean_prefit', 1.777, 1.65, 1.9)
 mean_prefit.setConstant(True)  # fix the mean for prefit
 sigma1_prefit = ROOT.RooRealVar('sigma1_prefit', 'sigma1_prefit', 0.02, 0.01, 0.05)
 sigma2_prefit = ROOT.RooRealVar('sigma2_prefit', 'sigma2_prefit', 0.05, 0.01, 0.10)
@@ -129,3 +134,10 @@ can.cd(2)
 frame.Draw()
 can.SaveAs(f'tau_mass_prepostfit_{year}.png')
 can.SaveAs(f'tau_mass_prepostfit_{year}.pdf')
+# log scale
+can.cd(1)
+can.GetPad(1).SetLogy()
+can.cd(2)
+can.GetPad(2).SetLogy()
+can.SaveAs(f'tau_mass_postfit_{year}_log.png')
+can.SaveAs(f'tau_mass_postfit_{year}_log.pdf')

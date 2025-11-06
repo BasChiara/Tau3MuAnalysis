@@ -17,6 +17,7 @@ if sig_rdf.Count().GetValue() == 0 or data_rdf.Count().GetValue() == 0:
     sys.exit(0)
 
 BDT_th = [0.0, 0.985, 0.990, 0.995]
+BDT_th = [0.0, 0.980]
 n_slices = len(BDT_th)
 vars = ['tau_mu12_fitM', 'tau_mu13_fitM', 'tau_mu23_fitM']
 ref_vars = ['tau_mu12_M', 'tau_mu13_M', 'tau_mu23_M']
@@ -32,26 +33,36 @@ min_val, max_val, n_bins = 0.4, 1.4, 100
 for bdt in BDT_th:
     N_MC = sig_rdf.Filter(f'(bdt_score> {bdt})').Count().GetValue()
     N_data = data_rdf.Filter(f'(bdt_score> {bdt})').Count().GetValue()
+    
     for i, var in enumerate(vars):
         label = config.features_NbinsXloXhiLabelLog[var][3]
         bin_w = (max_val - min_val) / n_bins * 1000 # in MeV
         selection = f'(bdt_score> {bdt})& ({ref_vars[i]} > 0)'
-        h_data = data_rdf.Filter(selection).Histo1D(("h_data", f";{label}(GeV);Events/{bin_w:.0f}MeV", n_bins, min_val, max_val), var).GetValue()
-        h_sig  = sig_rdf.Filter(selection).Histo1D(("h_sig", f";{label}(GeV;Events/{bin_w:.0f}MeV",   n_bins, min_val, max_val), var).GetValue()
+        h_data = data_rdf.Filter(selection).Histo1D(("h_data", f";{label}(GeV);Events/{bin_w:.0f} MeV", n_bins, min_val, max_val), var).GetValue()
+        h_sig  = sig_rdf.Filter(selection).Histo1D(("h_sig", f";{label}(GeV;Events/{bin_w:.0f} MeV",   n_bins, min_val, max_val), var).GetValue()
 
-        h_data.Scale(1.0 / h_data.Integral())
         h_data.SetMarkerStyle(20)
         h_data.SetMarkerSize(1.0)
         h_data.SetLineColor(ROOT.kBlack)
         h_data.SetLineWidth(2)
         h_data.SetMarkerColor(ROOT.kBlack)
         
-        h_sig.Scale(1.0 / h_sig.Integral())
         h_sig.SetLineColor(ROOT.kRed)
         h_sig.SetLineWidth(2)
         h_sig.SetMarkerColor(ROOT.kRed)
         h_sig.SetMarkerStyle(0)
         h_sig.SetMarkerSize(0)
+
+        # -- inclusive histograms --
+        if i == 0:
+            h_data_total = h_data.Clone("h_data_total")
+            h_sig_total  = h_sig.Clone("h_sig_total")
+        else:
+            h_data_total.Add(h_data)
+            h_sig_total.Add(h_sig)
+
+        h_data.Scale(1.0 / h_data.Integral())
+        h_sig.Scale(1.0 / h_sig.Integral())
 
         y_max = 1.5*max(h_data.GetMaximum(), h_sig.GetMaximum())
         text = ROOT.TLatex(min_val + 0.05*(max_val - min_val), 0.85*y_max, f"BDT > {bdt:.3f}")
@@ -83,6 +94,21 @@ for bdt in BDT_th:
                     y_lim = (0, y_max),
                     to_ploton=[text, box_Phi, box_Omega, legend]
         )
+        print("--------------------------------------------------")
+    h_data_total.Scale(1.0 / h_data_total.Integral())
+    h_sig_total.Scale(1.0 / h_sig_total.Integral())
+    h_sig_total.GetXaxis().SetTitle("m(#mu^{+}#mu^{-}) (GeV)") 
+    plt.ratio_plot([h_data_total], h_sig_total,
+                file_name=f"BDT_slice_{bdt}_mumuOS",
+                title=f"BDT score > {bdt}",
+                ratio_w = 8 if bdt > 0.5 else 2.0,
+                draw_opt_num = "PE",
+                draw_opt_den = "HIST",
+                y_lim = (0, 1.5*max(h_data_total.GetMaximum(), h_sig_total.GetMaximum())),
+                to_ploton=[text, box_Phi, box_Omega, legend]
+    )
+
+        
 
     # apply the Phi veto
     print(f"BDT > {bdt:.3f}")

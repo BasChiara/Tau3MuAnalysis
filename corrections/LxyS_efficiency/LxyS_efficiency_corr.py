@@ -109,6 +109,7 @@ for cat in categories:
     N_Data    = rdf_sData.Sum('nDs_sw').GetValue()
     eff_Data  = rdf_sData.Filter('tau_Lxy_sign_BS > 2.0').Sum("nDs_sw").GetValue() / N_Data
     eff_Data_err = np.sqrt(eff_Data*(1-eff_Data)/ N_Data)
+    print(f'N_Data: {N_Data}, passed: {rdf_sData.Filter("tau_Lxy_sign_BS > 2.0").Sum("nDs_sw").GetValue()}')
     
     eff_data_list.append(eff_Data)
     eff_error_data_list.append(eff_Data_err)
@@ -162,7 +163,7 @@ for cat in categories:
 
         leg = ROOT.TLegend(0.6, 0.6, 0.9, 0.85)
         leg.AddEntry(h_Data, 'sWeighted data', 'lep')
-        leg.AddEntry(h_mc, 'MC', 'f')
+        leg.AddEntry(h_mc, 'D_{s}#rightarrow #phi(#mu#mu)#pi MC', 'f')
         leg.SetBorderSize(0)
 
         text = ROOT.TLatex(0.20, 0.8, f'CAT {cat} - 20{args.year}')
@@ -173,35 +174,25 @@ for cat in categories:
 
         name = f'{args.output}/LxyS_sPlot_{cat}20{args.year}-{obs}'
 
-        pt.ratio_plot(
+        pt.ratio_plot_CMSstyle(
             histo_num = [h_Data],
             draw_opt_num = 'PE',
             histo_den = h_mc,
             draw_opt_den = 'HISTE',
-            y_lim = [0., 1.4*max(h_Data.GetMaximum(), h_mc.GetMaximum())],
-            to_ploton = [leg, text],
+            isMC = False, year = '20'+args.year,
+            CMSadditionalText = 'CAT ' + cat,
+            y_lim = [0., 1.5*max(h_Data.GetMaximum(), h_mc.GetMaximum())],
+            to_ploton = [leg],
             file_name = name,
             ratio_w = 1.0,
         )
         
 # save the efficiencies in a json file
-with open(f'{args.output}/LxyS_efficiency_20{args.year}.json', 'w') as f:
+with open(f'./LxyS_efficiency_20{args.year}.json', 'w') as f:
     json.dump(corr_dict, f)
 print(f'[o] json file with efficiencies saved as LxyS_efficiency_20{args.year}.json')
-    
+print(corr_dict)
 if not args.make_plots: sys.exit(0)
-# plot efficencies and their ratio
-c = ROOT.TCanvas('c', 'c', 800, 800)
-# create two pads for the efficiencies and the ratio
-c.cd()
-up_pad = ROOT.TPad('up_pad', 'up_pad', 0.0, 0.3, 1.0, 1.0)
-up_pad.SetMargin(0.15, 0.1,0.0,0.1) # left, right, bottom, top 
-up_pad.Draw()
-c.cd()
-ratio_pad = ROOT.TPad('ratio_pad', 'ratio_pad', 0.0, 0.0, 1.0, 0.3)
-ratio_pad.SetMargin(0.15,0.1,0.4,0.0) # left, right, bottom, top
-ratio_pad.SetGridy() # vertical grid
-ratio_pad.Draw()
 
 h_mc_eff = ROOT.TH1F('h_mc_eff', 'h_mc_eff', 3, -0.5, 3.5)
 h_data_eff = ROOT.TH1F('h_data_eff', 'h_data_eff', 3, -0.5, 3.5)
@@ -213,13 +204,9 @@ for i, cat in enumerate(categories):
     h_data_eff.SetBinContent(i+1, eff_data_list[i])
     h_data_eff.SetBinError(i+1, eff_error_data_list[i])
     h_data_eff.Sumw2()
-h_ratio= h_data_eff.Clone('h_ratio')
-h_ratio.Divide(h_mc_eff)
 
-# draw efficiencies
-up_pad.cd()
 h_mc_eff.SetTitle('L_{xy}/#sigma > 2.0'+ f' - 20{args.year}')
-h_mc_eff.GetXaxis().SetTitle('Category')
+h_mc_eff.GetXaxis().SetTitle('')
 h_mc_eff.GetYaxis().SetTitle('Efficiency')
 h_mc_eff.GetYaxis().SetRangeUser(0.7, 1.1)
 h_mc_eff.GetYaxis().SetLabelSize(0.05)
@@ -239,33 +226,19 @@ h_data_eff.Draw('pe same')
 leg = ROOT.TLegend(0.6, 0.70, 0.9, 0.85)
 leg.SetBorderSize(0)
 leg.AddEntry(h_data_eff, 'Data', 'lep')
-leg.AddEntry(h_mc_eff, 'MC', 'lep')
+leg.AddEntry(h_mc_eff, 'D_{s}#rightarrow #phi(#mu#mu)#pi MC', 'lep')
 leg.Draw()
 
-# draw ratio
-ratio_pad.cd()
-h_ratio.SetTitle('')
-#h_ratio.GetXaxis().SetTitle('Category')
-h_ratio.GetXaxis().SetNdivisions(3)
-for i, cat in enumerate(categories):
-    h_ratio.GetXaxis().SetBinLabel(i+1, cat)
-h_ratio.GetXaxis().SetLabelSize(0.3)
-h_ratio.GetXaxis().SetTitleSize(0.1)
-h_ratio.GetXaxis().SetTitleOffset(1.5)
-h_ratio.GetYaxis().SetTitle('Data/MC')
-h_ratio.GetYaxis().SetRangeUser(0.8, 1.2)
-h_ratio.GetYaxis().SetLabelSize(0.1)
-h_ratio.GetYaxis().SetTitleSize(0.1)
-h_ratio.GetYaxis().SetTitleOffset(0.5)
-h_ratio.GetYaxis().SetNdivisions(504)
-h_ratio.SetMarkerStyle(20)
-h_ratio.SetMarkerSize(1.2)
-h_ratio.SetMarkerColor(ROOT.kBlack)
-h_ratio.SetLineColor(ROOT.kBlack)
-h_ratio.SetLineWidth(2)
-h_ratio.Draw('pe')
-
 name = f'{args.output}/LxyS_efficiency_20{args.year}'
-c.SaveAs(f'{name}.pdf')
-c.SaveAs(f'{name}.png')
+pt.ratio_plot_CMSstyle(
+            histo_num = [h_data_eff],
+            draw_opt_num = 'PE',
+            histo_den = h_mc_eff,
+            draw_opt_den = 'PE',
+            isMC = False, year = '20'+args.year,
+            y_lim = [0.5, 1.2],
+            to_ploton = [leg],
+            file_name = name,
+            ratio_w = 0.2,
+        )
 

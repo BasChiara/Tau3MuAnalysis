@@ -1,9 +1,15 @@
 import ROOT
+ROOT.gROOT.SetBatch(True)
 import os
 import sys
 import numpy as np
 import argparse
 import json
+
+import matplotlib.pyplot as plt
+import mplhep as hep
+hep.style.use("CMS")
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir)))
 import mva.config as cfg
 
@@ -114,36 +120,42 @@ mean_ratio  = np.abs(mean_ratio  - 1 ) * 100
 width_ratio = np.abs(width_ratio - 1 ) * 100
 
 # plot the data and mc mean/ width
+categories = ['A', 'B', 'C']
+hep.cms.label("Preliminary", data=True, 
+              lumi=cfg.LumiVal_plots[str(args.year)], ax=ax[0,0], fontsize=label_fontsize-1)
 ax[0,0].grid(zorder = 1, linestyle='--')
 #ax[0,0].scatter(wspace_byCat.keys(), data_mean, c='b', label='Data', zorder=2)
 #ax[0,0].scatter(wspace_byCat.keys(), mc_mean, c='r', label='MC', zorder = 3)
-ax[0,0].errorbar(wspace_byCat.keys(), data_mean, yerr=data_mean_error, fmt='o', c='b', label='Data', zorder=2)
-ax[0,0].errorbar(wspace_byCat.keys(), mc_mean, yerr=mc_mean_error, fmt='o', c='r', label='MC', zorder=3)
+ax[0,0].errorbar(categories, data_mean, yerr=data_mean_error, fmt='o', c='b', label='Data', zorder=2)
+ax[0,0].errorbar(categories, mc_mean, yerr=mc_mean_error, fmt='o', c='r', label=r'$D_s \to \phi(\mu\mu)\pi$ MC', zorder=3)
 ax[0,0].set_ylabel('Mean (GeV)', fontsize=label_fontsize)
 ax[0,0].set_ylim(cfg.Ds_mass - 0.005, cfg.Ds_mass + 0.005)
 ax[0,0].tick_params(axis='both', labelsize=ticks_fontsize)
 
+hep.cms.label("Preliminary", data=True,
+              lumi=cfg.LumiVal_plots[str(args.year)], ax=ax[0,1], fontsize=label_fontsize-1)
 ax[0,1].grid(zorder = 1, linestyle='--')
 #ax[0,1].scatter(wspace_byCat.keys(), data_width, c='b', label='Data', zorder = 2)
 #ax[0,1].scatter(wspace_byCat.keys(), mc_width, c='r', label='MC', zorder = 3)
-ax[0,1].errorbar(wspace_byCat.keys(), data_width, yerr=data_width_error, fmt='o', c='b', label='Data', zorder=2)
-ax[0,1].errorbar(wspace_byCat.keys(), mc_width, yerr=mc_width_error, fmt='o', c='r', label='MC', zorder=3)
+ax[0,1].errorbar(categories, data_width, yerr=data_width_error, fmt='o', c='b', label='Data', zorder=2)
+ax[0,1].errorbar(categories, mc_width, yerr=mc_width_error, fmt='o', c='r', label=r'$D_s \to \phi(\mu\mu)\pi$ MC', zorder=3)
 ax[0,1].set_ylabel('Width (MeV)', fontsize=label_fontsize)
-ax[0,1].set_ylim(5.0, 30.0)
+ax[0,1].set_ylim(5.1, 30.0)
 ax[0,1].tick_params(axis='both', labelsize=ticks_fontsize)
 
 
 # plot the ratio of data to mc mean/width
 ax[1,0].grid(zorder = 0, linestyle='--')
 #ax[1,0].scatter(wspace_byCat.keys(), mean_ratio, c='k', zorder=2)
-ax[1,0].errorbar(wspace_byCat.keys(), mean_ratio, yerr=mean_ratio_error, fmt='o', c='k', zorder=2)
+ax[1,0].errorbar(categories, mean_ratio, yerr=mean_ratio_error, fmt='o', c='k', zorder=2)
 ax[1,0].set_ylabel('|Data/MC - 1| (%)', fontsize=label_fontsize, labelpad=15)
 ax[1,0].set_ylim(0.0, 1.6*np.max(mean_ratio))
-ax[1,0].tick_params(axis='both', labelsize=ticks_fontsize)
+ax[1,0].tick_params(axis='x', labelsize=label_fontsize)
+ax[1,0].tick_params(axis='y', labelsize=ticks_fontsize)
 
 ax[1,1].grid(zorder = 0, linestyle='--')
 #ax[1,1].scatter(wspace_byCat.keys(), width_ratio, c='k', zorder=2)
-ax[1,1].errorbar(wspace_byCat.keys(), width_ratio, yerr=width_ratio_error, fmt='o', c='k', zorder=2)
+ax[1,1].errorbar(categories, width_ratio, yerr=width_ratio_error, fmt='o', c='k', zorder=2)
 ax[1,1].set_ylabel('|Data/MC - 1| (%)', fontsize=label_fontsize, labelpad=25)
 ax[1,1].set_ylim(0.0, 1.6*np.max(width_ratio))
 ax[1,1].tick_params(axis='both', labelsize=ticks_fontsize)

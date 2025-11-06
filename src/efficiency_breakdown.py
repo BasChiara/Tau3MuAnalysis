@@ -20,7 +20,7 @@ py_step_labels = {
     'nEvReinforcedHLT' : 'HLT reinforcement',
     'LxyS' : r'$L_{xy}/\sigma}$ cut',
     'mass_range' : r'$m_{3\mu}$ range',
-    'phi_veto' : r'$\omega/\rho$ and $\phi\to\mu\mu$ veto',
+    'phi_veto' : r'$\phi\to\mu\mu$ veto', #r'$\omega/\rho$ and $\phi\to\mu\mu$ veto'
     'BDT' : 'BDT'
 }
 
@@ -34,7 +34,7 @@ LateX_step_labels = {
     'nEvReinforcedHLT' : '\\hltDimu reinforcement',
     'LxyS' : '$L_{xy}/\\sigma >$ 2.0',
     'mass_range' : '$m_{3\\mu}$ range',
-    'phi_veto' : '$\omega/\\rho$ and $\\phi\\to\\mu\\mu$ veto',
+    'phi_veto' : '$\\phi\\to\\mu\\mu$ veto',#'$\omega/\\rho$ and $\\phi\\to\\mu\\mu$ veto',
     'BDT' : 'BDT selection'
 }
 
@@ -117,7 +117,8 @@ if make_csv:
         # number of events @ gen filter level
         N_raw = np.append(N_raw, config.Nmc_process[args.process][year])
         print(f'{ct.color_text.BOLD} -- {year} {ct.color_text.END} : Gen filter --')
-
+        print(f'Gen filter: {N_raw[-1]}')
+        
         # file with preselection efficiencies
         process = 'Tau3Mu' if args.process == 'WTau3Mu' else args.process
         preselection_file = samples[i]#f'outRoot/WTau3Mu_MCanalyzer_{year}_HLT_overlap_on{process}.root'
@@ -133,7 +134,6 @@ if make_csv:
         # efficency @ preselection
         N_raw = np.append(N_raw, [eff_rdf[step][0] for step in preselection_step_list])
         N_w  = N_raw    
-        print(N_raw)
 
 
         sample = samples[i]       
@@ -157,7 +157,7 @@ if make_csv:
         N_w   = np.append(N_w, N_mass_range_w)
         print(f'Base selection: {N_mass_range} {N_mass_range_w:.3f}(w) ----> ({N_mass_range/N*100:,.2f} %)')
         # - phi veto
-        selection    = selection + ' && ' + config.phi_veto + ' && ' + config.omega_veto
+        selection    = selection + ' && ' + config.phi_veto #+ ' && ' + config.omega_veto
         N_phi_veto, N_phi_veto_w = get_Nevents(rdf, selection)
         N_raw = np.append(N_raw, N_phi_veto)
         N_w   = np.append(N_w, N_phi_veto_w)
@@ -207,9 +207,9 @@ elif args.compareWZ:
 
         df = pd.DataFrame()
         df['NW'] = W_csv['N_w'][1:] # without gen filter
-        df['efficiencyW'] = W_csv['efficiency_w'][1:]*base_eff_W[i]
+        df['efficiencyW'] = W_csv['efficiency_w'][1:]#*base_eff_W[i]
         df['NZ'] = Z_csv['N_w'][1:]
-        df['efficiencyZ'] = Z_csv['efficiency_w'][1:]*base_eff_Z[i]
+        df['efficiencyZ'] = Z_csv['efficiency_w'][1:]#*base_eff_Z[i]
         
         df['efficiency_ratio'] = df['efficiencyW']/df['efficiencyZ']
         df['yield_ratio'] = W_csv['N_w']/Z_csv['N_w']
@@ -230,6 +230,6 @@ elif args.compareWZ:
 
     exp_Yratio = config.xsec_ppWxTauNu/(2.0 * config.xsec_ppZxTauTau)
     step_to_plot = selection_step_list[1:] # without gen filter
-    plot_WZvsYear(dict_df, step_to_plot, var='yield_ratio', exp_WZratio=exp_Yratio, y_label=y_label_dict['yield_ratio'])
-    plot_WZvsYear(dict_df, step_to_plot, var='effyield_ratio', exp_WZratio=exp_Yratio, y_label=y_label_dict['effyield_ratio'])
-    plot_WZvsYear(dict_df, step_to_plot, var='efficiency_ratio', exp_WZratio=1.0, y_label=y_label_dict['efficiency_ratio'])
+    plot_WZvsYear(dict_df, step_to_plot, var='yield_ratio',     exp_WZratio=exp_Yratio, y_label=y_label_dict['yield_ratio'])
+    plot_WZvsYear(dict_df, step_to_plot, var='effyield_ratio',  exp_WZratio=exp_Yratio, y_label=y_label_dict['effyield_ratio'])
+    plot_WZvsYear(dict_df, step_to_plot, var='efficiency_ratio',exp_WZratio=1.0, y_label=y_label_dict['efficiency_ratio'])

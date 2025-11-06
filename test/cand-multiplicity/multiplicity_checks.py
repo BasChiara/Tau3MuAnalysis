@@ -6,11 +6,11 @@ import json
 import itertools
 import ROOT
 import cmsstyle as cms
-cms.SetLumi("")
 cms.SetEnergy("13.6")
+cms.SetLumi("")
 # Write extra lines below the extra text (usuful to define regions/channels)
 cms.ResetAdditionalInfo()
-cms.AppendAdditionalInfo("W channel")
+#cms.AppendAdditionalInfo("W #rightarrow #tau(3#mu)#nu MC vs Data")
 
 def get_candidate_overlap(tree):
 
@@ -70,8 +70,9 @@ def get_candidate_multiplicity(tree):
 data_dir = 'outRoot'
 plot_dir = 'test/cand-multiplicity'
 
-#era = "2023BPix"
-era = "2022EE"
+era = "2023BPix"
+#era = "2022EE"
+cms.AppendAdditionalInfo(era.replace("EE", "").replace("BPix", ""))
 if era == "2022EE":
     file = uproot.open("outRoot/WTau3Mu_MCanalyzer_2022EE_HLT_overlap_onTau3Mu_MULstudies.root")
     file_data = uproot.open("/eos/user/c/cbasile/Tau3MuRun3/data/analyzer_prod/reMini2022_MULstudies/WTau3Mu_DATAanalyzer_ParkingDoubleMuonLowMass_2022Gv1_HLT_overlap.root")
@@ -143,7 +144,7 @@ cms.cmsDraw(h_mul_mc, "HIST",
             fcolor=ROOT.kRed,
             fstyle= 0,
             )
-mul_legend.AddEntry(h_mul_data, "data sidebands", "F")
+mul_legend.AddEntry(h_mul_data, "Data", "F")
 mul_legend.AddEntry(h_mul_mc, "W#rightarrow #tau(3#mu)#nu MC", "F")
 mul_legend.Draw()
 cms.SaveCanvas(canv, f'{plot_dir}/nTauCandidatesPerEvent_{tag}.png', False)
@@ -186,7 +187,7 @@ cms.cmsDraw(h_ovlp_mc, "HIST",
             )
 h_ovlp_data.GetXaxis().SetNdivisions(310)
 h_ovlp_mc.GetXaxis().SetNdivisions(310)
-ovl_legend.AddEntry(h_ovlp_data, "data sidebands", "F")
+ovl_legend.AddEntry(h_ovlp_data, "Data", "F")
 ovl_legend.AddEntry(h_ovlp_mc, "W #rightarrow #tau(3#mu)#nu MC", "F")
 ovl_legend.Draw()
 cms.SaveCanvas(canv2, f'{plot_dir}/candidateOverlap_{tag}.png', False)

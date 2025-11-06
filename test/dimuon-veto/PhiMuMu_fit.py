@@ -19,12 +19,12 @@ parser.add_argument('--tag',        default= 'emulateRun2', help='tag to the tra
 parser.add_argument('--debug',      action = 'store_true' ,help='set it to have useful printout')
 parser.add_argument('--category',   default = 'noCat')
 parser.add_argument('--bdt_cut',    type= float, default = 0.990)
-parser.add_argument('--mu_pair',    default = '12')
+parser.add_argument('--mu_pair',    choices=['12', '13', '23', 'all'], default = '12')
 parser.add_argument('--resonance',  choices=['phi', 'omega'], default = 'phi', help='which resonance to fit')
 
 args = parser.parse_args()
 tag = args.tag
-name = {'12': 'Mu1Mu2', '23':'Mu2Mu3', '13':'Mu1Mu3'}
+name = {'12': 'Mu1Mu2', '23':'Mu2Mu3', '13':'Mu1Mu3', 'all':'MuMu'}
 
 
 ROOT.gROOT.SetBatch(True)
@@ -38,7 +38,7 @@ phi_mass = 1.019 #GeV
 omega_mass = 0.783 #GeV
 rho_mass = 0.770 #GeV
 if args.resonance == 'phi':
-    fit_range_lo  , fit_range_hi   = 0.90, 1.20 # GeV
+    fit_range_lo  , fit_range_hi   = 0.90, 1.16 # GeV
     res_mass = phi_mass
 elif args.resonance == 'omega':
     fit_range_lo  , fit_range_hi   = 0.70, 0.86 # GeV
@@ -48,32 +48,11 @@ nbins = int((fit_range_hi - fit_range_lo)/binw) + ( 1 if args.resonance == 'phi'
 
 
 
+### IMPORT DATA ###
 input_tree_name = 'tree_w_BDT'
 #mc_file = '/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/mva_data/XGBout_signal_emulateRun2_EFG_MuMuFilter.root'
 #data_file = '/eos/user/c/cbasile/Tau3MuRun3/CMSSW_12_4_11/src/Tau3MuAnalysis/mva_data/XGBout_data_emulateRun2_EFG_MuMuFilter_open.root'
-mc_file = cfg.mc_bdt_samples['WTau3Mu'] 
-data_file = cfg.data_bdt_samples['WTau3Mu']
-
-
-# ** RooFit Variables
-# BDT score
-bdt = ROOT.RooRealVar('bdt_score', 'BDT score'  , 0.0,  1.0, '' )
-# data weights
-weight = ROOT.RooRealVar('weight', 'weight'  , 0.0,  1.0, '' )
-ref_var= f'tau_mu{args.mu_pair}_M'
-mumu_ref = ROOT.RooRealVar(ref_var, cfg.features_NbinsXloXhiLabelLog[ref_var][3], 0.0, 10.0, 'GeV' )
-# di-muon mass
-mass_var = f'tau_mu{args.mu_pair}_fitM'
-mumu_mass = ROOT.RooRealVar(mass_var, cfg.features_NbinsXloXhiLabelLog[mass_var][3], fit_range_lo,  fit_range_hi, 'GeV' )
-mumu_mass.setRange('fit_range', fit_range_lo, fit_range_hi)
-
-thevars = ROOT.RooArgSet()
-thevars.add(bdt)
-thevars.add(weight)
-thevars.add(mumu_ref)
-thevars.add(mumu_mass)
-
-### IMPORT DATA ###
+data_file = cfg.data_bdt_samples['WTau3Mu'] if args.mu_pair != 'all' else 'data_mumuOS.root'
 base_selection = f'(bdt_score>{args.bdt_cut:.3f})'
 
 data_tree = ROOT.TChain(input_tree_name)
@@ -81,16 +60,44 @@ data_tree.AddFile(data_file)
 if data_tree.GetEntries() == 0:
     print(f'{ct.RED}[ERROR]{ct.END} data tree empty!')
     exit()
+
+
+# ** RooFit Variables ** #
+thevars = ROOT.RooArgSet()
+# BDT score
+bdt = ROOT.RooRealVar('bdt_score', 'BDT score'  , 0.0,  1.0, '' )
+thevars.add(bdt)
+weight = ROOT.RooRealVar('weight',    'event weight', 0.0, 10.0, '' )
+# di-muon mass
+if args.mu_pair == 'all':
+    ref_var= 'tau_mumuOS_M'
+    mass_var = 'tau_mumuOS_fitM'
+    mumu_ref  = ROOT.RooRealVar(ref_var,  "m(#mu^{+}#mu^{-})", 0.0, 10.0, 'GeV' )
+    mumu_mass = ROOT.RooRealVar(mass_var, "m(#mu^{+}#mu^{-})", fit_range_lo,  fit_range_hi, 'GeV' )
+
+else :
+    ref_var= f'tau_mu{args.mu_pair}_M'
+    mass_var = f'tau_mu{args.mu_pair}_fitM'
+    mumu_ref = ROOT.RooRealVar(ref_var, cfg.features_NbinsXloXhiLabelLog[ref_var][3], 0.0, 10.0, 'GeV' )
+    mumu_mass = ROOT.RooRealVar(mass_var, cfg.features_NbinsXloXhiLabelLog[mass_var][3], fit_range_lo,  fit_range_hi, 'GeV' )
+    thevars.add(weight)
+
+mumu_mass.setRange('fit_range', fit_range_lo, fit_range_hi)
+thevars.add(mumu_ref)
+thevars.add(mumu_mass)
+
+# ** IMPORT DATASET ** #
 datatofit = ROOT.RooDataSet('data', 'data', data_tree, thevars, base_selection)
 datatofit = datatofit.reduce(ROOT.RooArgSet(mumu_mass))
+print(f'\n {ct.GREEN}[INFO]{ct.END} dataset to fit, entries = {datatofit.numEntries()}')
 datatofit.Print('v')
 
 # PHI -> mumu signal model + bkg
 
 M_mumu   = ROOT.RooRealVar('M_mumu' , 'M_{#mu#mu}' , res_mass, res_mass - 0.002, res_mass + 0.002)
-width  = ROOT.RooRealVar('width',  'width', 0.012,    0.005, 0.03 if args.resonance=='phi' else 0.05) #GeV
-if args.bdt_cut >= 0.980:
-    width.setConstant(ROOT.kTRUE)
+width  = ROOT.RooRealVar('width',  'width', 0.011,    0.005, 0.03) #GeV
+if args.bdt_cut >= 0.899:
+    if args.resonance == 'omega': width.setConstant(ROOT.kTRUE)
     M_mumu.setConstant(ROOT.kTRUE)
 smodel = ROOT.RooGaussian('signal_mumu', 'signal_mumu', mumu_mass, M_mumu, width)
 
@@ -100,13 +107,13 @@ a1 = ROOT.RooRealVar('a1', 'a1', 0, -1.0,1.0)
 a2 = ROOT.RooRealVar('a2', 'a2', 0, -1.0,1.0)
 a3 = ROOT.RooRealVar('a3', 'a3', 0, -1.0,1.0)
 #bmodel = ROOT.RooPolynomial('background_phimumu', "background_phimumu", mumu_mass, ROOT.RooArgList(a0, a1), 0)
-order =  ROOT.RooArgList(a0, a1, a2) if args.bdt_cut < 0.5 else ROOT.RooArgList(a0)
+order =  ROOT.RooArgList(a0, a1, a2, a3) if args.bdt_cut < 0.5 else ROOT.RooArgList(a0, a1)
 if args.resonance == 'omega' and args.bdt_cut < 0.5:
     order = ROOT.RooArgList(a0, a1)
 bmodel = ROOT.RooChebychev('bmodel', 'bmodel', mumu_mass, order)
 
-nsig = ROOT.RooRealVar('Ns', 'N signal', datatofit.sumEntries(), 0., 3*datatofit.sumEntries())
-nbkg = ROOT.RooRealVar('Nb', 'N combinatorics', datatofit.numEntries(), 0., 3*datatofit.numEntries())
+nsig = ROOT.RooRealVar('Ns', 'N signal', 0.2*datatofit.sumEntries(), 0., datatofit.sumEntries())
+nbkg = ROOT.RooRealVar('Nb', 'N combinatorics', 0.8*datatofit.numEntries(), 0., datatofit.numEntries())
 full_model = ROOT.RooAddPdf('full_model', 'full_model', ROOT.RooArgList(smodel,bmodel), ROOT.RooArgList(nsig, nbkg))
 
 results = full_model.fitTo(
@@ -130,8 +137,11 @@ full_model.plotOn(
     frame, 
     ROOT.RooFit.LineColor(ROOT.kRed),
     ROOT.RooFit.Range('fit_range'),
-    ROOT.RooFit.NormRange('fit_range')
+    ROOT.RooFit.NormRange('fit_range'),
+    ROOT.RooFit.MoveToBack(),
+    ROOT.RooFit.Name('fit')
 )
+
 # add line in the veto region
 line = ROOT.TLine(M_mumu.getVal() - 3*width.getVal(), 0, M_mumu.getVal() - 3*width.getVal(), frame.GetMaximum())
 line.SetLineColor(ROOT.kBlack)
@@ -143,8 +153,34 @@ line2.SetLineStyle(ROOT.kDashed)
 line2.SetLineWidth(2)
 frame.addObject(line)
 frame.addObject(line2)
-print('chi2 %.2f'%(frame.chiSquare()))
-fit_utils.add_summary_text(frame, text = f'#sigma = ({width.getVal()*1000:.1f} #pm {width.getError()*1000:.1f}) MeV', x=fit_range_lo+0.010, y=0.20*frame.GetMaximum(), size=0.04)
-fit_utils.add_summary_text(frame, text = f'#chi^{{2}}/nDoF = {frame.chiSquare():.2f}', x=fit_range_lo+0.010, y=0.20*frame.GetMaximum()-500, size=0.04)
+# legend
+legend = ROOT.TLegend(0.70, 0.70, 0.90, 0.90)
+legend.SetBorderSize(0)
+legend.SetFillStyle(0)
+legend.SetTextFont(42)
+legend.SetTextSize(0.04)
+legend.AddEntry(frame.findObject('data'), 'Data', 'PE')
+legend.AddEntry(frame.findObject('fit'),  'Fit', 'L')
+frame.addObject(legend)
 
+mumu_mass.setRange('sig_range', M_mumu.getVal() - 3*width.getVal(), M_mumu.getVal() + 3*width.getVal())
+B = nbkg.getVal()*(bmodel.createIntegral(ROOT.RooArgSet(mumu_mass), ROOT.RooArgSet(mumu_mass), 'sig_range').getValV())
+significance = nsig.getVal()/((nsig.getVal()+B)**0.5) if (nsig.getVal()+B)>0 else 0
+
+dY = 0.12*frame.GetMaximum()
+frame.SetMaximum(frame.GetMaximum() + 8*dY)
+text_X, text_Y = fit_range_lo+2*width.getVal(), frame.GetMaximum() - 2*dY
+bdt_text = f'BDT > {args.bdt_cut:.3f}' if args.bdt_cut>0 else 'no BDT selection'
+fit_utils.add_summary_text(frame, text = bdt_text, x=text_X, y=text_Y+dY, size=0.04)
+fit_utils.add_summary_text(frame, text = f'#sigma = ({width.getVal()*1000:.1f} #pm {width.getError()*1000:.1f}) MeV', x=text_X, y=text_Y-dY, size=0.04)
+fit_utils.add_summary_text(frame, text = f'#chi^{{2}}/nDoF = {frame.chiSquare():.2f}', x=text_X, y=text_Y-2*dY, size=0.04)
+fit_utils.add_summary_text(frame, text = f'S/#sqrt{{B}} = {significance:.1f}', x=text_X, y=text_Y-3*dY, size=0.04)
 fit_utils.draw_fit_pull(frame, fitvar=mumu_mass, out_name = f'{args.plot_outdir}/{args.resonance}To{name[args.mu_pair]}_mass_bdt{args.bdt_cut:.3f}_{args.category}')
+# - SUMMARY TEXT
+print(f'\n {ct.GREEN}[INFO]{ct.END} fit results:')
+print(f'  - signal mean = {M_mumu.getVal():.4f} +/- {M_mumu.getError():.4f} GeV')
+print(f'  - signal width = {width.getVal():.4f} +/- {width.getError():.4f} GeV')
+print(f'  - N signal = {nsig.getVal():.1f} +/- {nsig.getError():.1f}')
+print(f'  - N bkg = {nbkg.getVal():.1f} +/- {nbkg.getError():.1f} ( {B:.1f} in +/- { (nbkg.getError()/nbkg.getVal())*B:.1f} in the signal region )')
+print(f'  - significance = {significance:.2f}')
+print(f'  - chi2/ndof = {frame.chiSquare():.2f}\n')

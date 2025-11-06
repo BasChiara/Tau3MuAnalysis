@@ -1,6 +1,8 @@
 import ROOT
 ROOT.gStyle.SetOptStat(0)
 import cmsstyle as CMS
+CMSStyle = CMS.getCMSStyle()
+ROOT.TGaxis.SetMaxDigits(3)
 CMS.SetEnergy(13.6)
 
 import numpy as np
@@ -112,6 +114,7 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], description =[], leg_coo
     draw_opt_num = kwargs['draw_opt_num'] if 'draw_opt_num' in kwargs else 'hist'
     draw_opt_den = kwargs['draw_opt_den'] if 'draw_opt_den' in kwargs else 'hist'
     CMSextraText = kwargs['CMSextraText'] if 'CMSextraText' in kwargs else 'Preliminary'
+    CMSadditionalText = kwargs['CMSadditionalText'] if 'CMSadditionalText' in kwargs else ''
     isMC         = kwargs['isMC'] if 'isMC' in kwargs else False
     year         = kwargs['year'] if 'year' in kwargs else 2022
     x_lim        = kwargs['x_lim'] if 'x_lim' in kwargs else [histo_den.GetBinLowEdge(histo_den.FindFirstBinAbove(0.)), histo_den.GetBinLowEdge(histo_den.FindLastBinAbove(0.)+1)] 
@@ -122,9 +125,12 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], description =[], leg_coo
     if isMC :
         CMS.SetLumi('')
         CMSextraText = 'Simulation ' + CMSextraText
-    else: CMS.SetLumi(LumiVal_plots[str(year)])
+    else: CMS.SetLumi(LumiVal_plots[str(year)], run=str(year))
     CMS.SetExtraText(CMSextraText)
     CMS.SetEnergy(13.6)
+    CMS.ResetAdditionalInfo()
+    if CMSadditionalText:
+        CMS.AppendAdditionalInfo(CMSadditionalText)
 
     
     # CMS style canva
@@ -208,7 +214,8 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], description =[], leg_coo
         ) 
     [obj.Draw() for obj in to_ploton]
     if leg: leg.Draw()
-    CMS.fixOverlay()
+    #CMS.fixOverlay() # older cmsstyle version
+
     # draw in the ratio pad 
     c.cd(2)
     CMS.cmsDraw(h_ratio_den, 
@@ -288,7 +295,7 @@ def plot_CMSstle(histo = [], description =[], leg_coord = [0.6, 0.7, 0.85, 0.85]
             fcolor = h.GetFillColor(), 
             fstyle = h.GetFillStyle()
         )
-        if leg : leg.AddEntry(h, description[i], 'pe2')
+        if leg : leg.AddEntry(h, description[i], 'pe' if draw_opt=='pe' else 'l')
         [obj.Draw() for obj in to_ploton]
     
     CMS.fixOverlay()
