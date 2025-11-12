@@ -5,6 +5,7 @@
 # Text files
 #*.txt
 *.log
+*.npy
 
 # Multimedia
 *.pdf
