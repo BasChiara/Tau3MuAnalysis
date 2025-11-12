@@ -180,14 +180,12 @@ Br_Ztautau_mumu_sys = 1.0026
 # signal shape systematics
 shape_systematics = {
     '2022'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/signal_model/signal_shape_comparison_2022_ANv9.json'),
-    '2023'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/signal_model/signal_shape_comparison_2023_ANv9.json'),
-    '2024'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/signal_model/signal_shape_comparison_2024_ANv9.json'), # fixme : it is just a copy of 2023
+    '2023'         : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/signal_model/signal_shape_comparison_2023_ANv9.json')
 }
 # LxyS efficiency systematics
 LxySign_cut_systematics ={
-   '2022' : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/LxyS_efficiency/LxyS_efficiency_2022.json'),
-   '2023' : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/LxyS_efficiency/LxyS_efficiency_2023.json'),
-   '2024' : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/LxyS_efficiency/LxyS_efficiency_2023.json'), # fixme : use 2023 sys for the moment
+   '2022' : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/LxyS_efficiency/bkp/LxyS_efficiency_2022.json'),
+   '2023' : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/LxyS_efficiency/bkp/LxyS_efficiency_2023.json')
 }
 
 ###                     ###

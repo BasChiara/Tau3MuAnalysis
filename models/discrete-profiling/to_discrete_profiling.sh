@@ -1,7 +1,7 @@
 #!/bin/bash
 
-OUTDIR="multipdf-invID_wp"
-INDIR="data-postBDT/invID-WP"
+OUTDIR="multipdf-invID_wp-thesis"
+INDIR="data-postBDT/invID-WP-thesis"
 
 # - 2022 -
 python3 discrete_profiling.py --inputworkspace ${INDIR}/data_vt3m_A22_bdt0.9910_invID-mu2mu3_blind.root --outdir $OUTDIR -c A -y 22 --bdt_cut 0.991

@@ -1,6 +1,6 @@
 # !/bin/bash
 
-OUTDIR=data-postBDT/invID-WP
+OUTDIR=data-postBDT/invID-WP-thesis
 
 # 2022
 python3 prepare_dataset.py --outdir $OUTDIR --save_ws --tag invID-mu2mu3 -c A -y 22 --bdt_cut 0.991

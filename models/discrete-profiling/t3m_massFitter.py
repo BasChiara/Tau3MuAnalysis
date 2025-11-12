@@ -117,7 +117,6 @@ tau_mass = 1.777 # GeV
 mass_window_lo, mass_window_hi = config.mass_range_lo, config.mass_range_hi # GeV
 blind_region_lo, blind_region_hi = config.blind_range_lo, config.blind_range_hi # GeV
 fit_range_lo  , fit_range_hi   = blind_region_lo - 0.05, blind_region_hi + 0.05 # GeV
-
 vars, mass = fitu.load_data(mass_window_lo, mass_window_hi, blind_region_lo, blind_region_hi, fit_range_lo, fit_range_hi)
 thevars = ROOT.RooArgSet(*vars)
 
@@ -239,11 +238,11 @@ nsig_Z.setConstant(True)
 r_wz = ROOT.RooRealVar(f'r_wz_{catYY}', f'r_wz_{catYY}', nsig_W.getValV()/(nsig_W.getValV()+nsig_Z.getValV()))
 
 # W+Z signal model
-dMtau = ROOT.RooRealVar('dM', 'dM', 0, -0.04, 0.04)
+dMtau = ROOT.RooRealVar('dM', 'dM', 0, -0.01, 0.01)
 mean = ROOT.RooFormulaVar('mean','mean', '(@0+@1)', ROOT.RooArgList(Mtau,dMtau) )
-width = ROOT.RooRealVar(f'signal_width_{catYY}',  f'signal_width_{catYY}',  0.01,    0.005, 0.05)
-n = ROOT.RooRealVar(f'n_{catYY}', f'n_{catYY}', 1.0, 0.1, 10.0)
-alpha = ROOT.RooRealVar(f'alpha_{catYY}', f'alpha_{catYY}', 1.0, 0.0, 10.0)
+width = ROOT.RooRealVar(f'signal_width_{catYY}',  f'signal_width_{catYY}',  0.01,    0.005, 0.10)
+n = ROOT.RooRealVar(f'n_{catYY}', f'n_{catYY}', 1.0, 0.1, 20.0)
+alpha = ROOT.RooRealVar(f'alpha_{catYY}', f'alpha_{catYY}', 1.0, 0.1, 10.0)
 
 cb = ROOT.RooCBShape(f'model_sig_{process_name}', f'cb_{process_name}', mass, mean, width, alpha, n)
 
@@ -308,7 +307,7 @@ if MERGE_WZ:
     # * draw & save
     if not args.goff :
         frame_s = mass.frame()
-        frame_s.SetTitle('#tau -> 3#mu signal - CAT %s BDTscore > %.4f'%(args.category, cut))
+        frame_s.SetTitle('')
         mc_dataset.plotOn(
             frame_s, 
             ROOT.RooFit.Binning(nbins), 
@@ -324,12 +323,14 @@ if MERGE_WZ:
             ROOT.RooFit.NormRange('full_range'),
             ROOT.RooFit.MoveToBack()
         )
-        
-        fitu.add_summary_text(frame_s, f'M_{{3#mu}} = {mean.getValV():.2f} +/- {mean.getError():.2f}', x = tau_mass, y=0.90*frame_s.GetMaximum())
-        fitu.add_summary_text(frame_s, f'#sigma(M_{{3#mu}}) = {width.getValV():.2f} +/- {width.getError():.2f}', x = tau_mass, y=0.90*frame_s.GetMaximum())
-        fitu.draw_fit_pull(frame_s, fitvar=mass, out_name=f'{args.plot_outdir}/massfit_S_WZt3m_{point_tag}')
-        s_model = cb # use single CB for the workspace
-        exit()
+        frame_s.SetMaximum(0.9)
+        frame_s.SetMinimum(1e-5)
+        fitu.add_summary_text(frame_s, f'<m_{{3#mu}}> = {mean.getValV()*1000:.2f} #pm {dMtau.getError()*1000:.2f} MeV', x = 1.55, y=0.90*frame_s.GetMaximum(), size = 0.05)
+        fitu.add_summary_text(frame_s, f'#sigma(m_{{3#mu}}) = {width.getValV()*1000:.2f} #pm {width.getError()*1000:.2f} MeV', x = 1.55, y=0.80*frame_s.GetMaximum(), size = 0.05)
+        fitu.add_summary_text(frame_s, catYY, x = 1.55, y=0.70*frame_s.GetMaximum(), size = 0.06)
+        fitu.draw_fit_pull(frame_s, fitvar=mass, out_name=f'{args.plot_outdir}/massfit_S_WZt3m_{point_tag}', xlim = (1.50, 1.95))
+    
+    s_model = cb # use single CB for the workspace
 else :
     # signal fit (W)
     results_W = signal_model_W.fitTo(

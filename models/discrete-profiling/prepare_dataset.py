@@ -44,9 +44,9 @@ def load_data():
     # data weights
     weight = ROOT.RooRealVar('weight', 'weight', -np.inf, np.inf, '')
     # di-muon mass
-    mu12_mass = ROOT.RooRealVar('tau_mu12_fitM', 'tau_mu12_fitM'  , -10.0,  10.0, 'GeV' )
-    mu23_mass = ROOT.RooRealVar('tau_mu23_fitM', 'tau_mu23_fitM'  , -10.0,  10.0, 'GeV' )
-    mu13_mass = ROOT.RooRealVar('tau_mu13_fitM', 'tau_mu13_fitM'  , -10.0,  10.0, 'GeV' )
+    mu12_mass = ROOT.RooRealVar('tau_mu12_M', 'tau_mu12_M'  , -10.0,  10.0, 'GeV' )
+    mu23_mass = ROOT.RooRealVar('tau_mu23_M', 'tau_mu23_M'  , -10.0,  10.0, 'GeV' )
+    mu13_mass = ROOT.RooRealVar('tau_mu13_M', 'tau_mu13_M'  , -10.0,  10.0, 'GeV' )
     #displacement
     Lsign = ROOT.RooRealVar('tau_Lxy_sign_BS', 'tau_Lxy_sign_BS', 0, np.inf)
     # year/era tag
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     selection      = ' & '.join([
         config.cat_eta_selection_dict_fit[args.category], 
         config.year_selection['20'+args.year],
-        config.phi_veto, config.omega_veto,
+        config.phi_veto, #config.omega_veto,
         f'bdt_score > {cut:.4f}'
     ])
     sideband_selection = '&'.join([

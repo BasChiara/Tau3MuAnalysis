@@ -1,10 +1,18 @@
 from ROOT import gROOT, TCanvas, TChain, EnableImplicitMT, TFile, TH1F, TArrow, TMath, TLegend
 from ROOT import RooWorkspace, RooArgList, RooAddPdf, RooChi2Var, RooAbsData, RooCategory, RooMultiPdf, RooExtendPdf, RooRealVar, RooArgSet, RooDataSet, RooGenericPdf, RooFit
+from ROOT import RooMsgService
+RooMsgService.instance().setGlobalKillBelow(RooFit.ERROR)
+
 import argparse, json
 import numpy as np
 
 gROOT.SetBatch(True)
 EnableImplicitMT()
+
+import cmsstyle as CMS
+CMS.setCMSStyle()
+CMS.ResetAdditionalInfo()
+CMS.SetEnergy(13.6)
 
 import sys, os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
@@ -31,16 +39,25 @@ def getGoodnessOfFit(mass, mpdf, data, name, nBinsForFit=40, i=0):
 
     pdf = RooExtendPdf("ext", "ext", mpdf, norm)
 
+    # get the observed chi2
     plot_chi2 = mass.frame()
     data.plotOn(plot_chi2, RooFit.Binning(nBinsForFit), RooFit.Name("data"))
     pdf.plotOn(plot_chi2, RooFit.Name("pdf"))
 
-    npara = pdf.getParameters(data).getSize()
-    chi2 = plot_chi2.chiSquare("pdf", "data", npara)
+    pdfparams = pdf.getParameters(data)
+    floatparams = pdfparams.selectByAttrib("Constant", False)
+    npara = floatparams.getSize() #pdf.getParameters(data).getSize()
+    chi2_red = plot_chi2.chiSquare("pdf", "data", npara)
+    # get the actual number of plotted points
+    hdata = plot_chi2.getHist("data")
+    npoints = hdata.GetN()
+    ndf  = max(1, npoints - npara)
+    chi2 = chi2_red * ndf
+    print(f"\t[GoF] chi2/ ndf = {chi2:.1f} / {ndf} (npoints = {npoints}, npara = {npara})")
     print(
         f"[INFO] Calculating GOF for pdf {pdf.GetName()}, using {npara} fitted parameters"
     )
-
+    # if low statistics, run toys to get the p-value
     if data.sumEntries() / nBinsForFit < 5:
         print("[INFO] Running toys for GOF test")
         params = pdf.getParameters(data)
@@ -53,9 +70,12 @@ def getGoodnessOfFit(mass, mpdf, data, name, nBinsForFit=40, i=0):
         for itoy in range(ntoys):
             params.assignValueOnly(preParams)
             nToyEvents = np.random.poisson(ndata)
-            binnedtoy = pdf.generateBinned(RooArgSet(mass), nToyEvents, 0, 1)
+            # generate unbinned toy
+            toy = pdf.generate(RooArgSet(mass), nToyEvents, RooFit.Name("toy")) 
+            #generate binned toy
+            #toy = pdf.generateBinned(RooArgSet(mass), nToyEvents, 0, 1)
             pdf.fitTo(
-                binnedtoy,
+                toy,
                 RooFit.Minimizer("Minuit2", "minimize"),
                 RooFit.Minos(0),
                 RooFit.Hesse(0),
@@ -64,12 +84,15 @@ def getGoodnessOfFit(mass, mpdf, data, name, nBinsForFit=40, i=0):
             )
 
             plot_t = mass.frame()
-            binnedtoy.plotOn(plot_t)
-            pdf.plotOn(plot_t)
-            chi2_t = plot_t.chiSquare(npara)
+            toy.plotOn(plot_t, RooFit.Binning(nBinsForFit), RooFit.Name("toy"))
+            pdf.plotOn(plot_t, RooFit.Name("tpdf"))
+            chi2_t_red = plot_t.chiSquare("tpdf", "toy", npara)
+            npoints_t = plot_t.getHist("toy").GetN()
+            ndf_t = max(1, npoints_t - npara)
+            chi2_t = chi2_t_red * ndf_t
             if chi2_t >= chi2:
                 npass += 1
-            toy_chi2.append(chi2_t * (nBinsForFit - npara))
+            toy_chi2.append(chi2_t)
             del plot_t
 
         print("[INFO] complete")
@@ -91,9 +114,9 @@ def getGoodnessOfFit(mass, mpdf, data, name, nBinsForFit=40, i=0):
         toyhist.Draw()
 
         lData = TArrow(
-            chi2 * (nBinsForFit - npara),
+            chi2, #* (nBinsForFit - npara),
             toyhist.GetMaximum(),
-            chi2 * (nBinsForFit - npara),
+            chi2, #* (nBinsForFit - npara),
             0,
         )
         lData.SetLineWidth(2)
@@ -102,13 +125,13 @@ def getGoodnessOfFit(mass, mpdf, data, name, nBinsForFit=40, i=0):
 
         params.assignValueOnly(preParams)
     else:
-        prob = TMath.Prob(chi2 * (nBinsForFit - npara), nBinsForFit - npara)
+        prob = TMath.Prob(chi2, ndf) #(chi2 * (nBinsForFit - npara), nBinsForFit - npara)
 
-    print(f"[INFO] GOF Chi2 in Observed =  {chi2 * (nBinsForFit - npara)}")
-    print(f"[INFO] GOF p-value  =  {prob}")
+    print(f"\t[GoF] GOF Chi2 in Observed =  {chi2:.2f}")
+    print(f"\t[GoF] GOF p-value  =  {prob:.3f}")
 
     del pdf
-    return prob
+    return prob, chi2, ndf
 
 
 if __name__ == "__main__":
@@ -138,6 +161,9 @@ if __name__ == "__main__":
     mass_name = 'tau_fit_mass'
 
     process_name = f'vt3m_{catYY}'
+
+    CMS.SetLumi(config.LumiVal_plots[year], run=year)
+    CMS.AppendAdditionalInfo(f'CAT {cat}')
     
     cut = args.bdt_cut if hasattr(args, 'bdt_cut') else 0.0
     label = '_'.join([
@@ -235,10 +261,12 @@ if __name__ == "__main__":
     
     envelope = RooArgList("envelope")
     
-    can = TCanvas('can_multipdf_{}'.format(process_name), '', 800, 800)
+    
     leg = TLegend(0.5, 0.65, 0.9, 0.9)
     leg.SetBorderSize(0)
     leg.SetFillStyle(0)
+    leg.SetTextSize(0.04)
+    nicenames = []
 
     
     gofmax  = -1
@@ -267,7 +295,7 @@ if __name__ == "__main__":
             log.write(f">> pdf-({i}) {pdf.GetName()} \n")
             
             # background model
-            norm = RooRealVar("multipdf_nbkg_{}".format(cat), "", 10.0, 0.0, 5000.0)
+            norm = RooRealVar("multipdf_nbkg_{}".format(cat), "", data.sumEntries(), 0.0, 1e7)
             ext_pdf = RooAddPdf(pdf.GetName()+"_ext", "", RooArgList(pdf), RooArgList(norm))
             if isblind:
                 results = ext_pdf.fitTo(data,  RooFit.Save(True), RooFit.Range(fit_range), RooFit.Extended(True))
@@ -276,14 +304,14 @@ if __name__ == "__main__":
             
             # -- GOF --
             # calculate chi2 and minNLL + penalty for higher order (increase the likelihood)
-            chi2 = RooChi2Var("chi2_"+pdf.GetName(), "", ext_pdf, hist, RooFit.DataError(RooAbsData.Expected))
-            nDoF = int(hist.sumEntries())-pdf.getParameters(data).selectByAttrib("Constant", False).getSize()
+            #chi2 = RooChi2Var("chi2_"+pdf.GetName(), "", ext_pdf, hist, RooFit.DataError(RooAbsData.Expected))
+            #nDoF = int(hist.sumEntries())-pdf.getParameters(data).selectByAttrib("Constant", False).getSize()
             mnll = results.minNll() + 0.5*i
 
             # p-value from chi2 (= probability to have chi2 >= observed chi2)
-            gof_prob = TMath.Prob(chi2.getVal(), nDoF) 
-            if data.sumEntries()<100:
-                gof_prob = getGoodnessOfFit(mass, pdf, data, f'{catYY}_{fam}-{i}', 20, i)
+            #gof_prob = TMath.Prob(chi2.getVal(), nDoF) 
+            #if data.sumEntries()<100:
+            gof_prob, chi2, nDoF = getGoodnessOfFit(mass, pdf, data, f'{catYY}_{fam}-{i}', 20, i)
             
             # p-value from NLL(simpler)-NLL(more complex)
             delta_NLL = 2.*(mnlls[-1]-mnll) if len(mnlls) else 2*min_deltaNLL_
@@ -295,7 +323,7 @@ if __name__ == "__main__":
                 converged = i
 
             log.write("    cov-quality  : %d \n" % results.covQual())
-            log.write("    chi2/(nDoF)  : %.1f/%d \n" % (chi2.getVal(), nDoF) )
+            log.write("    chi2/(nDoF)  : %.1f/%d \n" % (chi2, nDoF))#(chi2.getVal(), nDoF) )
             log.write("    p-value(chi2): %f \n" % gof_prob)
             log.write("    delta-NNL    : %f \n" % delta_NLL)
             log.write("    p-value(2NLL): %e \n" % fis_prob)
@@ -316,23 +344,35 @@ if __name__ == "__main__":
 
                 log.write(" ++ "+pdf.GetName()+" added to envelope \n")
                
-                ext_pdf.plotOn(frame, RooFit.LineColor(envelope.getSize()), RooFit.Name(pdf.GetName()),
-                            RooFit.NormRange(fit_range if isblind else "full_range"),
-                            RooFit.Range('full_range'),#(fit_range if isblind else "full_range"))
+                ext_pdf.plotOn(frame,
+                               RooFit.Name(pdf.GetName()),
+                               RooFit.LineColor(envelope.getSize()), RooFit.Name(pdf.GetName()),
+                               RooFit.NormRange(fit_range if isblind else "full_range"),
+                               RooFit.Range('full_range'),#(fit_range if isblind else "full_range"))
                 )
+                nicenames.append(pdf.GetName().replace(f'_{catYY}', ''))
+                
             else :
                 log.write(" xx "+pdf.GetName()+" rejected \n")
-            del chi2 
+            
+            del chi2
     
-    for pdf in [envelope.at(i) for i in range(envelope.getSize())]:
-        #if worst_fit==True:
-        #    leg.AddEntry(frame.findObject(pdf.GetName()), pdf.GetName()+" (worstfit)" if worstfit==pdf.GetName() else pdf.GetName(), "l")
-        #else:
-        leg.AddEntry(frame.findObject(pdf.GetName()), pdf.GetName()+" (bestfit)" if bestfit==pdf.GetName() else pdf.GetName(), "l")
+    for i, pdf in enumerate([envelope.at(i) for i in range(envelope.getSize())]):
+
+        leg.AddEntry(frame.findObject(pdf.GetName()), nicenames[i] + (" (bestfit)" if bestfit==pdf.GetName() else ""), "l")
+        
 
     frame.SetMinimum(1e-4)
-    frame.SetMaximum(1.5*frame.GetMaximum())
-    frame.Draw()
+    frame.SetMaximum(10.0)
+    #can = TCanvas('can_multipdf_{}'.format(process_name), '', 800, 800)
+    can = CMS.cmsCanvas(
+        'can',
+        x_min=mass.getMin(), x_max=mass.getMax(),
+        y_min=1e-4, y_max=10.0,
+        nameXaxis='m_{3#mu} (GeV)',
+        nameYaxis='Events / 10 MeV',
+    )
+    CMS.cmsObjectDraw(frame)
     leg.Draw("SAME")
     can.Update()
     can.SaveAs(os.path.join(path_out_plots, f'multipdf_{process_name}.png'))
