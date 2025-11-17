@@ -41,8 +41,8 @@ displacement_selection = f'(tau_Lxy_sign_BS > {LxySign_cut})'
 # Ds->Phi(MuMu)Pi
 Ds_base_selection   = f'(Ds_fit_mass > {Ds_mass_range_lo} & Ds_fit_mass < {Ds_mass_range_hi} )' #& (HLT_isfired_Tau3Mu || HLT_isfired_DoubleMu)'
 Ds_phi_selection    = f'(fabs(phi_fit_mass - {Phi_mass_}) < {Phi_window_/2.:.3f})'#f'(phi_fit_mass > {Ds_phi_mass_lo} & phi_fit_mass < {Ds_phi_mass_hi} )'
-Ds_sv_selection     = f'(Ds_Lxy_sign_BS > 0.0 & Ds_fit_vprob > {Ds_minSVprob} )'
-Tau_sv_selection    = f'(tau_Lxy_sign_BS > 0. & tau_fit_vprob > {Ds_minSVprob} )'
+Ds_sv_selection     = f'(Ds_Lxy_sign_BS  > 0.0 & Ds_fit_vprob > {Ds_minSVprob} )'
+Tau_sv_selection    = f'(tau_Lxy_sign_BS > 2.0 & tau_fit_vprob > {Ds_minSVprob} )'
 
 # peaking background
 peakB_mass_lo = 1.70
@@ -189,7 +189,8 @@ LxySign_cut_systematics ={
    '2023' : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/LxyS_efficiency/LxyS_efficiency_2023.json'),
    '2024' : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/LxyS_efficiency/LxyS_efficiency_2023.json'), # fixme : use 2023 sys for the moment
 }
-
+# BDT selection efficiency systematics
+BDT_sys = 1.050
 ###                     ###
 #  CATEGORIES DEFINITION  #
 ###                     ###
@@ -535,7 +536,7 @@ features_NbinsXloXhiLabelLog = {
     'tri_muonID'        : [  4,-0.5,3.5,    'Medium ID_{#mu_1}+ID_{#mu_2}+ID_{#mu_3}',                0],
     'tauEta'            : [  8,-0.5,7.5,    '3#mu #eta bins',          0],
     'tau_fit_eta'       : [ 25, -2.5, 2.5,  '#eta (3 #mu)',           0],
-    'Ds_fit_eta'        : [ 25, -2.5, 2.5,  '#eta (3 #mu)',           0],
+    'Ds_fit_eta'        : [ 50, -2.5, 2.5,  '#eta (3 #mu)',           0],
     'tau_fit_mass'      : [ 65, 1.40, 2.05, 'm_{3#mu}',                0],
     'bdt_score'         : [ 50, 0, 1,       'BDT score',               1],
     'bdt_score_t3m'     : [ 50, 0, 1,       'BDT_{#tau 3 #mu} score',  1],

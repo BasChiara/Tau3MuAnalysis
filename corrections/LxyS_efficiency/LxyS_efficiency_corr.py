@@ -53,7 +53,7 @@ args = argparser.parse_args()
 if not os.path.exists(args.input):
     print(f'[ERROR]: input file {args.input} not found')
     sys.exit(1)
-categories = ['A', 'B', 'C']
+categories = ['A', 'B', 'C', 'ABC']
 eff_data_list = []
 eff_error_data_list = []
 eff_mc_list = []
@@ -67,12 +67,12 @@ base_selection = '(' + ' & '.join([
         config.Tau_sv_selection
 ]) + ')'
 
-h_reweight = make_eta_weights(
-    ROOT.RDataFrame('mc_tree', args.input),
-    ROOT.RDataFrame('RooTreeDataStore_sData_data_fit', args.input), 
-    25, -2.5, 2.5, 
-    base_selection
-)
+#h_reweight = make_eta_weights(
+#    ROOT.RDataFrame('mc_tree', args.input),
+#    ROOT.RDataFrame('RooTreeDataStore_sData_data_fit', args.input), 
+#    25, -2.5, 2.5, 
+#    base_selection
+#)
  
 observables = {
     'tau_Lxy_sign_BS':{
@@ -99,23 +99,24 @@ for cat in categories:
     print(f' ->  selection: {selection}')
 
     # put data in RootDataFrame
-    rdf_sData = ROOT.RDataFrame('RooTreeDataStore_sData_data_fit', args.input).Filter(selection)
-    rdf_mc    = ROOT.RDataFrame('mc_tree', args.input).Filter(selection)
-
+    rdf_sData   = ROOT.RDataFrame('data_tree', args.input).Filter(selection)
+    data_weight = 'nDs_sw'
+    rdf_mc      = ROOT.RDataFrame('mc_tree', args.input).Filter(selection)
+    mc_weight   = 'norm_byEta_weight'
     # apply the weights to MC dataframe
-    rdf_mc = weighted_rdf(h_reweight, rdf_mc)
+    #rdf_mc = weighted_rdf(h_reweight, rdf_mc)
 
     # evaluate efficeincy in Data and MC
-    N_Data    = rdf_sData.Sum('nDs_sw').GetValue()
-    eff_Data  = rdf_sData.Filter('tau_Lxy_sign_BS > 2.0').Sum("nDs_sw").GetValue() / N_Data
+    N_Data    = rdf_sData.Sum(data_weight).GetValue()
+    eff_Data  = rdf_sData.Filter('tau_Lxy_sign_BS > 2.0').Sum(data_weight).GetValue() / N_Data
     eff_Data_err = np.sqrt(eff_Data*(1-eff_Data)/ N_Data)
-    print(f'N_Data: {N_Data}, passed: {rdf_sData.Filter("tau_Lxy_sign_BS > 2.0").Sum("nDs_sw").GetValue()}')
+    print(f'N_Data: {N_Data}, passed: {rdf_sData.Filter("tau_Lxy_sign_BS > 2.0").Sum(data_weight).GetValue()}')
     
     eff_data_list.append(eff_Data)
     eff_error_data_list.append(eff_Data_err)
     
-    N_mc      = rdf_mc.Sum('total_w').GetValue()
-    eff_mc    = rdf_mc.Filter('tau_Lxy_sign_BS > 2.0').Sum('total_w').GetValue() / N_mc
+    N_mc      = rdf_mc.Sum(mc_weight).GetValue()
+    eff_mc    = rdf_mc.Filter('tau_Lxy_sign_BS > 2.0').Sum(mc_weight).GetValue() / N_mc
     eff_mc_err = np.sqrt(eff_mc*(1-eff_mc)/ N_mc)
     
     eff_mc_list.append(eff_mc)
@@ -132,9 +133,9 @@ for cat in categories:
     # draw histograms
     for obs in observables:
         settings = observables[obs]
-        h_Data = rdf_sData.Histo1D(('h_Data', 'h_Data', len(settings['bins'])-1 ,settings['bins']), obs, 'nDs_sw').GetValue()
-        #h_mc   = rdf_mc.Define('total_w', 'norm_factor*weight').Histo1D(('h_mc', 'h_mc', 30, 0, 30), 'tau_Lxy_sign_BS', 'total_w').GetValue()
-        h_mc   = rdf_mc.Histo1D(('h_mc', 'h_mc', len(settings['bins'])-1, settings['bins']), obs, 'total_w').GetValue()
+        h_Data = rdf_sData.Histo1D(('h_Data', 'h_Data', len(settings['bins'])-1 ,settings['bins']), obs, data_weight).GetValue()
+        #h_mc  = rdf_mc.Define('total_w', 'norm_factor*weight').Histo1D(('h_mc', 'h_mc', 30, 0, 30), 'tau_Lxy_sign_BS', 'total_w').GetValue()
+        h_mc   = rdf_mc.Histo1D(('h_mc', 'h_mc', len(settings['bins'])-1, settings['bins']), obs, mc_weight).GetValue()
 
         # normalize to bin width
         for h in [h_Data, h_mc]:
@@ -188,7 +189,7 @@ for cat in categories:
         )
         
 # save the efficiencies in a json file
-with open(f'./LxyS_efficiency_20{args.year}.json', 'w') as f:
+with open(f'test/LxyS_efficiency_20{args.year}.json', 'w') as f:
     json.dump(corr_dict, f)
 print(f'[o] json file with efficiencies saved as LxyS_efficiency_20{args.year}.json')
 print(corr_dict)
