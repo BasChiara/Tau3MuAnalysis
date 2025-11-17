@@ -17,7 +17,7 @@ def ratio_plot( histo_num = [], histo_den = [], to_ploton = [], file_name = 'rat
     ratio_w         = kwargs['ratio_w'] if 'ratio_w' in kwargs else 0.5
     ratio_yname     = kwargs['ratio_yname'] if 'ratio_yname' in kwargs else 'Data/MC' 
     x_lim           = kwargs['x_lim'] if 'x_lim' in kwargs else [histo_den.GetBinLowEdge(histo_den.FindFirstBinAbove(0.)), histo_den.GetBinLowEdge(histo_den.FindLastBinAbove(0.)+1)] 
-    y_lim           = kwargs['y_lim'] if 'y_lim' in kwargs else [histo_den.GetMinimum(), 1.3*histo_den.GetMaximum()]
+    y_lim           = kwargs['y_lim'] if 'y_lim' in kwargs else [0., 1.3*histo_den.GetMaximum()]
     draw_opt_num    = kwargs['draw_opt_num'] if 'draw_opt_num' in kwargs else 'histe'
     draw_opt_den    = kwargs['draw_opt_den'] if 'draw_opt_den' in kwargs else 'PE0'
     log_y           = kwargs['log_y'] if 'log_y' in kwargs else False
@@ -118,7 +118,7 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], description =[], leg_coo
     isMC         = kwargs['isMC'] if 'isMC' in kwargs else False
     year         = kwargs['year'] if 'year' in kwargs else 2022
     x_lim        = kwargs['x_lim'] if 'x_lim' in kwargs else [histo_den.GetBinLowEdge(histo_den.FindFirstBinAbove(0.)), histo_den.GetBinLowEdge(histo_den.FindLastBinAbove(0.)+1)] 
-    y_lim        = kwargs['y_lim'] if 'y_lim' in kwargs else [histo_den.GetMinimum(), 1.3*histo_den.GetMaximum()]
+    y_lim        = kwargs['y_lim'] if 'y_lim' in kwargs else [0.0, 1.3*histo_den.GetMaximum()]
     log_y        = kwargs['log_y'] if 'log_y' in kwargs else False
     
     # CMS style setting
@@ -168,7 +168,7 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], description =[], leg_coo
     h_ratio_den.SetMarkerStyle(0)
     # ratio plot style ...
     
-
+    c.cd(1) 
     h_ratio_list = []
     for h_num in histo_num:
         h_ratio = h_num.Clone("h_ratio")
@@ -186,11 +186,11 @@ def ratio_plot_CMSstyle(histo_num = [], histo_den = [], description =[], leg_coo
         leg.SetFillStyle(0)
         leg.SetBorderSize(0)
         leg.SetTextFont(42)
-        leg.AddEntry(histo_den, description[-1], draw_opt_den) 
+        leg.AddEntry(histo_den, description[-1], 'lp' if draw_opt_den in ['pe', 'p'] else 'l') 
         for i, h_num in enumerate(histo_num):
-            leg.AddEntry(h_num, description[i], draw_opt_num)
+            leg.AddEntry(h_num, description[i], 'lp' if draw_opt_num in ['pe', 'p'] else 'l')
     # draw in the upper pad
-    c.cd(1)
+   
     c.SetLogy(log_y)
     #histo_den.Draw("HISTE")
     CMS.cmsDraw(histo_den,
