@@ -52,18 +52,18 @@ BR_wtn              lnN           {Br_Wtaunu}               -
 '''lumi_13p6TeV_{yyyy}             lnN           {Lsys}               -
 xsec_13p6TeV_ppvx             lnN           {xsec_ppWx:.4f}               -
 BR_Wtaunumunu_ratio          lnN           {Br_Wtaunu_ratio:.4f}               -
-BR_Ztautaumumu_ratio         lnN           {Br_taunu_ratio:.4f}               -
+BR_Ztautaumumu_ratio         lnN           {Br_Ztautau_ratio:.4f}               -
 '''.format(
             Lsys            = config.Lumi_systematics['20'+year],          # luminosity uncertainty
             yyyy            = '20'+year,
             xsec_ppWx       = max(config.xsec_ppW_sys,  config.xsec_ppZ_sys),         # pp->Wx cross section uncertainty -> fully correltaed between W and Z, take the larger one
-            Br_Wtaunu_ratio  = weight_systematics(config.Br_Wtaunu_munu_sys, 0., W_f),  # uncertainty on the Br ratio meas. W->taunu/W->munu
-            Br_Ztautau_ratio = weight_systematics(0., config.Br_Ztautau_mumu_sys, W_f)  # uncertainty on the Br ratio meas. Z->tautau/Z->mumu
+            Br_Wtaunu_ratio  = weight_systematics(config.Br_Wtaunu_munu_sys, 1., W_f),  # uncertainty on the Br ratio meas. W->taunu/W->munu
+            Br_Ztautau_ratio = weight_systematics(1., config.Br_Ztautau_mumu_sys, W_f)  # uncertainty on the Br ratio meas. Z->tautau/Z->mumu
         )
         )
     # - BDT systematics (correlated between W and Z)
     card.write(
-'''BDTunc             lnN           {BDT_sys}               -
+'''BDT_sel             lnN           {BDT_sys}               -
 '''.format(
         BDT_sys = config.BDT_sys
         )

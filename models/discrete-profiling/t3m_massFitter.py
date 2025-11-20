@@ -19,6 +19,7 @@ import mva.config as config
 from style.color_text import color_text as ct
 import models.datacard_utils as du
 import models.fit_utils as fitu
+import globsettings.selections as sel
 
 MERGE_WZ = True
 
@@ -105,8 +106,7 @@ catYYYY = f'{args.category}_20{args.year}'
 process_name = f'vt3m_{catYY}'
 cut = args.bdt_cut if hasattr(args, 'bdt_cut') else 0.0
 
-point_tag   =  catYY + (('_' + args.tag ) if args.tag else '') + f'_bdt{cut:,.3f}'
-point_tag.replace('.', 'p')
+point_tag   =  (catYY + (('_' + args.tag ) if args.tag else '') + f'_bdt{cut:,.3f}').replace('.', 'p')
 
 wspace_tag          = f'VTau3Mu_{point_tag}'
 wspace_filename     = os.path.join(args.combine_dir, f'wspace_{wspace_tag}.root')
@@ -116,7 +116,7 @@ wspace_name         = f'wspace_vt3m'
 tau_mass = 1.777 # GeV
 mass_window_lo, mass_window_hi = config.mass_range_lo, config.mass_range_hi # GeV
 blind_region_lo, blind_region_hi = config.blind_range_lo, config.blind_range_hi # GeV
-fit_range_lo  , fit_range_hi   = blind_region_lo - 0.05, blind_region_hi + 0.05 # GeV
+fit_range_lo  , fit_range_hi   = 1.65, 1.95 # GeV
 vars, mass = fitu.load_data(mass_window_lo, mass_window_hi, blind_region_lo, blind_region_hi, fit_range_lo, fit_range_hi)
 thevars = ROOT.RooArgSet(*vars)
 
@@ -128,7 +128,8 @@ nbins = int(np.rint((mass_window_hi-mass_window_lo)/bin_w)) # needed just for pl
 base_selection      = ' & '.join([
     config.cat_eta_selection_dict_fit[args.category], 
     config.year_selection['20'+args.year],
-    config.phi_veto, config.omega_veto,
+    sel.dimuon_resonance_selection(catyy=catYY, resonance='phi'),
+    sel.dimuon_resonance_selection(catyy=catYY, resonance='omega'),
 ])
 
 if args.save_ws : file_ws = ROOT.TFile(wspace_filename, "RECREATE")
@@ -238,9 +239,9 @@ nsig_Z.setConstant(True)
 r_wz = ROOT.RooRealVar(f'r_wz_{catYY}', f'r_wz_{catYY}', nsig_W.getValV()/(nsig_W.getValV()+nsig_Z.getValV()))
 
 # W+Z signal model
-dMtau = ROOT.RooRealVar('dM', 'dM', 0, -0.01, 0.01)
+dMtau = ROOT.RooRealVar('dM', 'dM', 0, -0.05, 0.05)
 mean = ROOT.RooFormulaVar('mean','mean', '(@0+@1)', ROOT.RooArgList(Mtau,dMtau) )
-width = ROOT.RooRealVar(f'signal_width_{catYY}',  f'signal_width_{catYY}',  0.01,    0.005, 0.10)
+width = ROOT.RooRealVar(f'signal_width_{catYY}',  f'signal_width_{catYY}',  0.015,    0.010, 0.050)
 n = ROOT.RooRealVar(f'n_{catYY}', f'n_{catYY}', 1.0, 0.1, 20.0)
 alpha = ROOT.RooRealVar(f'alpha_{catYY}', f'alpha_{catYY}', 1.0, 0.1, 10.0)
 
@@ -323,12 +324,12 @@ if MERGE_WZ:
             ROOT.RooFit.NormRange('full_range'),
             ROOT.RooFit.MoveToBack()
         )
-        frame_s.SetMaximum(0.9)
-        frame_s.SetMinimum(1e-5)
-        fitu.add_summary_text(frame_s, f'<m_{{3#mu}}> = {mean.getValV()*1000:.2f} #pm {dMtau.getError()*1000:.2f} MeV', x = 1.55, y=0.90*frame_s.GetMaximum(), size = 0.05)
-        fitu.add_summary_text(frame_s, f'#sigma(m_{{3#mu}}) = {width.getValV()*1000:.2f} #pm {width.getError()*1000:.2f} MeV', x = 1.55, y=0.80*frame_s.GetMaximum(), size = 0.05)
-        fitu.add_summary_text(frame_s, catYY, x = 1.55, y=0.70*frame_s.GetMaximum(), size = 0.06)
-        fitu.draw_fit_pull(frame_s, fitvar=mass, out_name=f'{args.plot_outdir}/massfit_S_WZt3m_{point_tag}', xlim = (1.50, 1.95))
+        xlo_plot, xhi_plot = 1.60, 1.95
+        yhi_txt, yhi = 0.85, 1.2
+        #fitu.add_summary_text(frame_s, f'<m_{{3#mu}}> = {mean.getValV()*1000:.2f} #pm {dMtau.getError()*1000:.2f} MeV', x = xlo_plot+0.02, y=0.90*frame_s.GetMaximum(), size = 0.05)
+        fitu.add_summary_text(frame_s, f'#sigma = {width.getValV()*1000:.2f} #pm {width.getError()*1000:.2f} MeV', x = xlo_plot+0.02, y=yhi_txt, size = 0.05)
+        fitu.add_summary_text(frame_s, catYY, x = xlo_plot+0.02, y=yhi_txt - 0.10, size = 0.06)
+        fitu.draw_fit_pull(frame_s, fitvar=mass, out_name=f'{args.plot_outdir}/massfit_S_WZt3m_{point_tag}', xlim = (1.60, 1.95), ylim=(1e-5, yhi))
     
     s_model = cb # use single CB for the workspace
 else :
@@ -419,7 +420,7 @@ if USE_CMS_STYLE:
                             cat=args.category, 
                             year='20'+args.year, 
                             Preliminary=True,
-                            ymax=np.round(1.2*frame_b.GetMaximum()) if args.bdt_cut < 0.990 else 10,
+                            ymax= np.round(1.2*frame_b.GetMaximum(), 1) if args.bdt_cut < 0.980 else 10,
                             )
 else:
     # print N signal and N background on plot

@@ -2,16 +2,16 @@ import ROOT
 ROOT.gROOT.SetBatch(True)
 ROOT.EnableImplicitMT()
 
-import os
 from math import sqrt
 import numpy as np
 import argparse
 # import custom configurations
-import sys
+import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from style.color_text import color_text as ct
 import mva.config as config
 import models.fit_utils as fitu
+import globsettings.selections as sel
 
 #-----
 mass_window_lo, mass_window_hi = config.mass_range_lo, config.mass_range_hi # GeV
@@ -59,6 +59,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--data',                                                                         help='input DATA')
+    parser.add_argument('-s', '--signal',                                                                       help='input SIGNAL')
     parser.add_argument('--outdir',         default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/Combine/',            help='output directory for combine')
     parser.add_argument('--save_ws',        action = 'store_true' ,                                             help='set it to save the workspace for combine')
     parser.add_argument('--tag',                                                                                help='tag to the training')
@@ -101,9 +102,9 @@ if __name__ == "__main__":
     print('\n')
 
     # ---- INPUT ----
-    data_file       = parse_input(args)
-    input_tree_name = 'tree_w_BDT'
-    data_tree       = fitu.get_tree_from_file(data_file, input_tree_name)
+    data_file                   = parse_input(args)
+    input_tree_name             = 'tree_w_BDT'
+    data_tree                   = fitu.get_tree_from_file(data_file, input_tree_name)
 
     # ---- OUTPUT ----
     if not os.path.exists(args.outdir):
@@ -118,13 +119,12 @@ if __name__ == "__main__":
     selection      = ' & '.join([
         config.cat_eta_selection_dict_fit[args.category], 
         config.year_selection['20'+args.year],
-        config.phi_veto, #config.omega_veto,
+        sel.dimuon_resonance_selection(catyy=catYY, resonance='phi'),
+        sel.dimuon_resonance_selection(catyy=catYY, resonance='omega'),
         f'bdt_score > {cut:.4f}'
     ])
-    sideband_selection = '&'.join([
-        selection,
-        config.sidebands_selection,
-    ])
+    print(f'{ct.BOLD}[+]{ct.END} using selection: {selection}')
+    
     bkg_dataset, _, _ = fitu.import_data_from_tree(
         data_tree,
         vars_set,

@@ -7,6 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import mva.config as config
 from style.color_text import color_text as ct
 import models.CMSStyle as CMS
+import cmsstyle as cCMS
 
 # *** RooFit Variables ***
 def load_data(mass_window_lo, mass_window_hi, blind_region_lo, blind_region_hi, fit_range_lo, fit_range_hi, reduced = False):
@@ -96,49 +97,34 @@ def get_pull(fit_var, frame, pull_range = 5.0, curve_name= '', title = 'Pull Dis
     f_pull.addPlotable(h_pull, 'P')
     return f_pull
 
-def draw_fit_pull(frame_fit, frame_pull= None, fitvar = None, out_name = 'Pull Distribution', logy = False, xlim = None):
-    # create canvas
-    c = ROOT.TCanvas('c', 'c', 1024, 1024)
-    c.cd()
-    up_pad = ROOT.TPad("up_pad", "", 0., 0.30, 1.0,1.0) #xlow, ylow, xup, yup (mother pad reference system)
-    up_pad.SetMargin(0.15, 0.1,0.0,0.1) # left, right, bottom, top
-    up_pad.Draw()
-    c.cd()
-    ratio_pad = ROOT.TPad("ratio_pad", "", 0., 0., 1.,0.28)
-    ratio_pad.SetMargin(0.15,0.1,0.4,0.0)
-    ratio_pad.Draw()
+def draw_fit_pull(frame_fit, frame_pull= None, fitvar = None, out_name = 'Pull Distribution', logy = False, xlim = None, ylim = None, year = ''):
+    cCMS.SetLumi(config.LumiVal_plots[year] if year else '')
+    cCMS.SetEnergy(13.6)
 
-    # upper pad
-    up_pad.cd()
-    if xlim: frame_fit.GetXaxis().SetRangeUser(xlim[0], xlim[1])
-    frame_fit.Draw()
-    frame_fit.GetYaxis().SetTitleSize(0.05)
-    frame_fit.GetYaxis().SetLabelSize(0.06)
-    # lower pad
+    c = cCMS.cmsDiCanvas( 'c',
+        x_min = xlim[0] if xlim else frame_fit.GetXaxis().GetXmin(),
+        x_max = xlim[1] if xlim else frame_fit.GetXaxis().GetXmax(),
+        y_min = ylim[0] if ylim else frame_fit.GetMinimum(),
+        y_max = ylim[1] if ylim else frame_fit.GetMaximum(),
+        r_min=-7, r_max=7,
+        nameXaxis=frame_fit.GetXaxis().GetTitle(),
+        nameYaxis=frame_fit.GetYaxis().GetTitle(),
+        nameRatio='Pull',
+    )
+    c.cd(1)
+    cCMS.cmsObjectDraw(frame_fit)
     if not frame_pull:
         if not fitvar:
             print('Error: no fit variable provided')
             return False
         frame_pull = get_pull(fitvar, frame_fit, title=' ')
-    if xlim: frame_pull.GetXaxis().SetRangeUser(xlim[0], xlim[1])
-    frame_pull.GetYaxis().SetTitle('Pull')
-    frame_pull.GetYaxis().SetTitleSize(0.1)
-    frame_pull.GetYaxis().SetTitleOffset(0.5)
-    frame_pull.GetYaxis().SetLabelSize(0.3)
-    frame_pull.GetYaxis().SetRangeUser(-5, 5)
-    frame_pull.GetYaxis().SetNdivisions(505)
-    frame_pull.GetXaxis().SetTitle(frame_fit.GetXaxis().GetTitle())
-    frame_pull.GetXaxis().SetTitleSize(0.15)
-    frame_pull.GetXaxis().SetLabelSize(0.15)
-
-    ratio_pad.cd()
-    ROOT.gPad.SetGrid()
-    frame_pull.Draw()
+    c.cd(2)
+    cCMS.cmsObjectDraw(frame_pull)
     c.SaveAs(out_name+'.png')
     c.SaveAs(out_name+'.pdf')
     c.SaveAs(out_name+'.C')
     if logy:
-        up_pad.SetLogy()
+        #up_pad.SetLogy()
         c.SaveAs(out_name+'_log.png')
         c.SaveAs(out_name+'_log.pdf')
         c.SaveAs(out_name+'_log.C')
