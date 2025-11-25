@@ -63,6 +63,7 @@ parser.add_argument('-u','--unblind',   action = 'store_true' ,                 
 parser.add_argument('-b','--bkg_func',  choices = ['expo', 'const', 'multipdf'],    default = 'expo',       help='background model, expo or const or multipdf. If multipdf, specify the PDF workspace')
 parser.add_argument('--multipdf_ws',                                                                        help='workspace with the multipdf background model')
 parser.add_argument('--fixBestPdf',     action = 'store_true' ,                                             help='fix the multipdf to the best p.d.f. found')
+parser.add_argument('--binned',         action = 'store_true' ,                                             help='use binned datasets (for GoF test)')
 parser.add_argument('-c','--category',  choices = ['A', 'B', 'C'],  default = 'A',                          help='which categories to fit')
 parser.add_argument('-y','--year',      choices = config.year_list, default = '22',                         help='which CMS dataset to use')
 parser.add_argument('--bdt_cut',        type= float,                default = 0.9900,                       help='single value of the BDT threshold to fit')
@@ -211,8 +212,8 @@ Mtau.setConstant(True)
 dMtau_W   = ROOT.RooRealVar('dM_W', 'dM_W', 0, -0.04, 0.04)
 mean_W    = ROOT.RooFormulaVar('mean_W','mean_W', '(@0+@1)', ROOT.RooArgList(Mtau,dMtau_W) )
 width_W   = ROOT.RooRealVar(f'signal_width_W_{catYY}',  f'signal_width_W_{catYY}',  0.01,    0.005, 0.05)
-n_W       = ROOT.RooRealVar(f'n_W_{catYY}', f'n_W_{catYY}', 1.0, 0.1, 10.0)
-alpha_W   = ROOT.RooRealVar(f'alpha_W_{catYY}', f'alpha_W_{catYY}', 1.0, 0.0, 10.0)
+n_W       = ROOT.RooRealVar(f'nCB_W_{catYY}', f'n_W_{catYY}', 1.0, 0.1, 10.0)
+alpha_W   = ROOT.RooRealVar(f'alphaCB_W_{catYY}', f'alphaCB_W_{catYY}', 1.0, 0.0, 10.0)
 
 nsig_W         = ROOT.RooRealVar('model_sig_W%s_norm'%process_name, 'model_sig_W%s_norm'%process_name, mc_W_dataset.sumEntries(), 0.0, 10*mc_W_dataset.sumEntries())
 
@@ -224,8 +225,8 @@ signal_model_W = ROOT.RooAddPdf('ext_model_sig_W%s'%process_name, 'ext_model_sig
 dMtau_Z   = ROOT.RooRealVar('dM_Z', 'dM_Z', 0, -0.04, 0.04)
 mean_Z    = ROOT.RooFormulaVar('mean_Z', 'mean_Z', '(@0+@1)', ROOT.RooArgList(Mtau,dMtau_Z) )
 width_Z   = ROOT.RooRealVar(f'signal_width_Z_{catYY}',  f'signal_width_Z_{catYY}',  0.01,    0.005, 0.05)
-n_Z       = ROOT.RooRealVar(f'n_Z_{catYY}', f'n_Z_{catYY}', 1.0, 0.1, 10.0)
-alpha_Z   = ROOT.RooRealVar(f'alpha_Z_{catYY}', f'alpha_Z_{catYY}', 1.0, 0.0, 10.0)
+n_Z       = ROOT.RooRealVar(f'nCB_Z_{catYY}', f'n_Z_{catYY}', 1.0, 0.1, 10.0)
+alpha_Z   = ROOT.RooRealVar(f'alphaCB_Z_{catYY}', f'alphaCB_Z_{catYY}', 1.0, 0.0, 10.0)
 
 nsig_Z   = ROOT.RooRealVar('model_sig_Z%s_norm'%process_name, 'model_sig_Z%s_norm'%process_name, mc_Z_dataset.sumEntries(), 0.0, 10*mc_Z_dataset.sumEntries())
 
@@ -243,7 +244,7 @@ dMtau = ROOT.RooRealVar('dM', 'dM', 0, -0.05, 0.05)
 mean = ROOT.RooFormulaVar('mean','mean', '(@0+@1)', ROOT.RooArgList(Mtau,dMtau) )
 width = ROOT.RooRealVar(f'signal_width_{catYY}',  f'signal_width_{catYY}',  0.015,    0.010, 0.050)
 n = ROOT.RooRealVar(f'n_{catYY}', f'n_{catYY}', 1.0, 0.1, 20.0)
-alpha = ROOT.RooRealVar(f'alpha_{catYY}', f'alpha_{catYY}', 1.0, 0.1, 10.0)
+alpha = ROOT.RooRealVar(f'alphaCB_{catYY}', f'alphaCB_{catYY}', 1.0, 0.1, 10.0)
 
 cb = ROOT.RooCBShape(f'model_sig_{process_name}', f'cb_{process_name}', mass, mean, width, alpha, n)
 
@@ -498,7 +499,7 @@ else :
     print(f'{ct.GREEN}[i]{ct.END} running OPEN -- real data into workspace !!!!')
     fulldata = ROOT.RooDataSet('full_data', 'full_data', data_tree, thevars, sgn_selection)
     data     = ROOT.RooDataSet('data_obs','data_obs', fulldata, ROOT.RooArgSet(mass))
-    #data = ROOT.RooDataHist("data_obs", "data_obs", mass, fulldata)
+    if (args.binned) : data = ROOT.RooDataHist("data_obs", "data_obs", mass, fulldata)
 data.Print('v')
 
 ws   = ROOT.RooWorkspace(wspace_name, wspace_name)

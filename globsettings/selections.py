@@ -10,7 +10,7 @@ phi_mass_window_ = { # one side of the mass window
     'C22' : 1.5*0.0191,
     'A23' : 2.5*0.0093,
     'B23' : 2.5*0.0138,
-    'C23' : 2.0*0.0172,
+    'C23' : 2.0*0.0171,
 }
 omega_mass_window_ = { # one side of the mass window
     'A22' : 1.0*0.0078,
@@ -44,5 +44,5 @@ bdt_working_points = {
     'C22' : 0.995,
     'A23' : 0.993,
     'B23' : 0.993,
-    'C23' : 0.988,
+    'C23' : 0.991,
 }

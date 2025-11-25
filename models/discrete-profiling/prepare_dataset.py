@@ -121,7 +121,7 @@ if __name__ == "__main__":
         config.year_selection['20'+args.year],
         sel.dimuon_resonance_selection(catyy=catYY, resonance='phi'),
         sel.dimuon_resonance_selection(catyy=catYY, resonance='omega'),
-        f'bdt_score > {cut:.4f}'
+        f'(bdt_score > {cut:.4f})'
     ])
     print(f'{ct.BOLD}[+]{ct.END} using selection: {selection}')
     
@@ -133,6 +133,7 @@ if __name__ == "__main__":
         full_cut=selection,
         verbose=True,
     )
+    bkg_dataset_copy = bkg_dataset.Clone()
     bkg_dataset = bkg_dataset.reduce(ROOT.RooArgSet(mass))
 
     if bkg_dataset.numEntries() == 0:
@@ -159,5 +160,7 @@ if __name__ == "__main__":
     outfile = ROOT.TFile(os.path.join(args.outdir, f'data_{label}.root'), 'recreate')
     ws.Write()
     frame.Write()
+    bkg_dataset_copy.convertToTreeStore()
+    bkg_dataset_copy.Write('data_obs_treestore')
     outfile.Close()
     print(f'{ct.BOLD}[+]{ct.END} saved the workspace in {args.outdir}/data_{label}.root')

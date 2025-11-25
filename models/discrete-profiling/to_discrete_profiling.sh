@@ -11,4 +11,4 @@ python3 discrete_profiling.py --inputworkspace ${INDIR}/data_vt3m_C22_bdt0.9950_
 # - 2023 -
 python3 discrete_profiling.py --inputworkspace ${INDIR}/data_vt3m_A23_bdt0.9930_ANv10_blind.root --outdir $OUTDIR -c A -y 23 --bdt_cut 0.993
 python3 discrete_profiling.py --inputworkspace ${INDIR}/data_vt3m_B23_bdt0.9930_ANv10_blind.root --outdir $OUTDIR -c B -y 23 --bdt_cut 0.993
-python3 discrete_profiling.py --inputworkspace ${INDIR}/data_vt3m_C23_bdt0.9880_ANv10_blind.root --outdir $OUTDIR -c C -y 23 --bdt_cut 0.988
+python3 discrete_profiling.py --inputworkspace ${INDIR}/data_vt3m_C23_bdt0.9910_ANv10_blind.root --outdir $OUTDIR -c C -y 23 --bdt_cut 0.991
