@@ -14,7 +14,7 @@ import mva.config as config
 import plots.plotting_tools as plotting_tools
 
 
-def draw_by_category(cat_dict, histo_list, x_lim = [-1,-1], fit = False, print_mean = False):
+def draw_by_category(cat_dict, histo_list, x_lim = [-1,-1], fit = False, print_mean = False, cat_names = []):
      
     x_min = histo_list[0].GetBinLowEdge(histo_list[0].FindFirstBinAbove(0.)) if (x_lim[0] == x_lim[1]) else x_lim[0] 
     x_max = histo_list[0].GetBinLowEdge(histo_list[0].FindLastBinAbove(0.)+1) if (x_lim[0] == x_lim[1]) else x_lim[1] 
@@ -31,8 +31,8 @@ def draw_by_category(cat_dict, histo_list, x_lim = [-1,-1], fit = False, print_m
                     extraSpace=0.01, 
                     iPos=11
     ) 
-    leg_x1, leg_y1, leg_x2, leg_y2 = 0.60, 0.85, 0.90, 0.90
-    legend = CMS.cmsLeg(leg_x1, leg_y1 - 0.06 * len(histo_list), leg_x2, leg_y2, textSize=0.05)
+    leg_x1, leg_y1, leg_x2, leg_y2 = 0.55, 0.80 - 0.06* len(histo_list), 0.90, 0.90
+    legend = CMS.cmsLeg(leg_x1, leg_y1, leg_x2, leg_y2, textSize=0.05)
     # text-box for fit results
     text_box = ROOT.TLatex()
     text_box.SetNDC()
@@ -40,7 +40,10 @@ def draw_by_category(cat_dict, histo_list, x_lim = [-1,-1], fit = False, print_m
     text_box.SetTextFont(42)
     text_box.SetTextAlign(11)
 
-    cat_list = list(cat_dict)
+    cat_list = list(cat_dict) if not cat_names else cat_names
+    if len(cat_list) != len(histo_list):
+        print(f"[ERROR] Provided {len(cat_list)} categories names while {len(histo_list)} expected.")
+        exit(1)
     for i,histo in enumerate(histo_list):
 
         CMS.cmsDraw(histo, 
@@ -61,7 +64,7 @@ def draw_by_category(cat_dict, histo_list, x_lim = [-1,-1], fit = False, print_m
             mass_err = histo.GetFunction('fit').GetParError(1)
             sigma = histo.GetFunction('fit').GetParameter(2)
             sigma_err = histo.GetFunction('fit').GetParError(2)
-            text_box.DrawLatex(leg_x1 - 0.05, 0.6 - 0.05 * i, 
+            text_box.DrawLatex(leg_x1, leg_y1 - 0.02 - 0.05 * i, 
                                '#sigma/M_{'+ f'{cat_list[i]}'+'}' + f' = ({sigma/mass * 1000:.2f} #pm {(sigma/mass * sqrt( (sigma_err/sigma)**2 + (mass_err/mass)**2)) * 1000:.2f})#times 10^{{-3}}')
                                #f'#sigma_{{M}}({cat_list[i]}) = ({sigma * 1000:.2f} #pm {sigma_err * 1000:.2f}) MeV')
         if print_mean:
@@ -70,7 +73,7 @@ def draw_by_category(cat_dict, histo_list, x_lim = [-1,-1], fit = False, print_m
             #text_box.DrawLatex(leg_x1, 0.5 - 0.05 * i, f'mean_{{cat_list[i]}} = {mean*1000:.1f} #times 10^{{-3}}')
 
         legend.AddEntry(histo.GetName(), f'cat {cat_list[i]}')
-    CMS.fixOverlay()
+    #CMS.fixOverlay()
     c.Update()
     c.RedrawAxis()
     return c, legend
@@ -125,7 +128,7 @@ print(f'   {data_rdf.Count().GetValue()} entries passed selection')
 print('---------------------------------------------')
 
 # divide by mass_resolution
-max_y = 0.12 if not args.isMC else 0.5
+max_y = 0.14 if not args.isMC else 0.7
 min_y = 0.05 if not args.isMC else 0.0
 mass_bin_w     = 0.01 if args.isMC else 0.05
 mass_bins = int((mass_range_hi - mass_range_lo) / mass_bin_w)
@@ -135,8 +138,8 @@ resol_min, resol_max = 0.0, 0.025
 
 h_resolMvsEta = data_rdf.Histo2D(('h_resolMvsEta', '', 48, 0, 2.4, 50, 0.0, 0.025), 'tau_fit_absEta', 'tau_fit_mass_resol').GetPtr()
 prof_resolMvsEta = data_rdf.Profile1D(('prof_resolMvsEta', '', 48, 0, 2.4), 'tau_fit_absEta', 'tau_fit_mass_resol').GetPtr()
-h_resolMvsEta.GetYaxis().SetTitle('#sigma_{M}/M(3#mu)')
-h_resolMvsEta.GetXaxis().SetTitle('|#eta_{3#mu}|')
+h_resolMvsEta.GetYaxis().SetTitle('#sigma_{M}/M')
+h_resolMvsEta.GetXaxis().SetTitle('|#eta|')
 h_resolMvsEta.GetXaxis().SetTitleOffset(1.2)
 
 c = ROOT.TCanvas('c_resolMvsEta', 'c_resolMvsEta', 1200, 800)
@@ -220,7 +223,7 @@ for cat in list(config.cat_selection_dict):
 # draw plots  
     
 plot_name = f'{args.plot_outdir}/ResolMassCategories_bShape_{tag}'
-c, l = draw_by_category(config.cat_selection_dict, h_bShape, [mass_range_lo, mass_range_hi])
+c, l = draw_by_category(config.cat_selection_dict, h_bShape, [mass_range_lo, mass_range_hi], cat_names = ["A'", "B'", "C'"])
 l.SetHeader('#sigma_{M}/M categorization')
 c.Draw()
 h_bShape_inclusive.Draw('same pe')
@@ -245,7 +248,7 @@ if not args.isMC:
     )
 
 plot_name = f'{args.plot_outdir}/ResolMassCategories_AbsEta_{tag}'
-c, l = draw_by_category(config.cat_selection_dict, h_eta, [0, 2.6])
+c, l = draw_by_category(config.cat_selection_dict, h_eta, [0, 2.6], cat_names = ["A'", "B'", "C'"])
 l.SetHeader('#sigma_{M}/M categorization')
 c.Draw()
 l.Draw()
@@ -259,7 +262,7 @@ hdf.GetXaxis().SetMaxDigits(2)
 hdf.GetXaxis().CenterTitle(True)
 # Shift multiplier position
 ROOT.TGaxis.SetExponentOffset(-0.10, -0.10, "X")
-l.SetHeader('|#eta| categorization')
+l.SetHeader('|#eta_{3#mu}| categorization')
 c.Draw()
 l.Draw()
 c.SaveAs(plot_name+'.png')
@@ -267,7 +270,7 @@ c.SaveAs(plot_name+'.pdf')
 
 plot_name = f'{args.plot_outdir}/EtaCategories_bShape_{tag}'
 c, l = draw_by_category(config.cat_selection_dict, h_bShape_etaCat, [mass_range_lo, mass_range_hi], fit= args.isMC)
-l.SetHeader('|#eta| categorization')
+l.SetHeader('|#eta_{3#mu}| categorization')
 c.Draw()
 if not args.isMC:
     h_bShape_inclusive.Draw('same pe')
