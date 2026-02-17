@@ -17,15 +17,16 @@ def main():
     # --defaults
     executable = 'NLO_Wkinematics_correction'
     year_era_list = ['2022preEE', '2022EE', '2023preBPix', '2023BPix']
+    year_era_list = ['2022EE']
     NLO_file_list = [
         #'fileLists/WtoLNu-2Jets_Run3Summer22preEENanoAODv12_fileList.txt',
         #'fileLists/WtoLNu-2Jets_Run3Summer22EENanoAODv12_fileList.txt',
         #'fileLists/WtoLNu-2Jets_Run3Summer23preBPixNanoAODv12_fileList.txt',
         #'fileLists/WtoLNu-2Jets_Run3Summer23BPixNanoAODv12_fileList.txt',
-        'fileLists/DYto2L-2Jets_Run3Summer22preEENanoAODv12_fileList.txt',
-        'fileLists/DYto2L-2Jets_Run3Summer22EENanoAODv12_fileList.txt',
-        'fileLists/DYto2L-2Jets_Run3Summer23preBPixNanoAODv12_fileList.txt',
-        'fileLists/DYto2L-2Jets_Run3Summer23BPixNanoAODv12_fileList.txt',
+        #'fileLists/DYto2L-2Jets_Run3Summer22preEENanoAODv12_fileList.txt',
+        'fileLists/DYto2L-2Jets_Run3Summer22EENanoAODv12-TAUbugfix_fileList.txt',
+        #'fileLists/DYto2L-2Jets_Run3Summer23preBPixNanoAODv12_fileList.txt',
+        #'fileLists/DYto2L-2Jets_Run3Summer23BPixNanoAODv12_fileList.txt',
     ]
     NLO_file_dict = dict(zip(year_era_list, NLO_file_list))
     LO_file_list = [
@@ -33,10 +34,10 @@ def main():
         #'fileLists/WtoTauNu_Tauto3Mu_Run3Summer22EENanoAODv12_fileList.txt',
         #'fileLists/WtoTauNu_Tauto3Mu_Run3Summer23preBPixNanoAODv12_fileList.txt',
         #'fileLists/WtoTauNu_Tauto3Mu_Run3Summer23BPixNanoAODv12_fileList.txt',
-        'fileLists/Zto2Tauto3Mu_Run3Summer22preEENanoAODv12_fileList.txt',
+        #'fileLists/Zto2Tauto3Mu_Run3Summer22preEENanoAODv12_fileList.txt',
         'fileLists/Zto2Tauto3Mu_Run3Summer22EENanoAODv12_fileList.txt',
-        'fileLists/Zto2Tauto3Mu_Run3Summer23preBPixNanoAODv12_fileList.txt',
-        'fileLists/Zto2Tauto3Mu_Run3Summer23BPixNanoAODv12_fileList.txt',
+        #'fileLists/Zto2Tauto3Mu_Run3Summer23preBPixNanoAODv12_fileList.txt',
+        #'fileLists/Zto2Tauto3Mu_Run3Summer23BPixNanoAODv12_fileList.txt',
     ]
     LO_file_dict = dict(zip(year_era_list, LO_file_list))
 
