@@ -9,6 +9,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import mva.config as config
 import style.color_text as ct
+import globsettings.selections as sel
 
 py_step_labels = {
     'nEvGenFilter' : 'Gen filter',
@@ -20,8 +21,8 @@ py_step_labels = {
     'nEvReinforcedHLT' : 'HLT reinforcement',
     'LxyS' : r'$L_{xy}/\sigma}$ cut',
     'mass_range' : r'$m_{3\mu}$ range',
-    'phi_veto' : r'$\phi\to\mu\mu$ veto', #r'$\omega/\rho$ and $\phi\to\mu\mu$ veto'
-    'BDT' : 'BDT'
+    'BDT' : 'BDT',
+    'phi_veto' : r'$\omega/\rho$ and $\phi\to\mu\mu$ veto'
 }
 
 LateX_step_labels = {
@@ -34,8 +35,8 @@ LateX_step_labels = {
     'nEvReinforcedHLT' : '\\hltDimu reinforcement',
     'LxyS' : '$L_{xy}/\\sigma >$ 2.0',
     'mass_range' : '$m_{3\\mu}$ range',
-    'phi_veto' : '$\\phi\\to\\mu\\mu$ veto',#'$\omega/\\rho$ and $\\phi\\to\\mu\\mu$ veto',
-    'BDT' : 'BDT selection'
+    'BDT' : 'BDT selection',
+    'phi_veto' : '$\omega/\\rho$ and $\\phi\\to\\mu\\mu$ veto',
 }
 
 def get_Nevents(rdf, selection):
@@ -75,7 +76,7 @@ def print_LateX_table(eras = ['2022preEE', '2022EE', '2023preBPix', '2023BPix'],
     if onfile:
         with open(f'outRoot/efficiency_LateXbreakdown_{process}.txt', 'w') as f:
             for i in range(len(dfLateX)):
-                values = ' & '.join([f'{val:.1f}' for val in dfLateX.iloc[i].values[1:]])
+                values = ' & '.join([f'{val:.2f}' for val in dfLateX.iloc[i].values[1:]])
                 selection = dfLateX.iloc[i].values[0]
                 f.write(f'{selection} & {values} \\\\ \n')
     else: 
@@ -101,7 +102,7 @@ preselection_step_list = ['nEvTau3Mu',
                           'nEvTriggerFired_Total', 
                           'nEvDiMuResVeto', 
                           'nEvReinforcedHLT']
-selection_step_list = ['nEvGenFilter'] + preselection_step_list + ['LxyS', 'mass_range', 'phi_veto', 'BDT']
+selection_step_list = ['nEvGenFilter'] + preselection_step_list + ['LxyS', 'mass_range', 'BDT', 'phi_veto']
 
 make_csv = not args.compareWZ
 
@@ -116,7 +117,7 @@ if make_csv:
 
         # number of events @ gen filter level
         N_raw = np.append(N_raw, config.Nmc_process[args.process][year])
-        print(f'{ct.color_text.BOLD} -- {year} {ct.color_text.END} : Gen filter --')
+        ct.print_bold(f'\n-- {year} --')
         print(f'Gen filter: {N_raw[-1]}')
         
         # file with preselection efficiencies
@@ -127,7 +128,6 @@ if make_csv:
             exit(-1)
         
         eff_rdf = ROOT.RDataFrame('efficiency', preselection_file).AsNumpy()
-        print(f'{ct.color_text.BOLD} -- {year} {ct.color_text.END} : preselection --')
         [print(f'{step} : {eff_rdf[step][0]}') for step in preselection_step_list ]
     
 
@@ -137,13 +137,13 @@ if make_csv:
 
 
         sample = samples[i]       
-        print(f'{ct.color_text.BOLD} -- {year} {ct.color_text.END} : {sample}  --')
         
         rdf = ROOT.RDataFrame(tree_name, sample).Filter(config.year_selection[year])
 
         N, Nw = get_Nevents(rdf, '1')
         weight = Nw/N
         N_w    = N_w*weight
+        
         # - displacement selection
         selection = config.displacement_selection
         N_LxyS, N_LxyS_w       = get_Nevents(rdf, selection)
@@ -151,17 +151,15 @@ if make_csv:
         N_w   = np.append(N_w, N_LxyS_w)
         print(f'Displacement selection: {N_LxyS} {N_LxyS_w:.3f}(w) ----> ({N_LxyS/N*100:,.2f} %)')
         # - base selection
-        selection    = selection + ' && ' + config.base_selection
+        selection    = ' && '.join([
+            selection,
+            config.base_selection
+        ])
         N_mass_range, N_mass_range_w = get_Nevents(rdf, selection)
         N_raw = np.append(N_raw, N_mass_range)
         N_w   = np.append(N_w, N_mass_range_w)
-        print(f'Base selection: {N_mass_range} {N_mass_range_w:.3f}(w) ----> ({N_mass_range/N*100:,.2f} %)')
-        # - phi veto
-        selection    = selection + ' && ' + config.phi_veto #+ ' && ' + config.omega_veto
-        N_phi_veto, N_phi_veto_w = get_Nevents(rdf, selection)
-        N_raw = np.append(N_raw, N_phi_veto)
-        N_w   = np.append(N_w, N_phi_veto_w)
-        print(f'Phi veto: {N_phi_veto} {N_phi_veto_w:.3f}(w) ----> ({N_phi_veto/N*100:,.2f} %)')
+        print(f'Base selection: {N_mass_range} {N_mass_range_w:.3f}(w) ----> ({N_mass_range/N*100:,.2f} %)') 
+        
         # - BDT selection
         yy = '22' if '2022' in sample else '23' # fixme : tremendo
         bdt_selection = '('+ '|'.join(
@@ -174,17 +172,34 @@ if make_csv:
                 print(f'{ct.color_text.RED}WARNING: number of events in BDT tree are not consistent with the main tree{ct.color_text.END}')
                 print(f'N_check: {N_check} {N_check_w:.2f}(w)')
                 exit(-1)
-            selection = selection + ' && ' + bdt_selection
+            selection = ' && '.join([
+                selection,
+                bdt_selection
+            ])
             N_bdt, N_bdt_w = get_Nevents(rdf_bdt, selection)
             N_raw = np.append(N_raw, N_bdt)
             N_w   = np.append(N_w, N_bdt_w)
             print(f'BDT selection: {N_bdt} {N_bdt_w:.2f}(w) ----> ({N_bdt/N*100:,.2f} %)')
         else:
             print(bdt_selection)
+            continue
+        # - phi omega veto
+        dimu_selection = '( ' + '|'.join(
+            [ f'( {sel.dimuon_resonance_selection(cat+yy, "phi")} & {sel.dimuon_resonance_selection(cat+yy, "omega")} & {config.cat_eta_selection_dict_fit[cat]})' for cat in ['A', 'B', 'C'] ]) +')'
+        selection    = ' && '.join([
+            selection,
+            dimu_selection,
+        ])
+        print(selection)
+        N_phi_veto, N_phi_veto_w = get_Nevents(rdf_bdt, selection)
+        N_raw = np.append(N_raw, N_phi_veto)
+        N_w   = np.append(N_w, N_phi_veto_w)
+        print(f'Phi veto: {N_phi_veto} {N_phi_veto_w:.3f}(w) ----> ({N_phi_veto/N*100:,.2f} %)')
+        
         print('\n\n')
 
-        df = pd.DataFrame({'slection' : selection_step_list ,'N_raw': N_raw, 'N_w': N_w})
-        df['efficiency'] = df['N_raw']/df['N_raw'][0]
+        df = pd.DataFrame({'selection' : selection_step_list ,'N_raw': N_raw, 'N_w': N_w})
+        df['efficiency']   = df['N_raw']/df['N_raw'][0]
         df['efficiency_w'] = df['N_w']/df['N_w'][0]
         df.to_csv(f'outRoot/efficiency_breakdown_{year}_{args.process}.csv', index=False)
     

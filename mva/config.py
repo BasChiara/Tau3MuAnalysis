@@ -25,7 +25,7 @@ Ds_mass_range_hi  = 2.05 # GeV
 ###                ###
 #   EVENT SELECTION  #
 ###  at mva level  ###
-Phi_mass_, Phi_window_ = 1.019, 6*0.013
+Phi_mass_, Phi_window_ = 1.019, 2*0.020
 Omega_mass_, Omega_window_ = 0.780, 6*0.012
 LxySign_cut    = 2.0
 Ds_phi_mass_lo, Ds_phi_mass_hi = 0.98, 1.06

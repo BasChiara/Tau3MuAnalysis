@@ -56,7 +56,7 @@ ROOT.TH1.SetDefaultSumw2()
 # **** CONSTANT VARIABLES **** #
 fit_range_lo = config.Ds_mass_range_lo if not args.peak_bkg else config.peakB_mass_lo
 fit_range_hi = config.Ds_mass_range_hi if not args.peak_bkg else config.peakB_mass_hi
-binwidth = 0.010
+binwidth = 0.005
 nbins = int((fit_range_hi-fit_range_lo)/binwidth) +1
 
 
@@ -311,7 +311,7 @@ results = full_model.fitTo(datatofit, ROOT.RooFit.Range('fit_range'), ROOT.RooFi
 
 # --- draw & save ---
 frame_b = mass.frame(Title=" ")
-xleg1, yleg1, xleg2, yleg2 = 0.20, 0.50, 0.50, 0.90
+xleg1, yleg1, xleg2, yleg2 = 0.20, 0.50, 0.50, 0.75
 legend_b = ROOT.TLegend(xleg1, yleg1, xleg2, yleg2)
 legend_b.SetBorderSize(0)
 legend_b.SetFillStyle(0)
@@ -323,10 +323,10 @@ datatofit.plotOn(
     ROOT.RooFit.Name("data")
 )
 legend_b.AddEntry(frame_b.findObject("data"), "Data", "PE")
-frame_b.SetMaximum(1.4*frame_b.GetMaximum())
+frame_b.SetMaximum(1.75*frame_b.GetMaximum())
 frame_b.GetYaxis().SetTitleSize(0.05)
 frame_b.GetYaxis().SetMaxDigits(3)
-xtxt, ytxt, dytxt = 1.92, 0.9*frame_b.GetMaximum(), 0.06*frame_b.GetMaximum()
+xtxt, ytxt, dytxt = 1.92, 0.9*frame_b.GetMaximum(), 0.08*frame_b.GetMaximum()
 # --- text boxes ---
 fitu.add_summary_text(frame_b, "N(D_{s}^{#pm}) = %.0f +/- %.0f"%(nDs.getValV(), nDs.getError()), xtxt, ytxt, 0.04)
 if not args.peak_bkg:
@@ -369,6 +369,7 @@ frame_b.addObject(legend_b)
 fitu.draw_fit_pull(
     frame_b,
     fitvar = mass,
+    ylim=(frame_b.GetMinimum(), frame_b.GetMaximum()),
     out_name = '%s/DsPhiPi_mass_%s'%(args.plot_outdir, tag),
     logy = False
 )

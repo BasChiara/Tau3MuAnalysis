@@ -167,10 +167,12 @@ if __name__ == '__main__':
         'var_1': {
             'var': 'tau_fit_eta_abs',
             'bins': array('d', np.linspace(0, 2.5, 26)),
+            'xlabel': '|#eta|',
         },
         'var_2': {
             'var': 'tau_fit_pt',
             'bins': array('d', np.linspace(4, 30, 15).tolist() + np.linspace(35, 50, 4).tolist()+ [100]),
+            'xlabel': 'p_{T} (GeV)',
         },
     }
     
@@ -208,28 +210,28 @@ if __name__ == '__main__':
     h_sData_rew_2d.SetTitle('sWeighted Data;|#eta|;p_{T}(GeV);')
     h_sData_rew_2d.GetZaxis().SetRangeUser(0.0, 50.0)
     h_sData_rew_2d.Draw('COLZ')
-    canv.SaveAs(os.path.join(plot_outdir, f'2D_reweighting_histogram{tag}.png'))
+    canv.SaveAs(os.path.join(plot_outdir, f'2D_reweighting_histogram{tag}'))
 
     # comparison pre/post-weighting
     #Ds_mc_rdf_rew = ROOT.RDataFrame('mc_tree', rew_output_file)
     leg_coordinates_ = (0.50, 0.60, 0.9, 0.9)
     for var_key, var_cfg in rew_settings.items():
         var = var_cfg['var']
-        
+        xlabel = var_cfg['xlabel']
         # Ds MC
-        h_Ds_mc_pre = Ds_mc_rdf.Histo1D((f'h_Ds_mc_preweight_{var}', f';{var};Events',      len(var_cfg['bins']) -1, var_cfg['bins']), var, 'total_weight').GetPtr()
+        h_Ds_mc_pre = Ds_mc_rdf.Histo1D((f'h_Ds_mc_preweight_{var}', f';{xlabel};Events',      len(var_cfg['bins']) -1, var_cfg['bins']), var, 'total_weight').GetPtr()
         styleHisto(h_Ds_mc_pre, lcolor=ROOT.kGreen+1, lwidth=2, normalize=True)
-        h_Ds_mc     = Ds_mc_rdf_rew.Histo1D((f'h_Ds_mc_postweight_{var}', f';{var};Events', len(var_cfg['bins']) -1, var_cfg['bins']), var, 'total_weight_toW').GetPtr()
+        h_Ds_mc     = Ds_mc_rdf_rew.Histo1D((f'h_Ds_mc_postweight_{var}', f';{xlabel};Events', len(var_cfg['bins']) -1, var_cfg['bins']), var, 'total_weight_toW').GetPtr()
         styleHisto(h_Ds_mc, lcolor=ROOT.kBlue, lwidth=2, normalize=True)
         
         # sData
-        h_Ds_data_pre = Ds_sData_rdf_rew.Histo1D((f'h_Ds_data_preweight_{var}', f';{var};Events', len(var_cfg['bins'])         -1, var_cfg['bins']), var, 'nDs_sw').GetPtr()
+        h_Ds_data_pre = Ds_sData_rdf_rew.Histo1D((f'h_Ds_data_preweight_{var}', f';{xlabel};Events', len(var_cfg['bins'])         -1, var_cfg['bins']), var, 'nDs_sw').GetPtr()
         styleHisto(h_Ds_data_pre, lcolor=ROOT.kBlack, lwidth=2, mcolor=ROOT.kBlack, mstyle=20, msize=1.0, normalize=True)
-        h_Ds_data     = Ds_sData_rdf_rew.Histo1D((f'h_Ds_data_postweight_{var}', f';{var};Events', len(var_cfg['bins'])        -1, var_cfg['bins']), var, 'total_weight_toW').GetPtr()
+        h_Ds_data     = Ds_sData_rdf_rew.Histo1D((f'h_Ds_data_postweight_{var}', f';{xlabel};Events', len(var_cfg['bins'])        -1, var_cfg['bins']), var, 'total_weight_toW').GetPtr()
         styleHisto(h_Ds_data, lcolor=ROOT.kBlack, lwidth=2, mcolor=ROOT.kBlack, mstyle=20, msize=1.0, normalize=True)
         
         # W MC
-        h_w_mc = w_mc_rdf.Histo1D((f'h_w_mc_postweight_{var}', f';{var};Events', len(var_cfg['bins'])         -1, var_cfg['bins']), var, 'weight').GetPtr()
+        h_w_mc = w_mc_rdf.Histo1D((f'h_w_mc_postweight_{var}', f';{xlabel};Events', len(var_cfg['bins'])         -1, var_cfg['bins']), var, 'weight').GetPtr()
         styleHisto(h_w_mc, lcolor=ROOT.kRed, lwidth=2, normalize=True)
         
 
@@ -238,12 +240,14 @@ if __name__ == '__main__':
             histo_num=[h_Ds_mc_pre, h_Ds_data_pre],
             draw_opt_num='p',
             histo_den=h_w_mc,
+            ratio_yname = "D_{s}/#tau(3#mu)",
             draw_opt_den = 'histe',
             description=['D_{s}#rightarrow#phi#pi MC (pre-weight)', 'D_{s}#rightarrow#phi#pi sData', 'W#rightarrow#tau(3#mu)#nu MC'],
             file_name=os.path.join(plot_outdir, f'preweight_{var}_DsTau3Mu_{tag}'),
             x_lim = (var_cfg['bins'][0], var_cfg['bins'][-1]),
             y_lim = (0.0, 1.5 * max(h_Ds_mc_pre.GetMaximum(), h_w_mc.GetMaximum(), h_Ds_data_pre.GetMaximum())),
-            leg_coords = leg_coordinates_
+            leg_coords = leg_coordinates_,
+            year = args.year,
         )
 
         # post-weighting comparisons
@@ -252,11 +256,13 @@ if __name__ == '__main__':
             draw_opt_num='histe',
             histo_den=h_w_mc,
             draw_opt_den = 'histe',
+            ratio_yname = "D_{s}/#tau(3#mu)",
             description=['D_{s}#rightarrow#phi#pi MC (post-weight)', 'D_{s}#rightarrow#phi#pi Data (post-weight)','W#rightarrow#tau(3#mu)#nu MC'],
             file_name=os.path.join(plot_outdir, f'postweight_{var}_DsTau3muMC_{tag}'),
             x_lim = (var_cfg['bins'][0], var_cfg['bins'][-1]),
             y_lim = (0.0, 1.5 * max(h_Ds_mc.GetMaximum(), h_w_mc.GetMaximum(), h_Ds_data.GetMaximum())),
-            leg_coords = leg_coordinates_
+            leg_coords = leg_coordinates_,
+            year = args.year,
         )
         
         pt.ratio_plot_CMSstyle(
@@ -290,11 +296,12 @@ if __name__ == '__main__':
         histo_den=h_Ds_mc_bdt_pre,
         draw_opt_den = 'histe',
         description=['D_{s}#rightarrow#phi#pi sData', 'D_{s}#rightarrow#phi#pi MC (pre-weight)'],
-        file_name=os.path.join(plot_outdir, f'preweight_BDTscore_DsDataMC_{tag}.png'),
+        file_name=os.path.join(plot_outdir, f'preweight_BDTscore_DsDataMC_{tag}'),
         x_lim = (0.0, 1.0),
         ratio_w = 2.0,
         log_y = True,
-        y_lim = (1e-4, 4*1e3)
+        y_lim = (1e-4, 4*1e3),
+        year = args.year,
     )
     pt.ratio_plot_CMSstyle(
         histo_num=[h_Ds_data_bdt],
@@ -302,11 +309,12 @@ if __name__ == '__main__':
         histo_den=h_Ds_mc_bdt,
         draw_opt_den = 'histe',
         description=['D_{s}#rightarrow#phi#pi Data (post-weight)', 'D_{s}#rightarrow#phi#pi MC (post-weight)'],
-        file_name=os.path.join(plot_outdir, f'postweight_BDTscore_DsDataMC_{tag}.png'),
+        file_name=os.path.join(plot_outdir, f'postweight_BDTscore_DsDataMC_{tag}'),
         x_lim = (0.0, 1.0),
         log_y = True,
-        y_lim = (1e-4, 4*1e3),
+        y_lim = (-100.0, 3.5*1e3),
         ratio_w = 2.0,
+        year = args.year,
     )
     # efficiency discrepancy check
     bdt_th = 0.993

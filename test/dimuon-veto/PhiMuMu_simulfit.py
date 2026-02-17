@@ -76,7 +76,7 @@ def draw_cms_style(frame, lumi_args = {'lumi': 1, 'run': 2022}, components = {'d
     [CMS.AppendAdditionalInfo(txt) for txt in additionalText]
     
     # legend
-    legend = CMS.cmsLeg(x1=0.60, y1=0.70, x2=0.90, y2=0.90, textSize = 0.05)
+    legend = CMS.cmsLeg(x1=0.55, y1=0.70, x2=0.90, y2=0.90, textSize = 0.05)
     [legend.AddEntry(frame.findObject(key), components[key], 'PE' if 'data' in key else 'L') for key in components.keys()]
     
     # add line in the veto region
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     args = get_arguments()
     tag = args.tag
     name = {'12': 'Mu1Mu2', '23':'Mu2Mu3', '13':'Mu1Mu3', 'all':'MuMu'}
-    decay_label = {'phi': '#phi', 'omega': '#omega'}
+    decay_label = {'phi': '#phi', 'omega': '#omega/#rho'}
     catyyyy = f'{args.category}{args.year}' if args.year != 'all' else f'{args.category}'
 
 
@@ -150,7 +150,7 @@ if __name__ == '__main__':
         exit()
 
     # open a logger
-    logger_file = f'{args.plot_outdir}/simulfit_{args.resonance}To{name[args.mu_pair]}_bdt{args.bdt_cut:.3f}_{catyyyy}.log'
+    logger_file = f'{args.plot_outdir}/simulfit_{args.resonance}To{name[args.mu_pair]}_{catyyyy}.log'
     logger = open(logger_file, 'w')
     message_logger(f'\n{"="*30}\n FITTING {args.resonance.upper()}->{name[args.mu_pair]} MASS SPECTRUM \n{"="*30}\n', logger)
 
@@ -335,22 +335,22 @@ if __name__ == '__main__':
     draw_cms_style(
         frame=frame,
         lumi_args={'lumi': cfg.LumiVal_plots[args.year], 'run': str(args.year) if args.year != 'all' else '2022+2023'},
-        components={'data': 'Data', 'fit': '#phi #rightarrow #mu#mu fit'},
+        components={'data': 'Data', 'fit': f'{decay_label[args.resonance]}#rightarrow#mu#mu + comb. fit'},
         veto=[veto_lo, veto_hi, nSigmaVeto],
         additionalText=[
             f'CAT {args.category}',
             f'BDT >{args.bdt_cut}', f'S/#sqrt{{B}} = {significance:.1f}',
             f'#sigma = {width.getVal()*1000:.1f} #pm {width.getError()*1000:.1f} MeV',
             ],
-        outfile=f'{args.plot_outdir}/simulfit_{args.resonance}To{name[args.mu_pair]}_mass_bdt{args.bdt_cut:.3f}_SR_{catyyyy}'
+        outfile=f'{args.plot_outdir}/simulfit_{args.resonance}To{name[args.mu_pair]}_mass_SR_{catyyyy}'
     )
     draw_cms_style(
         frame=frame_ctrl,
         lumi_args={'lumi': cfg.LumiVal_plots[args.year], 'run': str(args.year) if args.year != 'all' else '2022+2023'},
-        components={'data_ctrl': 'Data', 'fit_ctrl': '#phi #rightarrow #mu#mu fit'},
+        components={'data_ctrl': 'Data', 'fit_ctrl': f'{decay_label[args.resonance]}#rightarrow#mu#mu + comb. fit'},
         additionalText=[f'CAT {args.category}', f'{ctrl_bdt_lo} < BDT < {ctrl_bdt_hi}'],
         veto=[veto_lo, veto_hi, nSigmaVeto],
-        outfile=f'{args.plot_outdir}/simulfit_{args.resonance}To{name[args.mu_pair]}_mass_bdt{args.bdt_cut:.3f}_CR_{catyyyy}'
+        outfile=f'{args.plot_outdir}/simulfit_{args.resonance}To{name[args.mu_pair]}_mass_CR_{catyyyy}'
     )
     # ** PRINT RESULTS **
     # - summary text
