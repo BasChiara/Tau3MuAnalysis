@@ -61,13 +61,6 @@ BR_Ztautaumumu_ratio         lnN           {Br_Ztautau_ratio:.4f}               
             Br_Ztautau_ratio = weight_systematics(1., config.Br_Ztautau_mumu_sys, W_f)  # uncertainty on the Br ratio meas. Z->tautau/Z->mumu
         )
         )
-    # - BDT systematics (correlated between W and Z)
-    card.write(
-'''BDT_sel             lnN           {BDT_sys}               -
-'''.format(
-        BDT_sys = config.BDT_sys
-        )
-    )
 
 
 
@@ -145,6 +138,12 @@ def combineDatacard_writer(**kwargs):
         # uncorrelated sys for LxyS cut 
         with open(config.LxySign_cut_systematics['20'+year]) as f:
             sys_dict['LxyS_cut'] = json.load(f)[f'{cat}']
+        f.close()
+        # uncorrelated sys for BDT cut
+        with open(config.BDT_systematics['20'+year]) as f:
+            sys_dict['BDT_sel'] = json.load(f)[f'{cat}']
+        f.close()
+
         sys_sources = sys_dict.keys()
         
         # uncorrelated systematics from shape variations
