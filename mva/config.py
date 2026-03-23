@@ -188,7 +188,11 @@ LxySign_cut_systematics ={
    '2023' : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/LxyS_efficiency/LxyS_efficiency_2023.json')
 }
 # BDT selection efficiency systematics
-BDT_sys = 1.050
+#BDT_sys = 1.050
+BDT_systematics = {
+    '2022' : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/BDTselection/BDT_efficiency_2022.json'),
+    '2023' : os.path.join(os.path.dirname(__file__), os.pardir + '/corrections/BDTselection/BDT_efficiency_2023.json'),
+}
 ###                     ###
 #  CATEGORIES DEFINITION  #
 ###                     ###
