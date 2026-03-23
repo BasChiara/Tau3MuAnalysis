@@ -112,29 +112,31 @@ if(args.debug):print(bkg)
 ##             ##
 CMS.setCMSStyle()
 cmsStyle = CMS.getCMSStyle()
-#ROOT.gStyle.SetOptStat(0)
-#ROOT.gStyle.SetLineWidth(2)
-#ROOT.gStyle.SetPadTickX(1)
-#ROOT.gStyle.SetPadTickY(1)
-#ROOT.gStyle.SetLegendBorderSize(0)
-#ROOT.gStyle.SetLegendTextSize(0.1)
+cmsStyle.SetPadTickX(0) 
+cmsStyle.SetPadTickY(0)
+cmsStyle.SetLabelSize(0.040, "XYZ") 
+cmsStyle.SetTitleSize(0.055, "XYZ")
+cmsStyle.SetErrorX(0)
+
+
 CMS.SetExtraText("Preliminary")
 if args.year == 'Run3':
-    lumitext = f'2022+2023, {cfg.LumiVal_plots[args.year]}'
+    lumitext = f'2022#minus2023, {cfg.LumiVal_plots[args.year]}'
 else:
     lumitext = f'{args.year}, {cfg.LumiVal_plots[args.year]}'
 CMS.SetLumi(lumitext)
 CMS.SetEnergy(13.6)
+CMS.SetCmsTextSize(1.0)
 
 observables = cfg.features + ['tau_fit_eta', 'tauEta', bdt_score, 'tau_fit_mass', 'tau_mu12_fitM', 'tau_mu23_fitM', 'tau_mu13_fitM']
 observables = observables + ['tau_mu1_pt', 'tau_mu2_pt', 'tau_mu3_pt', 'tau_mu1_eta', 'tau_mu2_eta', 'tau_mu3_eta']
 
 no_overunderflow = ['tauEta', 'tau_mu1_TightID_PV', 'tau_mu2_TightID_PV', 'tau_mu3_TightID_PV', 'tau_mu1_MediumID', 'tau_mu2_MediumID', 'tau_mu3_MediumID', 'tau_fit_vprob', 'bdt_score', 'tau_mu12_fitM', 'tau_mu23_fitM', 'tau_mu13_fitM', 'tau_mu12_M', 'tau_mu23_M', 'tau_mu13_M']
-legend = ROOT.TLegend(0.55, 0.70, 0.90, 0.90)
-legend.SetTextSize(0.04)
+legend = ROOT.TLegend(0.50, 0.70, 0.90, 0.85)
+legend.SetTextSize(0.05)
 legend.SetBorderSize(0)
 legend.SetFillStyle(0)
-legend_cut = ROOT.TLegend(0.40, 0.75, 0.90, 0.90)
+legend_cut = ROOT.TLegend(0.40, 0.78, 0.90, 0.90)
 legend_cut.SetTextSize(0.03)
 legend_cut.SetBorderSize(0)
 legend_cut.SetFillStyle(0)
@@ -160,28 +162,30 @@ for i,obs in enumerate(observables):
 
 
     if(i == 0):
-        legend.AddEntry(h_bkg, 'data sidebands', 'pe')
-        legend.AddEntry(h_sig, f'{cfg.legend_process[args.process]}' + (' MC' if args.process != 'invMedID' else ''), 'f')
+        legend.AddEntry(h_bkg, 'Data (sidebands)', 'pe')
+        legend.AddEntry(h_sig, f'{cfg.legend_process[args.process]}' + (' (MC)' if args.process != 'invMedID' else ''), 'f')
     xlo = h_sig.GetXaxis().GetXmin()
     xhi = h_sig.GetXaxis().GetXmax()
     c = CMS.cmsCanvas(f'c_{obs}', 
         xlo, xhi, 
         max(min(h_bkg.GetMinimum(),h_sig.GetMinimum()), 1e-4) if logscale else 0.0,
-        1.5*max(h_bkg.GetMaximum(),h_sig.GetMaximum()) if not logscale else 5., 
-        xlabel, 'Events', 
+        1.5*max(h_bkg.GetMaximum(),h_sig.GetMaximum()) if not logscale else 10., 
+        xlabel, 'a.u.', 
         square = CMS.kSquare, 
         extraSpace=0.02, 
         iPos=11,
-        yTitOffset = 1.30,
+        scaleLumi=1.0,
+        yTitOffset = 1.2,
     ) 
     c.cd()
     c.SetLogy(logscale)
     CMS.cmsDraw(h_sig, 
         'hist',
         lwidth = 2,
+        lcolor= cfg.color_process[args.process],
         marker = 0,
         mcolor = 0,
-        fcolor = cfg.color_process[args.process],
+        fcolor = 0,
     )
     CMS.cmsDraw(h_bkg, 
         'PE same',
@@ -215,26 +219,27 @@ for i,obs in enumerate(observables):
     
     if i ==0:
         legend_cut.AddEntry(h_bkg_cut, 'data sidebands', 'pe')
-        legend_cut.AddEntry(h_sig_cut, f'{cfg.legend_process[args.process]}' + (' MC' if args.process != 'invMedID' else '') + (f' #times {sig_amplify:.1f} ' if sig_amplify else '') +  f'(BDT>{args.bdt_cut:.3f})', 'f') 
+        legend_cut.AddEntry(h_sig_cut, f'{cfg.legend_process[args.process]}' + (' (MC)' if args.process != 'invMedID' else '') + (f' #times {sig_amplify:.1f} ' if sig_amplify else '') +  f'(BDT>{args.bdt_cut:.3f})', 'f') 
     
     c_cut = CMS.cmsCanvas(f'c_cut_{obs}', 
         xlo, xhi,
         max(min(h_bkg.GetMinimum(),h_sig.GetMinimum()), 1e-4) if logscale else 0.0,
         1.5*max(h_bkg_cut.GetMaximum(),h_sig_cut.GetMaximum()), 
         xlabel, 
-        'Events', 
+        'a.u.', 
         square = CMS.kSquare, 
-        extraSpace=0.02, 
+        extraSpace=0.00, 
         iPos=11,
-        yTitOffset = 1.30,
+        yTitOffset = 1.50,
     ) 
     c_cut.cd()
     CMS.cmsDraw(h_sig_cut, 
         'hist',
         lwidth = 2,
+        lcolor= cfg.color_process[args.process],
         marker = 0,
         mcolor = 0,
-        fcolor = cfg.color_process[args.process],
+        fcolor = 0,
     )
     CMS.cmsDraw(h_bkg_cut, 
         'PE same',

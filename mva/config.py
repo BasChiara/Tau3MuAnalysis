@@ -147,7 +147,7 @@ LumiVal_plots = {
     '2023preBPix'   : "18.1",
     '2023BPix'      : "9.7",
     '2023'          : "27.7",
-    'Run3'          : "62.2", # 2022 + 2023
+    'Run3'          : "62", # 2022 + 2023
     '2022+2023'     : "62.2", # 2022 + 2023
     '2024'          : "108.4",
     '2024B'         : "0.13",
@@ -254,7 +254,7 @@ sensitivity_dict = dict(zip(year_list, [
 #########################
 process_name = ['WTau3Mu', 'W3MuNu', 'DsPhiPi', 'ZTau3Mu', 'invMedID', 'DataSB']
 color_process = {
-    'WTau3Mu' : ROOT.kRed - 7,
+    'WTau3Mu' : ROOT.kOrange - 3,
     'W3MuNu' : ROOT.kGreen+2,
     'DsPhiPi': ROOT.kViolet,
     'DataSB' : ROOT.kBlue,
@@ -262,7 +262,7 @@ color_process = {
     'invMedID': ROOT.kOrange+ 2,
 }
 legend_process = {
-    'WTau3Mu' : 'W#rightarrow #tau (3#mu)#nu',
+    'WTau3Mu' : 'W #tau#rightarrow3#mu',
     'W3MuNu'  : 'W#rightarrow 3#mu#nu',
     'DsPhiPi' : 'D_{s}#rightarrow#phi#pi',
     'DataSB'  : 'data SB',
@@ -509,10 +509,10 @@ def tauEta(eta):
 features_NbinsXloXhiLabelLog = {
     'tau_fit_pt'        : [ 50, 10, 75,     'p_{T}(3#mu) (GeV)',      0],
     'tau_fit_mt'        : [ 30, 0, 120,     'M_{T}(3#mu) (GeV)',           0],
-    'tau_relIso'        : [ 50, 0, 3.0,     'I_{rel} (3 #mu)',  1],
-    'tau_met_Dphi'      : [ 32, 0, 6.4,     '#Delta #phi (3 #mu, MET)',0],
+    'tau_relIso'        : [ 50, 0, 3.0,     'I_{rel} (3#mu)',  1],
+    'tau_met_Dphi'      : [ 32, 0, 6.4,     '#Delta #phi (3#mu, MET)',0],
     'tau_met_pt'        : [ 20, 0, 100.,    'MET (GeV)',               0],
-    'tau_met_ratio_pt'  : [ 30, 0., 3.,     'MET/p_{T}(3 #mu)',        0],
+    'tau_met_ratio_pt'  : [ 30, 0., 3.,     'MET/p_{T}(3#mu)',        0],
     'W_pt'              : [ 20, 0, 100,     'p_{T}(W) (GeV)',          0],
     'miss_pz_min'       : [40, -200, 200,   'min p_{z}^{#nu} (GeV)',  0],
     'miss_pz_max'       : [40,-1500, 1500,  'max p_{z}^{#nu} (GeV)',  0],
@@ -532,11 +532,11 @@ features_NbinsXloXhiLabelLog = {
     'tau_mu3_TightID_PV': [  2,-0.5,1.5,    'Tight-ID (#mu_{3})',        0],
     'tri_muonID'        : [  4,-0.5,3.5,    'Medium ID_{#mu_1}+ID_{#mu_2}+ID_{#mu_3}',                0],
     'tauEta'            : [  8,-0.5,7.5,    '3#mu #eta bins',          0],
-    'tau_fit_eta'       : [ 25, -2.5, 2.5,  '#eta (3 #mu)',           0],
-    'Ds_fit_eta'        : [ 50, -2.5, 2.5,  '#eta (3 #mu)',           0],
+    'tau_fit_eta'       : [ 25, -2.5, 2.5,  '#eta (3#mu)',           0],
+    'Ds_fit_eta'        : [ 50, -2.5, 2.5,  '#eta (3#mu)',           0],
     'tau_fit_mass'      : [ 65, 1.40, 2.05, 'm_{3#mu}',                0],
     'bdt_score'         : [ 50, 0, 1,       'BDT score',               1],
-    'bdt_score_t3m'     : [ 50, 0, 1,       'BDT_{#tau 3 #mu} score',  1],
+    'bdt_score_t3m'     : [ 50, 0, 1,       'BDT_{#tau 3#mu} score',  1],
     'tau_mu12_fitM'     : [ 100, 0.30, 1.60,  'M(#mu_{1}#mu_{2})',       0],
     'tau_mu13_fitM'     : [ 100, 0.30, 1.6,  'M(#mu_{1}#mu_{3})',       0],
     'tau_mu23_fitM'     : [ 100, 0.30, 1.6,  'M(#mu_{2}#mu_{3})',       0],
