@@ -448,7 +448,7 @@ labels['tau_mu13_dZ'        ] = '$\Delta z(\mu_{1}, \mu_{3})$'
 labels['tau_mu23_dZ'        ] = '$\Delta z(\mu_{2}, \mu_{3})$'
 labels['tau_Lxy_sign_BS'    ] = 'SV L/$\sigma$'
 labels['tau_fit_vprob'      ] = 'SV prob.'
-labels['tau_cosAlpha_BS'    ] = 'SV cos($\\alpha$)'
+labels['tau_cosAlpha_BS'    ] = 'cos($\\alpha_{2D}$)'
 labels['tau_mu1_TightID_PV' ] = 'Tight-ID($\mu_1$)'
 labels['tau_mu2_TightID_PV' ] = 'Tight-ID($\mu_2$)'
 labels['tau_mu3_TightID_PV' ] = 'Tight-ID($\mu_3$)'
@@ -511,9 +511,9 @@ def tauEta(eta):
 ### ----- features Nbins xlow xhigh ---- ###
 
 features_NbinsXloXhiLabelLog = {
-    'tau_fit_pt'        : [ 50, 10, 75,     'p_{T}(3#mu) (GeV)',      0],
-    'tau_fit_mt'        : [ 30, 0, 120,     'M_{T}(3#mu) (GeV)',           0],
-    'tau_relIso'        : [ 50, 0, 3.0,     'I_{rel} (3#mu)',  1],
+    'tau_fit_pt'        : [ 50, 10, 75,     'Trimuon p_{T} (GeV)',      0],
+    'tau_fit_mt'        : [ 30, 0, 120,     'Trimuon transverse mass (GeV)',           0],
+    'tau_relIso'        : [ 50, 0, 1.0,     'Trimuon relative isolation',  1],
     'tau_met_Dphi'      : [ 32, 0, 6.4,     '#Delta #phi (3#mu, MET)',0],
     'tau_met_pt'        : [ 20, 0, 100.,    'MET (GeV)',               0],
     'tau_met_ratio_pt'  : [ 30, 0., 3.,     'MET/p_{T}(3#mu)',        0],
@@ -530,7 +530,7 @@ features_NbinsXloXhiLabelLog = {
     'Ds_Lxy_val_BS'     : [ 40, 0,1.0,      'SV L_{xy} (cm)',           0],
     'Ds_Lxy_err_BS'     : [ 30, 0,0.03,     'SV #sigma_{L_{xy}} (cm)',  0],
     'tau_fit_vprob'     : [ 50, 0,  1,      'SV probability',           1],
-    'tau_cosAlpha_BS'   : [ 50, 0.990, 1,   'SV cos(#alpha)',     1],
+    'tau_cosAlpha_BS'   : [ 50, 0.990, 1,   'cos(#alpha_{2D})',     1],
     'tau_mu1_TightID_PV': [  2,-0.5,1.5,    'Tight-ID (#mu_{1})',        0],
     'tau_mu2_TightID_PV': [  2,-0.5,1.5,    'Tight-ID (#mu_{2})',        0],
     'tau_mu3_TightID_PV': [  2,-0.5,1.5,    'Tight-ID (#mu_{3})',        0],

@@ -119,7 +119,7 @@ cmsStyle.SetTitleSize(0.055, "XYZ")
 cmsStyle.SetErrorX(0)
 
 
-CMS.SetExtraText("Preliminary")
+CMS.SetExtraText("")
 if args.year == 'Run3':
     lumitext = f'2022#minus2023, {cfg.LumiVal_plots[args.year]}'
 else:
@@ -130,6 +130,7 @@ CMS.SetCmsTextSize(1.0)
 
 observables = cfg.features + ['tau_fit_eta', 'tauEta', bdt_score, 'tau_fit_mass', 'tau_mu12_fitM', 'tau_mu23_fitM', 'tau_mu13_fitM']
 observables = observables + ['tau_mu1_pt', 'tau_mu2_pt', 'tau_mu3_pt', 'tau_mu1_eta', 'tau_mu2_eta', 'tau_mu3_eta']
+observables = ['tau_fit_pt', 'tau_fit_mt', 'tau_cosAlpha_BS', 'tau_relIso'] # for paper 
 
 no_overunderflow = ['tauEta', 'tau_mu1_TightID_PV', 'tau_mu2_TightID_PV', 'tau_mu3_TightID_PV', 'tau_mu1_MediumID', 'tau_mu2_MediumID', 'tau_mu3_MediumID', 'tau_fit_vprob', 'bdt_score', 'tau_mu12_fitM', 'tau_mu23_fitM', 'tau_mu13_fitM', 'tau_mu12_M', 'tau_mu23_M', 'tau_mu13_M']
 legend = ROOT.TLegend(0.50, 0.70, 0.90, 0.85)
