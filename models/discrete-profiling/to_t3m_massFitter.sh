@@ -1,6 +1,6 @@
 #!/bin/bash
 TAG=ANv11-test
-OUTDIR=$WORK/Combine-v10/CMSSW_14_1_0_pre4/src/tau3murun3_combination/Wchannel/unblind/${TAG}
+OUTDIR=$WWW/Tau3Mu_Run3/paper #$WORK/Combine-v10/CMSSW_14_1_0_pre4/src/tau3murun3_combination/Wchannel/unblind/${TAG}
 COMBINEDIR=$OUTDIR/datacards
 PLOTOUT=$OUTDIR/plots
 MULTIPDFSRC=multipdf-invID_wp-ANv10/multiPDF_workspaces

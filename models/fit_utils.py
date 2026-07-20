@@ -138,6 +138,7 @@ def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title 
     data.plotOn(
         frame, 
         ROOT.RooFit.Binning(nbins), 
+        ROOT.RooFit.XErrorSize(0), 
         ROOT.RooFit.MarkerSize(1.),
         ROOT.RooFit.LineWidth(2),
         ROOT.RooFit.Name("data")
@@ -196,7 +197,7 @@ def apply_cms_style(frame, outfile, cat, year, Preliminary = True, margin = 0.12
     legend.SetTextSize(0.04)
     legend.SetTextFont(42)
     
-    legend.AddEntry(frame.findObject('data'),       'Data', 'lep')
+    legend.AddEntry(frame.findObject('data'),       'Data', 'ep')
     legend.AddEntry(frame.findObject('bkg_func'),   'Background-only fit', 'l')
     legend.AddEntry(frame.findObject('sig_func_0'), 'W signal (B = 10^{-7})', 'l')
     legend.AddEntry(frame.findObject('sig_func_1'), 'Z signal (B = 10^{-7})', 'l')
