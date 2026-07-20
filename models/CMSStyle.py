@@ -41,7 +41,7 @@ cmsTextFont    = 61 # 60: Arial bold (helvetica-bold-r-normal)
 extraText      = ""
 lumiText       = ""
 extraTextFont  = 52 # 50: Arial italics (helvetica-medium-o-normal)
-lumiTextSize   = 0.90
+lumiTextSize   = 0.60
 lumiTextOffset = 0.20
 cmsTextSize    = 1.00
 cmsTextOffset  = 0.15
@@ -177,7 +177,7 @@ def setCMSLumiStyle(pad, iPosX, **kwargs):
     outOfFrame    = kwargs.get('outOfFrame', outOfFrame)
     verbosity     = kwargs.get('verb',       0)
     if outOfFrame:
-        lumiTextSize_ *= 0.90
+        lumiTextSize_ *= 1.0#0.90
     if verbosity>=2:
         print(">>> setCMSLumiStyle: cmsText=%r, extraText=%r, lumiText=%r"%(cmsText,extraText_,lumiText))
     

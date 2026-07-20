@@ -50,9 +50,12 @@ def load_data():
     #displacement
     Lsign = ROOT.RooRealVar('tau_Lxy_sign_BS', 'tau_Lxy_sign_BS', 0, np.inf)
     # year/era tag
-    year_id = ROOT.RooRealVar('year_id', 'year_id', 0, 500, '')
+    year_id     = ROOT.RooRealVar('year_id',    'year_id',      0, 500, '')
+    run         = ROOT.RooRealVar('run',       'run',           0, np.inf, '')
+    lumiblock   = ROOT.RooRealVar('LumiBlock', 'LumiBlock',     0, np.inf, '')
+    event       = ROOT.RooRealVar('event', 'event',     0, np.inf, '')
 
-    return [mass, eta, bdt, weight, mu12_mass, mu23_mass, mu13_mass, Lsign, year_id], mass
+    return [mass, eta, bdt, weight, mu12_mass, mu23_mass, mu13_mass, Lsign, year_id, run, lumiblock, event], mass
 
 
 if __name__ == "__main__":

@@ -12,7 +12,7 @@ import cmsstyle as cCMS
 # *** RooFit Variables ***
 def load_data(mass_window_lo, mass_window_hi, blind_region_lo, blind_region_hi, fit_range_lo, fit_range_hi, reduced = False):
     # tau mass
-    mass = ROOT.RooRealVar('tau_fit_mass', 'm_{3#mu}'  , mass_window_lo,  mass_window_hi, 'GeV' )
+    mass = ROOT.RooRealVar('tau_fit_mass', 'm(3#mu)'  , mass_window_lo,  mass_window_hi, 'GeV' )
     mass.setRange('left_SB', mass_window_lo, blind_region_lo)
     mass.setRange('right_SB', blind_region_hi, mass_window_hi)
     mass.setRange('fit_range', fit_range_lo,fit_range_hi)
@@ -20,7 +20,7 @@ def load_data(mass_window_lo, mass_window_hi, blind_region_lo, blind_region_hi, 
     mass.setRange('full_range', mass_window_lo, mass_window_hi)
 
     # tau mass resolution
-    eta = ROOT.RooRealVar('tau_fit_eta', '#eta_{3 #mu}'  , -4.0,  4.0)
+    eta = ROOT.RooRealVar('tau_fit_eta', '#eta(3#mu)'  , -4.0,  4.0)
     # BDT score
     bdt = ROOT.RooRealVar('bdt_score', 'BDT score'  , 0.0,  1.0, '' )
     # data weights
@@ -98,7 +98,7 @@ def get_pull(fit_var, frame, pull_range = 5.0, curve_name= '', title = 'Pull Dis
     return f_pull
 
 def draw_fit_pull(frame_fit, frame_pull= None, fitvar = None, out_name = 'Pull Distribution', logy = False, xlim = None, ylim = None, year = ''):
-    cCMS.SetLumi(config.LumiVal_plots[year] if year else '')
+    cCMS.SetLumi(f'config.LumiVal_plots[year]:.0f' if year else '')
     cCMS.SetEnergy(13.6)
 
     c = cCMS.cmsDiCanvas( 'c',
@@ -147,7 +147,7 @@ def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title 
     bkg_func.plotOn(
         frame,
         ROOT.RooFit.LineColor(ROOT.kBlue),
-        ROOT.RooFit.LineWidth(2),
+        ROOT.RooFit.LineWidth(3),
         ROOT.RooFit.Range('full_range'),
         ROOT.RooFit.NormRange('left_SB,right_SB'),
         ROOT.RooFit.MoveToBack(),
@@ -173,13 +173,14 @@ def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title 
             ROOT.RooFit.Range('full_range'),
             ROOT.RooFit.NormRange('full_range'),
             ROOT.RooFit.Name(f'sig_func_{i}'),
+            ROOT.RooFit.LineWidth(3),
         )
     
     return frame
 
 def apply_cms_style(frame, outfile, cat, year, Preliminary = True, margin = 0.12, ymax = 10):
     CMS.setTDRStyle()
-    x_txt = 0.50
+    x_txt = 0.43
     # LaTeX for text
     latex = ROOT.TLatex()
     latex.SetNDC()
@@ -195,10 +196,10 @@ def apply_cms_style(frame, outfile, cat, year, Preliminary = True, margin = 0.12
     legend.SetTextSize(0.04)
     legend.SetTextFont(42)
     
-    legend.AddEntry(frame.findObject('data'), 'Data', 'lep')
-    legend.AddEntry(frame.findObject('bkg_func'), 'Background-only fit', 'l')
-    legend.AddEntry(frame.findObject('sig_func_0'), 'W#rightarrow #tau(3#mu)#nu (Br=10^{-7})', 'l')
-    legend.AddEntry(frame.findObject('sig_func_1'), 'Z#rightarrow #tau(3#mu)#tau (Br=10^{-7})', 'l')
+    legend.AddEntry(frame.findObject('data'),       'Data', 'lep')
+    legend.AddEntry(frame.findObject('bkg_func'),   'Background-only fit', 'l')
+    legend.AddEntry(frame.findObject('sig_func_0'), 'W signal (B = 10^{-7})', 'l')
+    legend.AddEntry(frame.findObject('sig_func_1'), 'Z signal (B = 10^{-7})', 'l')
 
     # frame settings
     frame.SetMaximum(ymax)
@@ -206,8 +207,8 @@ def apply_cms_style(frame, outfile, cat, year, Preliminary = True, margin = 0.12
     #frame.GetYaxis().SetTitleOffset(1.4)
     frame.GetYaxis().SetTitleSize(0.05)
     frame.GetYaxis().SetLabelSize(0.045)
-    #frame.GetXaxis().SetTitleOffset(1.2)
-    frame.GetXaxis().SetTitleSize(0.05)
+    frame.GetXaxis().SetTitleOffset(0.9)
+    frame.GetXaxis().SetTitleSize(0.060)
     frame.GetXaxis().SetLabelSize(0.045)
 
     

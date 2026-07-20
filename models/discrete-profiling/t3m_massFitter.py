@@ -53,7 +53,8 @@ parser.add_argument('--signal_W',                                               
 parser.add_argument('--signal_Z',                                                                           help='input ZTau3Mu MC')
 parser.add_argument('-d', '--data',                                                                         help='input DATA')
 parser.add_argument('--plot_outdir',    default= '/eos/user/c/cbasile/www/Tau3Mu_Run3/SigBkg_models/',      help='output directory for plots')
-parser.add_argument('--goff',           action = 'store_true' ,                                             help='NO plots')
+parser.add_argument('--goff',           action = 'store_true' ,                                             help='NO signal plots')
+parser.add_argument('--plotOnly',       action = 'store_true' ,                                             help='produce only plots')
 parser.add_argument('--save_ws',        action = 'store_true' ,                                             help='set it to save the workspace for combine')
 parser.add_argument('--sys_unc',        action = 'store_true' ,                                             help='put systematics in the datacard')
 parser.add_argument('--fix_w',          action = 'store_true' ,                                             help='fix the signal width')
@@ -420,9 +421,10 @@ if USE_CMS_STYLE:
                             outfile='%s/massfit_SB_%s'%(args.plot_outdir, point_tag), 
                             cat=args.category, 
                             year='20'+args.year, 
-                            Preliminary=True,
-                            ymax= np.round(1.2*frame_b.GetMaximum(), 1) if args.bdt_cut < 0.980 else 10,
+                            Preliminary=False,
+                            ymax= np.round(1.2*frame_b.GetMaximum(), 1) if args.bdt_cut < 0.980 else 12,
                             )
+    if args.plotOnly : exit(0) 
 else:
     # print N signal and N background on plot
     fitu.add_summary_text(frame_b, f'Nw = {nsig_W.getValV():.2f} +/- {nsig_W.getError():.2f}', x = tau_mass, y=0.90*frame_b.GetMaximum())
@@ -509,12 +511,12 @@ else:
     pdfs = ROOT.RooArgSet(s_model, b_model)
 ws.Import(
     pdfs,
-    ROOT.RooFit.RenameVariable("tau_fit_mass", "m3m"),
+    ROOT.RooFit.RenameVariable("tau_fit_mass", "vm3m"),
     ROOT.RooFit.RecycleConflictNodes()
 )
 ws.Import(
     data,
-    ROOT.RooFit.RenameVariable("tau_fit_mass", "m3m"),
+    ROOT.RooFit.RenameVariable("tau_fit_mass", "vm3m"),
     ROOT.RooFit.RecycleConflictNodes()
 )
 ws.Print()
