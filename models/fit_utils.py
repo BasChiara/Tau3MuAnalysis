@@ -147,7 +147,7 @@ def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title 
     if toMeV : frame.GetYaxis().SetTitle(f'Events / {binwidth:.0f} MeV')
     bkg_func.plotOn(
         frame,
-        ROOT.RooFit.LineColor(ROOT.kBlue),
+        ROOT.RooFit.LineColor(ROOT.TColor.GetColor("#5790fc")),
         ROOT.RooFit.LineWidth(3),
         ROOT.RooFit.Range('full_range'),
         ROOT.RooFit.NormRange('left_SB,right_SB'),
@@ -155,7 +155,7 @@ def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title 
         ROOT.RooFit.Name('bkg_func'),
     )
     # signal model(s)
-    colors = [ROOT.kRed, ROOT.kGreen+2, ROOT.kMagenta, ROOT.kOrange, ROOT.kCyan, ROOT.kYellow]
+    colors = [ROOT.TColor.GetColor("#e42536"), ROOT.TColor.GetColor("#f89c20"), ROOT.TColor.GetColor("#964a8b")]
     for i, sig in enumerate(sig_func):
         sig_data[i].plotOn(
             frame, 
