@@ -414,6 +414,8 @@ frame_b = fitu.draw_full_fit(
     bkg_dataset, ext_bkg_model, 
     nbins, 
     title='#tau -> 3 #mu signal+bkg - CAT %s BDTscore > %.3f'%(args.category, cut),
+    root_out='%s/massfit_SB_%s.root'%(args.plot_outdir, point_tag) if args.plotOnly else None,
+    blind = runblind
 ) 
 if USE_CMS_STYLE:
     frame_b.SetTitle('')

@@ -12,7 +12,7 @@ import cmsstyle as cCMS
 # *** RooFit Variables ***
 def load_data(mass_window_lo, mass_window_hi, blind_region_lo, blind_region_hi, fit_range_lo, fit_range_hi, reduced = False):
     # tau mass
-    mass = ROOT.RooRealVar('tau_fit_mass', 'm(3#mu)'  , mass_window_lo,  mass_window_hi, 'GeV' )
+    mass = ROOT.RooRealVar('tau_fit_mass', 'm_{3#mu}'  , mass_window_lo,  mass_window_hi, 'GeV' )
     mass.setRange('left_SB', mass_window_lo, blind_region_lo)
     mass.setRange('right_SB', blind_region_hi, mass_window_hi)
     mass.setRange('fit_range', fit_range_lo,fit_range_hi)
@@ -131,7 +131,18 @@ def draw_fit_pull(frame_fit, frame_pull= None, fitvar = None, out_name = 'Pull D
     c.Close()
     return True
 
-def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title = 'fit', CMSstyle = False, toMeV = True):
+def curve_to_th1(curve, name, nbins, xlo, xhi, title=''):
+    '''Convert a RooCurve (already normalised to events/bin on the frame) into a TH1D'''
+    h = ROOT.TH1D(name, title, nbins, xlo, xhi)
+    h.SetDirectory(0)
+    for ib in range(1, nbins + 1):
+        lo, hi = h.GetBinLowEdge(ib), h.GetBinLowEdge(ib + 1)
+        h.SetBinContent(ib, curve.average(lo, hi))
+        h.SetBinError(ib, 0.)
+    print(f'[+] RooCurve {curve.GetName()} converted to TH1D {name} with {nbins} bins in [{xlo}, {xhi}]')
+    return h
+
+def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title = 'fit', CMSstyle = False, toMeV = True, root_out = None, blind = True, sig_names = None):
     
     frame = fitvar.frame(ROOT.RooFit.Title(title))
     # bacground model
@@ -176,6 +187,30 @@ def draw_full_fit(fitvar, sig_data, sig_func, data, bkg_func, nbins = 65, title 
             ROOT.RooFit.Name(f'sig_func_{i}'),
             ROOT.RooFit.LineWidth(3),
         )
+    
+    # ---- store HEPData inputs ----
+    if root_out:
+        xlo, xhi = fitvar.getMin(), fitvar.getMax()
+        if sig_names is None: sig_names = [f'sig_{i}' for i in range(len(sig_func))]
+
+        # data: RooHist -> TGraphAsymmErrors with Poisson errors
+        g_data = ROOT.TGraphAsymmErrors(frame.getHist('data'))
+        g_data.SetName('data')
+        if blind:
+            # drop the empty points inside the blinded window
+            blind_lo, blind_hi = fitvar.getMax('left_SB'), fitvar.getMin('right_SB')
+            for ip in reversed(range(g_data.GetN())):
+                x = g_data.GetPointX(ip)
+                if blind_lo < x < blind_hi: g_data.RemovePoint(ip)
+        
+        # background and signal models: RooCurve -> TH1D
+        h_bkg  =  curve_to_th1(frame.getCurve('bkg_func'), 'bkg_model', nbins, xlo, xhi)
+        h_sigs = [curve_to_th1(frame.getCurve(f'sig_func_{i}'), f'{sig_names[i]}_model', nbins, xlo, xhi) for i in range(len(sig_func))]
+
+        fout = ROOT.TFile(root_out, 'RECREATE')
+        for obj in [g_data, h_bkg] + h_sigs : obj.Write()
+        fout.Close()
+        print(f'[+] HEPData inputs saved in {root_out}')
     
     return frame
 

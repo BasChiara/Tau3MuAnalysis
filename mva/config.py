@@ -511,9 +511,9 @@ def tauEta(eta):
 ### ----- features Nbins xlow xhigh ---- ###
 
 features_NbinsXloXhiLabelLog = {
-    'tau_fit_pt'        : [ 50, 10, 75,     'Trimuon p_{T} (GeV)',      0],
-    'tau_fit_mt'        : [ 30, 0, 120,     'Trimuon transverse mass (GeV)',           0],
-    'tau_relIso'        : [ 50, 0, 1.0,     'Trimuon relative isolation',  1],
+    'tau_fit_pt'        : [ 50, 10, 75,     'Three-muon p_{T} (GeV)',      0],
+    'tau_fit_mt'        : [ 30, 0, 120,     'Transverse mass (GeV)',           0],
+    'tau_relIso'        : [ 50, 0, 1.0,     'Three-muon relative isolation',  1],
     'tau_met_Dphi'      : [ 32, 0, 6.4,     '#Delta #phi (3#mu, MET)',0],
     'tau_met_pt'        : [ 20, 0, 100.,    'MET (GeV)',               0],
     'tau_met_ratio_pt'  : [ 30, 0., 3.,     'MET/p_{T}(3#mu)',        0],
