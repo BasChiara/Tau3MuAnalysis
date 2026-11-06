@@ -1,0 +1,97 @@
+dependent_variables:
+- header:
+    name: Observed 90% CL upper limit on $\mathcal{B}(\tau \to 3\mu)$
+    units: $10^{-8}$
+  values:
+  - value: 6.8
+  - value: 12.78
+  - value: 10.01
+  - value: 7.59
+  - value: 6.72
+  - value: 2.9
+  - value: 2.83
+- header:
+    name: Median expected 90% CL upper limit on $\mathcal{B}(\tau \to 3\mu)$
+    units: $10^{-8}$
+  values:
+  - errors:
+    - asymerror:
+        minus: -2.12
+        plus: 3.0
+      label: 68% expected
+    - asymerror:
+        minus: -3.2
+        plus: 6.8
+      label: 95% expected
+    value: 6.6
+  - errors:
+    - asymerror:
+        minus: -1.97
+        plus: 3.38
+      label: 68% expected
+    - asymerror:
+        minus: -3.32
+        plus: 7.71
+      label: 95% expected
+    value: 7.08
+  - errors:
+    - asymerror:
+        minus: -1.88
+        plus: 3.03
+      label: 68% expected
+    - asymerror:
+        minus: -3.14
+        plus: 6.86
+      label: 95% expected
+    value: 6.56
+  - errors:
+    - asymerror:
+        minus: -2.16
+        plus: 3.1
+      label: 68% expected
+    - asymerror:
+        minus: -3.44
+        plus: 7.13
+      label: 95% expected
+    value: 6.91
+  - errors:
+    - asymerror:
+        minus: -1.43
+        plus: 2.06
+      label: 68% expected
+    - asymerror:
+        minus: -2.25
+        plus: 4.59
+      label: 95% expected
+    value: 4.7
+  - errors:
+    - asymerror:
+        minus: -0.7
+        plus: 1.2
+      label: 68% expected
+    - asymerror:
+        minus: -1.1
+        plus: 2.7
+      label: 95% expected
+    value: 2.4
+  - errors:
+    - asymerror:
+        minus: -0.69
+        plus: 0.94
+      label: 68% expected
+    - asymerror:
+        minus: -1.15
+        plus: 2.37
+      label: 95% expected
+    value: 2.21
+independent_variables:
+- header:
+    name: Category
+  values:
+  - value: Heavy-flavor 2022+2023
+  - value: V 2022+2023
+  - value: Heavy-flavor+V 2022
+  - value: Heavy-flavor+V 2023
+  - value: Heavy-flavor+V 2022+2023
+  - value: Heavy-flavor+W 2016-2018
+  - value: Heavy-flavor+V 2016-2023
